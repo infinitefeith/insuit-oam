@@ -5,3 +5,6 @@ In-Suit OAM（随流检测）,有时也称为In-band OAM，这是IETF选择“In
 
 对于更多关于随流检测的信息 可以参考：https://github.com/inband-oam/ietf
 
+#软件自动下在RFC文档
+https://www.rfc-editor.org/rfc/rfcXXXXX.html
+
