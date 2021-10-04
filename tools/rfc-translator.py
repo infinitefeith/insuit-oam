@@ -1,10 +1,10 @@
 import sys
 
-from translator.Google import GoogleTranslate
+from translator.Translator import Translator
 
 if __name__ == "__main__":
-    google = GoogleTranslate()
-    # dscfile = open("rfc8321-1.txt", "w+")
+    google = Translator()
+    dscfile = open("rfc8321-1.txt", "w+")
     with open("rfc8321.txt", "r+") as srcfile:
         content = srcfile.read()
         segments = content.split("\n\n")
@@ -26,11 +26,12 @@ if __name__ == "__main__":
                 line = ' '.join(section.replace("\n", "").split())
                 print(line)
                 psection = False
-                print(google.translate('en', 'zh', line))
+                if line is not '':
+                    linde = google.translate(line, dest='zh-CN')
 
-    #         if psection is True:
-    #             dscfile.write(section)
-    #         else:
-    #             dscfile.write(line)
-    #         dscfile.write("\n")
-    # dscfile.close()
+            if psection is True:
+                dscfile.write(section)
+            else:
+                dscfile.write(line)
+            dscfile.write("\n")
+    dscfile.close()
