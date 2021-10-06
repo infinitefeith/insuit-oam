@@ -26,3 +26,5 @@ https://www.cnblogs.com/jason-Gan/p/10567018.html
 爬虫代码仅供学习交流使用，请勿用于商业用途。
 
 更多：https://github.com/neverneverendup/Translator
+
+由于谷歌API不好用了，已经改用Selenium爬虫获取，虽然速度慢，但可以保证质量
