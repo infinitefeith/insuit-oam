@@ -11,13 +11,13 @@ from lxml import etree
 class Translator():
     def __init__(self):
         self.chrome_options = Options()
-        #self.chrome_options.add_argument("--headless")
+        self.chrome_options.add_argument("--headless")
         self.browser = webdriver.Chrome(options=self.chrome_options)
 
     def __del__(self):
         self.browser.close()
 
-    @retry(tries=3, delay=60)
+    @retry(tries=1, delay=60)
     def translate(self, input, dest):
         """
         @dest为需要翻译的目标语言
