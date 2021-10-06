@@ -27,11 +27,12 @@ if __name__ == "__main__":
                 print(line)
                 psection = False
                 if line is not '':
-                    linde = google.translate(line, dest='zh-CN')
+                    transline = google.translate(line, dest='zh-CN')
 
             if psection is True:
                 dscfile.write(section)
-            else:
-                dscfile.write(line)
+            elif line is not '':
+                dscfile.write(transline)
+                print(transline)
             dscfile.write("\n")
     dscfile.close()
