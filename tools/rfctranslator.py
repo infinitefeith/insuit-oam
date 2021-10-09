@@ -41,7 +41,7 @@ def getPrefixAndContent(line):
     if ':' not in line:
         return '', line
     temp = line.split(':', maxsplit=1)
-    if len(temp[0]) > 25:
+    if len(temp[0]) > 30:
         return '', line
     else:
         prefix = temp[0]

@@ -196,7 +196,7 @@ class Window(QMainWindow, QWidget):
             print(self.my_text)
             #假设是文件路径则转换
             if isFilePath(self.my_text):
-                rfcTranslate(google, self.my_text, self.my_text.replace('.txt', '_t.txt'))
+                rfcTranslate(google, self.my_text, self.my_text.replace('.txt', '_CN.txt'))
                 self.my_output = self.my_text.replace('.txt', '_t.txt')
             else:
                 prefix, line = getPrefixAndContent(self.my_text)

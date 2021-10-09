@@ -17,12 +17,14 @@ class Translator():
     def __del__(self):
         self.browser.close()
 
-    @retry(tries=1, delay=60)
+    @retry(tries=3, delay=60)
     def translate(self, input, dest):
         """
         @dest为需要翻译的目标语言
         """
-        base_url = 'https://translate.google.cn/?sl=en&tl=%s&op=translate' % dest
+        if input is '' or dest is '':
+            return ''
+        base_url = 'https://translate.google.com/?sl=en&tl=%s&op=translate' % dest
         if self.browser.current_url == 'data:,':
             self.browser.get(base_url)
         else:
