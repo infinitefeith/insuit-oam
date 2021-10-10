@@ -196,13 +196,15 @@ class Window(QMainWindow, QWidget):
             print(self.my_text)
             #假设是文件路径则转换
             if isFilePath(self.my_text):
-                rfcTranslate(google, self.my_text, self.my_text.replace('.txt', '_t.txt'))
+                rfcTranslate(google, self.my_text, self.my_text.replace('.txt', '_CN.txt'))
                 self.my_output = self.my_text.replace('.txt', '_t.txt')
             else:
                 prefix, line = getPrefixAndContent(self.my_text)
                 transline = google.translate(line, dest='zh-CN')
                 if prefix is not '':
                     self.my_output = "{prefix} : {content}".format(prefix=prefix, content=transline)
+                else:
+                    self.my_output = transline
             print('Output:' + self.my_output)
             self.textbox_output.setPlainText(self.my_output)
         except Exception as e:

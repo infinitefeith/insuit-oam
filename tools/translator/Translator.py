@@ -22,6 +22,8 @@ class Translator():
         """
         @dest为需要翻译的目标语言
         """
+        if input is '' or dest is '':
+            return ''
         base_url = 'https://translate.google.cn/?sl=en&tl=%s&op=translate' % dest
         if self.browser.current_url == 'data:,':
             self.browser.get(base_url)
