@@ -40,14 +40,19 @@ def getPrefixAndContent(line):
     :return:
     """
     if ':' not in line:
-        return '', line
+        return '', ' '.join(line.replace("\n", " ").split())
     temp = line.split(':', maxsplit=1)
+<<<<<<< .mine
     if len(temp[0]) > 30:
         return '', line
+=======
+    if len(temp[0]) > 30:
+        return '', ' '.join(line.replace("\n", " ").split())
+>>>>>>> .theirs
     else:
         prefix = temp[0]
         line = temp[1]
-    return prefix, line
+    return prefix, ' '.join(line.replace("\n", " ").split())
 
 def isFigure(section):
     """

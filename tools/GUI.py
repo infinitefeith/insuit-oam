@@ -203,6 +203,8 @@ class Window(QMainWindow, QWidget):
                 transline = google.translate(line, dest='zh-CN')
                 if prefix is not '':
                     self.my_output = "{prefix} : {content}".format(prefix=prefix, content=transline)
+                else:
+                    self.my_output = transline
             print('Output:' + self.my_output)
             self.textbox_output.setPlainText(self.my_output)
         except Exception as e:
