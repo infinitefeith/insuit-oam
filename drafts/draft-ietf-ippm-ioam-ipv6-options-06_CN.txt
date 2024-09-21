@@ -1,0 +1,652 @@
+
+
+
+
+  IPPM S. Bhandari，Ed.Internet-
+interningspotiptented状态：标准跟踪F. Brockners
+，Expires：2月1日，2022年2月31日，2021年7月31日
+
+  IN-DOU OAM IPv6选项Braft-IETF-IPPM-IOAM-
+IPv6-Options-06
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。本文档概述了IOAM数据字段如何在IPv6中
+封装。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年2月1日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 1]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   3.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     3.1.  Requirements Language . . . . . . . . . . . . . . . . . .   3
+     3.2.  Abbreviations . . . . . . . . . . . . . . . . . . . . . .   3
+   4.  In-situ OAM Metadata Transport in IPv6  . . . . . . . . . . .   4
+   5.  IOAM Deployment In IPv6 Networks  . . . . . . . . . . . . . .   7
+     5.1.  Considerations for IOAM deployment in IPv6 networks . . .   7
+     5.2.  IOAM domains bounded by hosts . . . . . . . . . . . . . .   8
+     5.3.  IOAM domains bounded by network devices . . . . . . . . .   8
+     5.4.  Deployment options  . . . . . . . . . . . . . . . . . . .   8
+       5.4.1.  IPv6-in-IPv6 encapsulation  . . . . . . . . . . . . .   8
+       5.4.2.  IP-in-IPv6 encapsulation with ULA . . . . . . . . . .   9
+       5.4.3.  x-in-IPv6 Encapsulation that is used Independently  .  10
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  11
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .  11
+   Contributors' Addresses . . . . . . . . . . . . . . . . . . . . .  12
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
+
+1.介绍
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。本文档概述了IOAM数据字段如何在IPv6 
+[RFC8200]中封装，并讨论使用IPv6封装的IOAM数据字段的网络的部署选
+项。这些选项具有不同的部署考虑因素;例如，IOAM域可以是主机之间，或者在IOA
+M之间封装和解封装的网络节点之间的流量，例如路由器。
+
+2.贡献者
+
+  本文件是若干作者的集体努力。文本和内容由编辑和下面列出的共同作者提供了贡献。
+共同作者的联系信息在本文档的末尾出现。
+
+  或卡洛斯帕甘罗..
+
+  o Hannes Gratler.
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 2]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  o John Lieddy.
+
+  Steffen Hihell.
+
+  一种
+
+  Aviv Kfir.
+
+  巴拉克GAF.
+
+  关于Petr Lapukhov.
+
+  o米克镜子
+
+  o Suresh Krishnan.
+
+  o Rajiv Asati.
+
+  o Mark Smith.
+
+3.惯例
+
+3.1。要求语言
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+3.2。缩写
+
+  本文档中使用的缩写：
+
+  E2E : 边沿
+
+  IOAM : 原位运营，管理和维护
+
+  ION : IOAM覆盖网络
+
+  OAM : 运营，管理和维护
+
+  POT : 过境证明
+
+
+
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 3]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+4. IPv6中原位OAM元数据传输
+
+  IPv6中的原位OAM用于增强IPv6网络的诊断。它补充了旨在增强IPv6网
+络诊断的其他机制，例如[RFC8250]中描述的IPv6性能和诊断度量目标选项。
+
+  IOAM数据字段可以在“选项数据”字段中使用IPv6报文中的两种分机标题封装
+- 逐跳选项标题或目标选项标题。部署根据使用ioam的使用方式选择其中一个，如[
+I-D.ietf-IPPM-IOAM-Data]第4节中所述。具有相同选项类型的
+多个选项可能会显示在同一跳跃选项或目标选项标题中，具有不同的内容。
+
+  为了使IOam在IPv6网络中工作，必须在IOAM域内的每个节点上每次接口明
+确启用IOAM。除非是明确启用了特定接口（即，显式配置）IOAM，否则路由器必须
+丢弃包含携带IOAM数据字段的扩展头的数据包。这是默认行为，并且独立于跳跃选项或
+目标选项是否用于对IOAM数据进行编码。这可确保IOAM数据在IOAM域外无意中
+转发。
+
+  携带扩展头中的IOAM数据的IPv6数据包可以具有其他扩展标题，符合[RFC
+8200]。
+
+  IPv6逐跳和目的地选项格式用于携带的原位OAM数据字段：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 4]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Option Type  |  Opt Data Len |   Reserved    |   IOAM Type   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |                                                               |  |
+   .                                                               .  I
+   .                                                               .  O
+   .                                                               .  A
+   .                                                               .  M
+   .                                                               .  .
+   .                          Option Data                          .  O
+   .                                                               .  P
+   .                                                               .  T
+   .                                                               .  I
+   .                                                               .  O
+   .                                                               .  N
+   |                                                               |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+
+  Option Type : 8位选项类型标识符如定义的insept 7。
+
+  Opt Data Len :
+8位无符号整数。此选项的长度，在八位字节中，不包括前2个八位字节。
+
+  Reserved : 在传输时必须将8位字段设置为零，并在接收时忽略。
+
+  IOAM Type : 7.2中定义的8位字段[i-d.ietf-ippm-
+ioam-data]中定义。
+
+  Option Data : 可变长度字段。选项类型特定的数据。
+
+  原位OAM选项类型作为选项数据插入如下：
+
+1. Pre-allocated Trace Option :
+在[i-d.ietf-ippm-ioam-data-data]中定义的位于OAM
+预分配的跟踪选项类型表示为跳通扩展头中的IPv6选项：
+
+  Option Type : 001xxxxx
+8位标识IOam类型的选项。xxxxx = tbd。
+
+  IOAM Option-Type : IOAM预先分配的跟踪选项类型。
+
+2. Incremental Trace Option : [i-d.ietf-
+ippm-ioam-
+data]中定义的原位OAM增量跟踪选项类型在跳跃扩展头中表示为IPv6选项：
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 5]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  Option Type : 001xxxxx
+8位标识IOam类型的选项。xxxxx = tbd。
+
+  IOAM Option-Type : IOAM增量跟踪选项类型。
+
+3. Proof of Transit Option : 在[i-d.ietf-
+ippm-ioam-data]中定义的原位OAM pot
+op选项类型在跳跃扩展头中表示为IPv6选项：
+
+  Option Type : 001xxxxx
+8位标识IOam类型的选项。xxxxx = tbd。
+
+  IOAM Option-Type : IOam锅选项类型。
+
+4. Edge to Edge Option : [i-d.ietf-ippm-
+ioam-data]中定义的位于oam
+e2e选项在目标扩展头中表示为IPv6选项：
+
+  Option Type : 000xxxxx
+8位标识为IOAM类型的选项。xxxxx = tbd。
+
+  IOAM Option-Type : IOAM E2E选项类型。
+
+5. Direct Export (DEX) Option :
+[i-d.ietf-ippm-ioam-director-
+express]中定义的位于oam直接导出选项 -
+在跳通扩展头中表示为IPv6选项：
+
+  Option Type : 000xxxxx
+8位标识为IOAM类型的选项。xxxxx = tbd。
+
+  IOAM Option-Type : IOAM直接导出（DEX）选项类型。
+
+  这里定义的所有原位OAM IPv6选项都具有对齐要求。具体而言，它们都需要4
+n对准。这可确保在[i-d.ietf-ippm-ioam-data-data-d
+ata中指定的字段从跳通和目标选项标头的开始，在4个偏移量偏移。另外，要维护IP
+v6扩展头8  - 八位字节对齐并避免在每跳时需要添加或删除填充，必须选择IPv
+6中的增量跟踪选项的跟踪类型，使得IOAM节点数据长度为8倍-octets。
+
+  IPv6选项可具有255个八位字节的最大长度。因此，当封装到IPv6中时，包
+括所有数据字段的IOAM选项类型的总长度也限于255个八位字节。
+
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 6]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+5. IOAM在IPv6网络中部署
+
+5.1。IOAM部署在IPv6网络中的注意事项
+
+  IPv6网络中的IOAM部署应考虑以下考虑因素和要求：
+
+  C1期望添加IOAM数据字段既不会改变路由器转发报文的方式，路由器采用转发决
+策。具有添加OAM信息的数据包应遵循域中的相同路径，即即使在存在ECMP的情况下
+，也应在没有OAM信息的情况下进行相同的数据包。这种行为对于只有IOAM数据字段
+仅添加“按需”的部署尤为重要，例如，在某些流动的不期望的网络行为的情况下提供进一
+步的见解。IOam的实现应确保具有和不带IOAM数据字段的数据包的ECMP行为是
+相同的。
+
+  C2假设IOAM数据字段增加了数据包的总大小，包括IOAM数据的数据包的大小
+可能超过PMTU。特别地，旨在支持IOAM的硬件实现的增量跟踪IOAM HOP-
+ob-BY-HOP（HBH）选项将更改选项数据长度在路由中。IOAM域的操作员应
+确保添加OAM信息不会导致分组的碎片，例如，通过配置传输路由器的MTU和切换到足
+够高的值。仔细控制网络中的MTU是Ioam被视为特定于域特定功能的原因之一（另请
+参见[I-D.ITTF-IPPM-IOAM-DATA]）。另外，如果超过PMTU
+的数据包大小，则应识别IOAM域中的PMTU容差范围（例如，通过配置）和IOAM
+封装操作和/或IOAM数据字段插入（在增量跟踪的情况下）。
+
+  C3数据包具有IOAM数据或相关的ICMP错误，不应到达没有IOAM知识的目
+的地。对于exmample，如果在传输设备中使用IOam，则由于数据包中的oam
+数据的添加和/或存在而误导ICMP错误可能会使发送数据包的主机混淆，如果它没有插
+入OAM信息。
+
+  C4 OAM数据泄漏可能会影响IOAM域外的转发行为和网络元素状态。IOAM
+域应提供一种机制来防止数据泄漏或能够确保如果发生泄漏，则域外的网络元素不受影响（
+即，它们继续处理其他有效数据包）。
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 7]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  C5插入和泄漏IOAM数据的源需要容易地识别故障排除的目的，因为故障排除的源
+是插入IOAM数据的源的高复杂性，并且当在自主系统遍历的数据包时未删除它（作为）
+。此类故障排除过程可能需要多个运算符之间的协调，复杂的配置验证，数据包捕获分析等
+。
+
+  C6符合[RFC8200]需要使用原始IPv6标题将OAM数据直接插入到飞行
+中的标题/选项插入。
+
+5.2。由主机界定的IOAM域名
+
+  对于IOAM域界定的部署，主机将执行IOAM数据字段封装和解封装的操作。IO
+AM数据在IPv6数据包中携带，作为本文档中指定的跳跃或目标选项。
+
+5.3。由网络设备限定的IOAM域
+
+  对于IOAM域被网络设备界定的部署，诸如路由器的网络设备形成IOAM域的边缘
+。网络设备将执行IOAM数据字段封装和解封装的操作。
+
+5.4。部署选项
+
+  本节列出了可能的部署选项，可用于满足第5.1节中列出的要求。
+
+5.4.1。IPv6-Inv6封装
+
+  “ipv6-in-ipv6”方法保留原始IP数据包，并在其前面的扩展头中添加
+包括Ioam数据字段的IPv6标题，以在IOAM域内转发流量。由附加IPv6报头
+形成的覆盖网络，其中包括在扩展报头中的IOAM数据字段被称为本文档中的IOAM覆
+盖网络（离子）。
+
+  应采取以下步骤执行IPv6 Inv6方法：
+
+1.外部IPv6报头的源地址是IOAM封装节点的源地址。外部IPv6报头的目标地
+址与内部IPv6目标地址相同，即数据包的目标地址不会更改。
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 8]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+2.要简化Debugging，请在泄露的IOAM数据字段中，考虑新的IOAM E
+2E目标选项以标识源IOAM域（AS，V6前缀）。将此选项插入连接到外部IPv6
+标题的IOAM目标选项EH。此附加信息将允许简单地识别AS运算符，该操作员是具有
+泄漏的IOAM信息的数据包源。请注意，如果路由器将错误配置，则只能发生具有IOA
+M数据字段的泄露的数据包。
+
+3.所有IOAM选项都定义为“00”类型 - 跳过此选项并继续处理标题。这些选项
+的存在不得导致不理解选项的网络元素中的数据包。此外，应考虑[I-D.IETF-6
+MAN-HBH-HEADER-HAVERGER]。
+
+5.4.2。IP IPv6与ULA封装
+
+  “具有ULA”[RFC4193]方法的“IP-IPv6封装”方法可用于将IO
+AM应用于IPv6或IPv4网络。此外，它还通过使用ULA进行离子来满足要求C4
+（避免泄漏）。类似于上面的IPv6 Inv6封装方法，保留了原始IP数据包。在其
+前面添加一个IPv6标题，包括扩展头中的IOAM数据字段，以在IOAM域内转发流
+量。 IPv6用于离子的地址，即外部IPv6地址从ULA空间分配。要配置在离子中
+的寻址和路由，使得IP-Indv6封装数据包遵循与原始的非封装数据包相同的路径。
+这将使用IOAM域的内部ULA地址空间创建内部IPv6转发拓扑，该空间与非IOA
+M地址空间（拓扑和地址空间之后的拓扑和地址空间不具有补充IOam的地址空间）并行
+信息）。并行IOAM ULA转发拓扑的建立和维护可以自动化，例如，类似于LDP 
+[RFC5036]如何在MPLS中使用，以建立和维护与网络的IGP转发拓扑平行的
+LSP转发拓扑结构。
+
+  在离子上的过境可以利用BGP边界路由器之间的交通运输方法，如[RFC1772
+]中所述，“A.2.3封装”中所述。假设[RFC4193]第4节中规定的操作指南
+被正确遵循，这种方法中泄漏的可能性几乎接近零。如果数据包通过IOAM出口设备的错
+误配置或部分IOAM出口设备故障，则数据包的ULA目的地地址在IOAM域之外无效
+。没有达到外部目的地，并且当遇到具有数据包过滤器的IOAM域外部的路由器时，数据
+包将被删除
+
+
+
+Bhandari & Brockners    Expires February 1, 2022                [Page 9]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  将数据包与ULA Destinations丢弃，或者路由器没有默认路由。
+
+5.4.3。独立使用的X-IPv6封装
+
+  在某些情况下，希望监视使用独立于IOAM的需要部署的覆盖网络的域，例如，运行
+IPV6的覆盖网络，或者vxlan-inv6。在这种情况下，IOam可以封装在隧
+道（外部）IPv6报头中的延伸标题中。因此，隧道封装节点也是IOAM封装节点，并
+且隧道终点也是IOAM解封节点。
+
+6.安全考虑因素
+
+  本文档描述了IPv6中的IOAM数据字段的封装。在[i-d.ietf-
+ippm-ioam-data中，描述和定义了每个案例的特定IOam数据字段的安全
+注意事项（即，追踪，传输和e2e）。
+
+  由于本文档描述了IPv6的新选项，因此它们类似于[RFC8200]的安全注意
+事项以及[RFC8250]中记录的弱点。
+
+7. IANA考虑因素
+
+  此草案请求以下IPv6选项类型撰写从目标选项和跳跃选项Internet协议版
+本6（IPv6）参数的子注册表。
+
+  http : //www.iana.org/assignments/ipv6
+-parameters/ipv6- parameters.xhtml.
+
+      Hex Value    Binary Value      Description           Reference
+                   act chg rest
+      ----------------------------------------------------------------
+      TBD_1_0      00   0  TBD_1     IOAM                  [This draft]
+      TBD_1_1      00   1  TBD_1     IOAM                  [This draft]
+
+8.致谢
+
+  作者要感谢Tom Herbert，Eric Vyncke，Nalini
+Elkins，Srihari Raghavan，Ranganath
+Ts，Karthik Babu Harichandra Babu，Akshaya
+Nadahalli，Stefano Previdi，Hemant
+Singh，Erik Nordmark，LJ Wobker，Mark
+Smith，Andrew Yourtchenko和Justin Iurman
+for评论和建议。对于IPv6封装，本文档利用[I-D.Kitamura-
+IPv6-Record-Route]中描述的概念。作者愿意
+
+
+
+Bhandari & Brockners    Expires February 1, 2022               [Page 10]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  承认作者Hiroshi Kitamura和参与写作的人员的工作。
+
+9.参考资料
+
+9.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+05（正在进行的工作），7月2021年。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+9.2。信息参考资料
+
+  [i-d.ietf-6man-hbh-header-handling] Ba
+ker，F.和Bonica，2016年3月的“IPv6霍普opponsion延伸
+标题”。
+
+  [ID.Kitamura-IPv6-Record-Route]
+KITAMURA，H，“IPv6（PR6）录制路线（PR6）跳通选项扩展”，草案
+-  kitamura-IPv6-唱片 -
+00（正在进行中工作），2000年11月。
+
+  [RFC1772]
+REKHTER，Y.和P.粗略，“在互联网上的边境网关协议的应用”，RFC
+1772，DOI 10.17487 /
+RFC1772，1995年3月，<https://www.rfc-
+editor.org/info/RFC1772>。
+
+  [RFC4193] Hinden，R.和B.
+Haberman，“独特的本地IPv6单播地址”，RFC 4193，DOI
+10.17487 /
+RFC4193，2005年10月，<https://www.rfc-
+editor.org/info/rfc4193>。
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022               [Page 11]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  [RFC5036]
+Andersson，L.，Ed。，Mini，I.，Ed。和B.
+Thomas，Ed。，“LDP规范”，“LDP规范”，RFC 5036，DOI
+10.17487 / RFC5036，2007年10月<https：//
+www。RFC-EDITER.ORG/INFO/RFC5036>。
+
+  [rfc8200] Deering，S.和R.
+Hinden，“Internet协议，第6版（IPv6）规范”，STD
+86，RFC 8200，DOI 10.17487 /
+RFC8200，2017年7月，<https://www.rfc-
+editor.org/ info / rfc8200>。
+
+  [RFC8250] Elkins，N.，Hamilton，R.和M.Acke
+rmann，“IPv6性能和诊断度量（PDM）目的地选项”，RFC
+8250，DOI 10.17487 /
+RFC8250，2017年9月，<HTTPS：//www.rfc-
+Editor.org/info/rfc8250>。
+
+  贡献者的地址
+
+  Carlos Pignataro Cisco
+Systems，Inc。7200-11 Kit Creek Road
+Research Triangle Park，NC
+27709美国电子邮件：cpignata@cisco.com
+
+  Hannes Gredler Rtbrick
+Inc.电子邮件：hannes@rtbrick.com
+
+  John Leddy Email : John@LED单元.net
+
+  Stephen Youell JP Morgan Chase 25 Bank
+Street伦敦E14
+5JP英国电子邮件：Stephen.Youell@jpmorgan.com
+
+  ta老MI在RA Hi hu A为network.IO innovation
+lab Israel email: 他俩.密宗RA
+Hi.平衡点@Gmail.com
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022               [Page 12]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  Aviv Kfir Mellanox
+Technologies，Inc。350奥克曼·帕克，套房100
+Sunnyvale，CA 94085
+U.S.A.电子邮件：avivk@mellanox.com
+
+  Barak Gafni Mellanox
+Technologies，Inc。350奥克曼大道，套房100
+Sunnyvale，CA 94085
+U.S.A.电子邮件：gbarak@mellanox.com
+
+  Petr Lapukhov Facebook 1黑客方式Menlo
+Park，CA 94025美国电子邮件：Petr@fb.com
+
+  Mickey Spiegel赤脚网络，英特尔公司4750 Patrick
+Henry Drive Santa Clara，CA
+95054美国电子邮件：mickey.spiegel@intel.com
+
+  Suresh Krishnan Kaloom Email :
+速热式@卡loom.com
+
+  Rajiv Asati Cisco Systems，Inc。7200 Kit
+Creek Road Research Triangle Park，NC
+27709美国电子邮件：Rajiva@cisco.com
+
+  Mark Smith Po Box 521 Heidelberg，VIC
+3084 AU
+
+
+
+Bhandari & Brockners    Expires February 1, 2022               [Page 13]
+
+Internet-Draft       In-situ OAM IPv6 encapsulation            July 2021
+
+  Email : markzzzsmith id@gmail.com.
+
+  作者的地址
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Frank Brockners（编辑）Cisco
+Systems，Inc。Hansaallee
+249,329,3楼Duesseldorf，Nordrhein-
+Westfalen 40549德国
+
+  Email : FB rock呢@Cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bhandari & Brockners    Expires February 1, 2022               [Page 14]
+
+

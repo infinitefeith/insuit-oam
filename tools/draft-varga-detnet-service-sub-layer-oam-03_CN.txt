@@ -1,0 +1,588 @@
+
+
+
+
+  detnet B. Vargainternet-Draft J.
+Farkasintended状态：信息G.
+MirskyExpires：2023年1月26日，爱立信2022年7月25日
+
+  确定性网络（detnet）：服务子层的OAM函数 - 绘制varga-
+detnet-service-service-sub-layer-oam-03
+
+  抽象的
+
+  操作，管理和维护（OAM）工具对于确定性网络至关重要。Detnet体系结构[
+RFC8655]定义了两个子层：（1）Detnet Service子层和（2）D
+etnet转发子层。Detnet转发子层存在OAM机制。但是，服务子层的OAM可
+能需要对现有OAM协议进行新的扩展。该草案对Detnet服务子层功能的OAM程序
+进行了分析。
+
+  该备忘录的状态
+
+  该Internet草稿完全符合BCP 78和BCP 79的规定。
+
+  Internet草案是Internet工程工作组（IETF）的工作文件。请注
+意，其他小组还可以将工作文件作为Internet草案分发。当前的Internet
+草稿列表在https://datatracker.ietf.org/drafts
+/current/。
+
+  Internet草案是最长六个月有效的文件草案，并且可以随时更新，更换或淘汰
+其他文档。除了“正在进行的工作”之外，使用互联网选拔作为参考材料或引用它们是不合
+适的。
+
+  该互联网草稿将于2023年1月26日到期。
+
+  版权声明
+
+  版权（C）2022 IETF Trust和被确定为文档作者的人。版权所有。
+
+  本文档应遵守BCP 78和IETF Trust与IETF文档（https:/
+/trustee.ietf.org/lices inclice-info）有关的
+法律规定，并在本文档发布之日起生效。请仔细查看这些文件，因为他们描述了您的权利
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 1]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  和关于本文档的限制。从本文档中提取的代码组件必须包括修订后的BSD许可文本，
+如《信托法律规定》第4节中所述，并如修订的BSD许可中所述无保修。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Terms Used in This Document . . . . . . . . . . . . . . .   3
+     2.2.  Abbreviations . . . . . . . . . . . . . . . . . . . . . .   3
+     2.3.  Requirements Language . . . . . . . . . . . . . . . . . .   4
+   3.  DetNet Service Sub-layer OAM Challenges . . . . . . . . . . .   4
+     3.1.  Illustrative example  . . . . . . . . . . . . . . . . . .   4
+     3.2.  DetNet Service Sub-layer Specifics for OAM  . . . . . . .   5
+     3.3.  Information Needed during DetNet OAM Packet Processing  .   6
+     3.4.  A Possible Format of DetNet Associated Channel Header
+           (d-ACH) . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   4.  Requirements on OAM for DetNet Service Sub-layer  . . . . . .   6
+   5.  DetNet PING . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     5.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.2.  OAM processing at the DetNet service sub-layer  . . . . .   7
+       5.2.1.  Relay node with PRF . . . . . . . . . . . . . . . . .   7
+       5.2.2.  Relay node with PEF . . . . . . . . . . . . . . . . .   8
+       5.2.3.  Relay node with POF . . . . . . . . . . . . . . . . .   9
+       5.2.4.  Relay node without PREOF  . . . . . . . . . . . . . .   9
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
+     7.1.  DetNet MPLS OAM Flags Registry  . . . . . . . . . . . . .  10
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  10
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .  11
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
+
+1.简介
+
+  Detnet工作组已定义了两个子层：（1）提供Detnet服务子层，提供了D
+etnet服务（例如，服务保护），（2）Detnet转发子层，该子层可选地为de
+tnet提供资源分配流过基础网络提供的路径。在[RFC8655]中，已定义了De
+tnet Service子层的新Detnet特定功能，即Preof（用于数据包复
+制，消除和订购功能的集体名称）。
+
+
+
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 2]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  [i-d.ietf-detnet-oam-framework]中描述了确定性
+网络（detnet）的操作，管理和维护（OAM）的框架。[i-d.ietf-
+detnet-mpls-oam]描述了Detnet
+MPLS数据平面的OAM，而Detnet
+IP数据平面的OAM在[i-d.ietf-detnet-mpls-
+oam]中描述。
+
+  该草案已被作为对OAM讨论的个人贡献，特别是为了启动有关为Detnet服务子
+层引入OAM功能的工作组讨论。这也取决于工作组讨论，如果有的话，这项贡献的部分草
+案可能会进行。
+
+  Detnet服务子层的OAM功能允许允许识别/发现Detnet继电器节点，以
+获取有关其配置的信息，并检查其操作或状态。此外，Detnet服务子层的OAM功能
+需要应对新的挑战（请参阅第3节）和要求（请参阅Preof介绍的第4节）。
+
+  此草稿中描述的一种方法引入了新的OAM垫层层，以实现Detnet服务子层的O
+AM。在草稿的其余部分中，此方法称为“ detnet ping”，这是一种In-
+Band OAM方法，即，OAM数据包完全遵循与相应detnet流的数据包相同的
+路径。OAM数据包提供Detnet服务子层特定信息，例如：
+
+  * Detnet服务子层节点的身份。
+
+  *发现detnet服务子层节点的入口/出口流特异性配置。
+
+  *检测特异性服务子层函数的状态。
+
+  Detnet Ping同时适用于IP和MPLS Detnet数据平面。
+
+2.术语
+
+2.1。本文档中使用的术语
+
+  本文档使用Detnet体系结构[RFC8655]中建立的术语，并认为读者熟悉
+该文档及其术语。
+
+2.2。缩写
+
+  本文档中使用了以下缩写：
+
+  确定性网络。
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 3]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  PEF数据包消除功能。
+
+  POF数据包订购功能。
+
+  pepof数据包复制，消除和订购功能。
+
+  PRF数据包复制功能。
+
+2.3。要求语言
+
+  关键词“必须”，“必须”，“必需”，“应”，“不得”，“应该”，“不应该”，
+“建议”，“不建议”，“可能”和“可选”“在本文档中，应如BCP 14
+[RFC2119]
+[RFC8174]中所述解释，并且仅在所有首都出现在所有首都时，如下所示。
+
+3. Detnet服务子层OAM挑战
+
+3.1。说明性示例
+
+  本节介绍了一个示例，用于解释Detnet服务子层OAM挑战。图1显示了在从源
+到目的地转发期间在转发过程中应用的detnet流。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 4]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+
+        <------------------------ App Flow ----------------------->
+
+                /-------------- DetNet domain -----------------/
+                 <-------------- DetNet flow ----------------->
+
+                                                P6
+                     P1              P4   +------------+
+                +--------------E1----+    |  P7        |
+   +----+       |               |    +---R3---+        |  P9      +----+
+   |src |------R1           +---+             |        E3----O1---+ dst|
+   +----+       |    P2     |  P3             E2-------+          +----+
+                +----------R2        P5       |   P8
+                            +-----------------+
+
+                 <----- P1 ---->  <- P4 -> <--- P6 ----> <-P9->
+                 <-- P2 -->  <P3> <- P4 -> <P7> <- P8 -> <-P9->
+                 <-- P2 -->  <----- P5 ------>  <- P8 -> <-P9->
+
+                |------------ G1 DetNet graph ---------------->
+
+  R : 复制点（PRF）P：转发子层路径E：消除点（PEF）G：服务子层图O
+：订购函数（POF）
+
+
+
+  Figure 1 : Detnet网络中的方案
+
+  Detnet服务子层节点通过Detnet转发子层路径互连。detnet转发子
+层路径（例如，p1 = r1-> e1路径，p4 = e1-> r3路径）可能包
+含多个传输节点。Detnet转发子层路径由成员流使用，并由继电器节点终止（有关继
+电器节点定义，请参见[RFC8655]）。
+
+  Detnet服务子层图包括所有继电器节点和互连转发子层路径。该图也可以称为“
+preof图”，并描述了整个化合物流程。
+
+3.2。Detnet服务子层的绿色
+
+  必须考虑几个Detnet服务子层的细节。
+
+1.服务子层图分为多个部分，因为转发子层路径在Detnet继电器节点处终止。
+
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 5]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+2.这些是Detnet PW的特殊特征：
+
+1.促进每包保护。由于每包合并操作，PEF是网络层的全新功能。
+
+2.所有路径均为活动性和向前流量。这些路径可能具有不同数量的啤酒花。
+
+3.强制使用序列编号。
+
+  必须考虑上述细节，并要求将Detnet OAM和Detnet数据流获得相同的
+处理。OAM数据包必须遵循与受监视的Detnet流相同的图。
+
+3.3。Detnet OAM数据包处理中所需的信息
+
+  本节收集了一些问题，这些问题已经由Detnet
+WG讨论过和/或需要WG的进一步讨论。该部分以问题列表的形式结构。
+
+  Question-1 : 在Detnet流中注入OAM流量？Detnet数据
+流具有连续序列编号。为了不破坏这一点，注入的OAM数据包需要添加OAM特异性序列
+编号。（另请参见第5节。）
+
+  Question-2 : 如何通过Detnet Service子层节点处理O
+AM数据包？为了覆盖OAM的Detnet转发图，必须以特定于OAM的方式执行PR
+EOF（即Preof使用单独的SEQNUM空间用于OAM。请参见第5节中的详细信
+息。
+
+  Note : 问题列表无需竭尽全力。
+
+3.4。Drednet相关通道标头的可能格式（D-ACH）
+
+  [Editor's note :
+已经讨论了本节的内容，并在[i-d.ietf-detnet-mpls-
+oam]中进行了讨论的结果。]。
+
+4. Detnet服务子层的OAM要求
+
+  [Editor's note :
+已经讨论了本节的内容，并在[i-d.ietf-detnet-oam-
+framework]中进行了讨论的结果。]。
+
+5. detnet ping
+
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 6]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+5.1。概述
+
+  “ detnet
+ping”方法使用两种类型的OAM数据包：（1）detnet-
+回声引用和（2）detnet-echo-reply。它们的封装与相应的Detne
+t数据流相同，因此它们与相应的Detnet数据流的数据包完全相同。他们针对Det
+net服务子层实体，因此可能不会被未实施数据包流（例如Transit
+Nodes）实现Detnet Service子层的实体识别为OAM数据包。其他实
+体将它们视为属于相应的Detnet数据流的数据包。
+
+  可以区分以下继电器节点角色：
+
+1. detnet ping发起人节点，
+
+2.中间detnet服务子层节点，
+
+3. detnet ping靶向节点。
+
+  发起人节点发送（生成）detnet-echo-
+Request数据包（S）。detnet-echo-
+Request数据包包含OAM特定的“
+pingseqnum”，可通过继电器节点的Detnet服务子层使用。请注意，“
+pingseqnum”是特定于发起人的。
+
+  中间detnet服务子层节点执行detnet特定服务子层功能。可以以特定方式
+进行数据包处理（请参阅第5.2节中的详细信息）。
+
+  针对每个detnet-echo-Request的detnet-echo-
+Reply数据包的目标节点答案。detnet-echo-
+reply数据包提供了有关（i）Detnet服务子层节点（例如节点-
+ID，local Flow-id）的（ii）Ingress/ Engress流量
+相关配置（例如，IN/OUT成员流的特定信息（包括转发子层细节））和（iii）服
+务子层函数的状态（例如本地PXF-ID，Action-type-类型=
+X，操作状态，关键状态的值变量，功能相关计数器）。
+
+5.2。Detnet服务子层的OAM处理
+
+  以下各节中描述了各种Detnet继电器节点的详细OAM数据包处理规则。
+
+5.2.1。带有PRF的继电器节点
+
+  带有PRF进程的Detnet继电器节点以无状态的方式Detnet
+OAM数据包。
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 7]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  如果带有PRF的继电器节点是Detnet-Echo-
+Request数据包的目标，则不得进一步转发Detnet-Echo-
+Request数据包，并且必须生成Detnet Echo-Reply数据包。如果
+带有PRF的继电器节点不是Detnet回声重复数据包的目标，则必须通过所有Det
+net Flow特定的构件流道路径（即重复）发送Detnet回声重复数据包。
+
+  Detnet回声数据包必须包含以下信息：
+
+  *与detnet服务子层节点有关的身份（例如，节点-ID，局部流动ID），
+
+  *入口/出口流相关的配置（例如，IN/OUT成员流的特定信息（包括转发子层细
+节）），，），
+
+  *服务子层函数的状态（例如，局部PRF-ID，Action-type =复制
+，操作状态，相关的关键状态变量的值（例如，[IEEEEEE8021CB]中的“
+GenSeQnum”）。
+
+  Detnet回声数据包可能包含以下信息：
+
+  * PRF相关的本地计数器。
+
+5.2.2。带有PEF的中继节点
+
+  带有PEF进程的Detnet继电器节点以状态方式挖掘OAM数据包。
+
+  如果带有PEF的继电器节点是detnet-echo-
+Request数据包的目标，则必须不得转发Detnet Echo-Request
+数据包，并且必须生成Detnet回声数据包。如果带有PEF的继电器节点不是det
+net回声重复数据包的目标，则必须在数据包中使用OAM特定的“ pingseqn
+um”在detnet回声带上执行消除。因此，只能将单个Detnet回声包装数据包
+转发，并且必须丢弃所有进一步的复制品（具有相同的发起者的序列编号）。
+
+  注意，PEF可以使用简化的消除算法作为Detnet Echo-
+请求数据包（例如，[IEEEE8021CB]中的“
+MatchRecoveryAlgorithm”）作为OAM是一个缓慢的协议。
+
+  Detnet-Echo-Reply数据包必须包含以下信息：
+
+  *与detnet服务子层节点有关的身份（例如，节点-ID，局部流动ID），
+
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 8]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  *入口/出口流相关配置（例如，IN/OUT成员流的特定信息（包括转发子层细节
+）），
+
+  *服务子层函数的状态（例如，本地PEF-ID，Action-type =消除
+，操作状态，相关的关键状态变量的值（例如，[IEEEEEE8021CB]中的“
+recovSeqnum”）。
+
+  Detnet回声数据包可能包含以下信息：
+
+  *与PEF相关的本地计数器。
+
+5.2.3。带有POF的中继节点
+
+  带有POF过程的Detnet继电器节点以无状态的方式detnet
+OAM数据包。
+
+  如果带有POF的继电器节点是detnet回声重复数据包的目标，则不得进一步转
+发Detnet Echo-Request数据包，并且必须生成Detnet回声数据
+包。如果带有POF的继电器节点不是detnet-echo-Request数据包的
+目标，则必须在没有任何POF特定动作的情况下转发Detnet Echo-
+Request数据包（S）。
+
+  Detnet回声数据包必须包含以下信息：
+
+  * detnet服务子层节点的身份（例如，节点-ID，局部流动ID），
+
+  *入口/出口流相关配置（例如，IN/OUT成员流的特定信息（包括转发子层细节
+）），
+
+  *服务子层函数的状态（例如，局部pof-id，action-type
+=订购，操作状态，相关键状态变量的值（例如，在[i-d.varga-
+detnet-pof]中的“ poflastsent”））。
+
+  Detnet回声数据包可能包含以下信息：
+
+  *与POF相关的本地计数器。
+
+5.2.4。无用的继电器节点
+
+  无备用过程的Detnet继电器节点以无状态的方式挖掘OAM数据包。
+
+
+
+
+
+
+Varga, et al.            Expires 26 January 2023                [Page 9]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  如果没有PreoF的继电器节点是Detnet回声重新Quepex数据包的目标
+，则必须不得进一步转发Detnet回声重新测量数据包，并且必须生成Detnet
+Echo-Reply数据包。如果没有PreoF的继电器节点不是Detnet-
+Echo-Request数据包的目标，则必须转发Detnet-echo-
+Request数据包（作为相关detnet流的任何数据包）。
+
+  Detnet回声数据包必须包含以下信息：
+
+  * detnet服务子层节点的身份（例如，节点-ID，局部流动ID），
+
+  *入口/出口与流量相关的配置（例如，IN/OUT成员流的特定信息（包括转发子
+层细节））。
+
+6.安全考虑
+
+  TBD。
+
+7. IANA考虑
+
+7.1。detnet MPLS OAM标志注册表
+
+  [Editor's note :
+已经讨论了本节的内容，并在[i-d.ietf-detnet-mpls-
+oam]中进行了讨论的结果。]。
+
+8.致谢
+
+  作者对Janos Szabo和Gyorgy
+Miklos的深入评论和富有成效的讨论表示感谢，这有助于改善文档。
+
+9.参考
+
+9.1。规范参考
+
+  [RFC2119]
+Bradner，S。，“在RFC中使用以指示需求级别的关键词”，DOI
+10.17487/RFC2119，BCP 14，RFC
+2119，1997年3月，<https://wwww.rfc-
+editor.org/rfc-editor.org/info/RFC2119>。
+
+  [RFC4928] Swallow，G.，Bryant，S。和L.
+Andersson，“避免MPLS网络中的相等成本多径处理”，BCP
+128，RFC 4928，DOI
+10.17487/RFC4928，2007年6月，<https：//
+www。rfc-editor.org/info/RFC4928>。
+
+
+
+
+Varga, et al.            Expires 26 January 2023               [Page 10]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  [RFC8126] Cotton，M.，Leiba，B。和T.
+Narten，“编写RFCS中的IANA注意事项的指南”，RFC
+8126，DOI 10.17487/RFC8126，BCP，BCP，2017年6
+月26日，2017年6月26日，<https：// <https：//
+www：// www.rfc-editor.org/info/rfc8126>。
+
+  RFC8174>。
+
+  [RFC8655]
+Finn，N.，Thubert，P.，Varga，B。和J.
+Farkas，“确定性网络体系结构”，DOI
+10.17487/RFC8655，RFC
+8655，2019年10月，<https：//wwwwwww.rfc-
+editoritor.org/info/rfc8655>。
+
+  [RFC8964] Varga，B.，Ed。，Farkas，J.，Berge
+r，L.，Malis，A.，Bryant，S。和J.
+Korhonen，“确定性网络（Detnet）数据平面：MPLS”，RFC
+8964，doi 10.17487/rfc8964，2021年1月，<https
+://www.rfc-
+editor.org/info/info/rfc8964>。
+
+9.2。内容丰富的参考
+
+  [i-d.ietf-detnet-ip-oam]
+Mirsky，G.，Chen，M。和D. Black，“使用IP数据平面的确定性
+网络（DETNET）的操作，管理和维护（OAM）”，正在进行中，Internet
+-Draft，Draft-ietf-detnet-ip-Oam-04，2022年
+2月，<https://www.ietf.org/archive/Archive
+/ID/DRAFT-DRAFT-ERFAFT-EITF-DETNET-IP-
+OAM-OAM-04.44.TXT>。
+
+  [i-d.ietf-detnet-mpls-oam]
+Mirsky，G.，Chen，M.，Varga，B。和J. Farkas，“使用
+MPLS数据平面的确定性网络（DETNET）的操作，管理和维护（OAM）“在进行
+中，Internet-Draft，Draft-ietf-detnet-Mpls-
+OAM-07，2022年3月，<https://www.ietf.org/arc
+hive/archive/ID/DRAFT-DRARD-DRARK-ERT-
+DETNET-DETNET-MPLS-MPLS-MPLS-MPLS-OAM--
+07.txt>。
+
+  [i-d.ietf-detnet-oam-framework] Mirsky
+，G.，Theoleyre，F.，Papadopoulos，G。Z.对于确定性网
+络（detnet）”，“正在进行中的工作，Internet-
+Draft，Draft-ietf-detnet-oam-framework-06
+，2022年6月13日，<https://wwwww.ietf.org/arch
+ive/archive/Id/draft/id/draft/draft-
+eetaft-ietf--detnet-oam-框架-06.txt>。
+
+
+
+
+
+
+Varga, et al.            Expires 26 January 2023               [Page 11]
+
+Internet-Draft        DetNet Service-Sub-layer OAM             July 2022
+
+  [i-d.varga-detnet-pof]
+Varga，B.，Farkas，J。，Kehrer，S。和T.-varga-
+detnet-pof-03，2022年4月25日，<https://www.ie
+tf.org/archive/archive/id/draft-varga-
+varga-detnet-pof- 03.txt>。
+
+  [IEEE8021CB].html>。
+
+  作者的地址
+
+  左谩ZS Varga Ericsson
+Budapest匈牙利科学家Krt。11.
+1117匈牙利电子邮件：balazs.a.varga@ericson.com
+
+  J谩井Farkas Ericsson
+Budapest匈牙利科学家Krt。11.
+1117匈牙利电子邮件：janos.farkas@ericson.com
+
+  Greg Mirsky Ericsson Email : Greg
+i米RS可以@Gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+Varga, et al.            Expires 26 January 2023               [Page 12]
+
+

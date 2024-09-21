@@ -1,0 +1,346 @@
+
+
+
+
+
+
+  Spring Y.Qiuinternet-Arch J.Yeptented状
+态：标准跟踪H.Liexpires：12月5日，2021年H3C技术有限公司6月
+3日，2021年6月3日
+
+
+
+  SRV6网络草案中原位OAM的数据字段封装模型 -  QIU-Spring-
+SRV6-IOAM-ENCAP-Model-00
+
+  抽象的
+
+  来自SR端点的OAM和PM信息可以捎带在数据包中。在数据包中捎带的OAM和P
+M信息也被称为原位OAM（IOAM）。当数据包遍历特定网络域时，IOAM记录数据
+包中的OAM信息。术语“原位”是指IOam数据字段被添加到数据包中，而不是在专用
+于OAM的探测包中发送。本文档定义了SRV6网络中IOAM
+TLV的数据字段封装模型。这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2021年7月15日到期。
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 1]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+  版权声明
+
+   Copyright (c) 2020 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+   
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (https://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with 
+   respect to this document.  Code Components extracted from this 
+   document must include Simplified BSD License text as described in
+   Section 4.e of the Trust Legal Provisions and are provided without
+   warranty as described in the Simplified BSD License.
+   
+Table of Contents
+	
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     2.1.  Requirement Language  . . . . . . . . . . . . . . . . . .  3
+     2.2.  Abbreviations . . . . . . . . . . . . . . . . . . . . . .  3
+   3. Data Encapsulation Model of In-situ OAM  . . . . . . . . . . .  4
+     3.1. Pipe Model . . . . . . . . . . . . . . . . . . . . . . . .  4
+     3.2. Uniform Model  . . . . . . . . . . . . . . . . . . . . . .  5
+   4. In-situ OAM Process Example For Uniform Model  . . . . . . . .  5
+   5. In-situ OAM Process Example For Pipe Model . . . . . . . . . .  6
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  7
+   7.  Security Considerations . . . . . . . . . . . . . . . . . . .  8
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  8
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  8
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  8
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .  8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  9
+
+
+
+
+
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 2]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+1.介绍
+
+  来自SR端点的OAM和PM信息可以捎带在数据包中。在数据包中捎带的OAM和P
+M信息也被称为原位OAM（IOAM）。当数据包遍历特定网络域时，IOAM记录数据
+包中的OAM信息。术语“原位”是指IOam数据字段被添加到数据包中，而不是在专用
+于OAM的探测包中发送。本文档定义了在SRV6网络中使用H.Encaps封装行为
+的段路由号码的IOAM
+TLV的数据字段封装模型。携带的IOAM数据字段是在[I-D.ITF-IPPM-
+IOAM-DATA中的]，可用于各种用例，包括性能测量（PM）和传输校样（锅）。
+
+2.惯例
+
+2.1。要求语言关键词“必须”，“必须不是”，“必填”，“应该”，“不得”，“应
+该”，“应该”，“不应该”，“推荐”，“不推荐”，“5月”，和“本文档中的“可选
+”将被解释如BCP 14 [RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此。
+
+2.2。缩写
+
+  本文档中使用的缩写：
+
+  IOAM原位运营，管理和维护
+
+  OAM运营，管理和维护
+
+  PM性能测量
+
+  锅焊接过境
+
+  SR段路由
+
+  SRH SRV6标题
+
+  使用IPv6数据平面进行SRV6段路由
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 3]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+3.原位OAM的数据封装模型
+
+  在[I-D.DRAFT-ALI-Spring-IOAM-
+SRV6]中已经定义了IOAM TLV的封装格式以及在SRV6网络中填充它的位置
+。它详细阐述了SRV6各个节点封装IOAM数据的过程。然而，当封装SRV6分组时
+，它缺乏如何执行IOAM检测的过程，例如，在互相方案中，存在用于保护隧道路径的场
+景。本文档为IOAM数据字段封装操作定义了两种型号：管道和均匀模型。3.1。管道
+模型
+
+  在管道模型中，当IOAM数据分组遍历网络时，SRV6网络充当电路，使得仅收集
+仅收集入口和出口节点的IOAM数据，以报告具有相同流动监测识别（FlowMoni
+d）和相同类型的分析器。这意味着分析仪仅可见SRV6网络的入口节点和出口节点。分
+析器只能计算SRV6网络的端到端性能。
+
+             ========== SRv6 packet ========================>
+
+   - 重量 - （d）-...-传输 - （d）---
+/（外标）\（d）（d）/>  - （d） -
+入口...............（d）.................出口
+- （d） - >（推送）（内部标题）（POP）
+
+  （d）表示外部SRH（d）中的数据字段值表示封装头中的数据字段值
+
+  此图片显示了管道模型中原位OAM处理的数据字段封装mothod。数据包中的外
+部IOAM数据字段与内部没有关系。网络节点根据具有新的FlowMonid和新的I
+Oam-Trace型值的本地配置封装IOAM TLV，并且不关心已在数据包中携带
+的IOAM信息。管道模型更适合端到端的测量场景，因为中间路由器不需要收集和报告数
+据。
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 4]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+3.2。统一的模型
+
+  在统一型号中，所有节点根据相同的IOam-Trace型收集IOAM数据，并将
+IOAM数据报告给具有相同流动的分析器。因此，分析仪可以基于从SRV6网络中的所
+有节点接收的IOAM数据来计算逐跳转发性能。
+
+             ========== SRv6 packet ========================>
+
+   - 重量 - （d）-...-传输 - （d）---
+/（外标）\（d）（d）/>  - （d） -
+入口...............（d）.................出口
+- （d） - >（推送）（内部标题）（POP）
+
+  （d）表示相应的IOAM TLV中的数据字段值
+
+  此图片显示了统一模型的原位OAM处理的数据字段封装。使用统一的模型，内部和外
+部IOAM数据字段是同步的，包括跨越IOam-Trace型IOAM-
+Option-型等。IOAM字段的内容在隧道封装之前和之后是均匀的。这样做的简单
+方法是直接复制内部IOAM TLV。统一模型适用于逐跳测量方案中的明信片IOAM
+。因为看不到在互相方案中另一个自主系统中包含多少路由器，因此均匀模式不适用于Pa
+ssport IOAM测量。作为场景中的明信片IOam测量超出了本文档的范围。
+
+4.统一模型的原位OAM工艺示例
+
+          +---------------------+  +---------------------+
+          |         AS1         |  |         AS2         |
+   +-+-+  | +-+-+  +-+-+  +-+-+ |  | +-+-+  +-+-+  +-+-+ |  +-+-+
+   +CE1+--+-+PE1+--+P1 +--+PE2+-+--+-+PE3+--+P2 +--+PE4+-+--+CE2+
+   +-+-+  | +-+-+  +-+-+  +-+-+ |  | +-+-+  +-+-+  +-+-+ |  +-+-+
+          |                     |  |                     |
+          +---------------------+  +---------------------+
+   
+   Figure 1: Example Inter-AS Scenario of In-situ OAM
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 5]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+  该图中示出了在跨越SRv6自治系统中使用原位OAM的示例。
+PE1，P1和PE2是在自治系统AS1 SRv6能力的节点。
+PE3，P2，PE4是自治系统AS2 SRv6能力的节点。 PE3的结合SID（
+BSID）的SRv6实例化被用于穿越自治系统。当流量从CE1发送到CE2，其过程
+是：1）PE1收到报文和封装SRH与去往到PE3的BSID，其被实例化为SRv6
+的SID <PE1，P1，PE2的有序列表段的列表，BSID>。由于SRH封装的
+一部分，AS1的入口节点PE1增加IOAM TLV将数据包的SRH。该IOAM 
+TLV包含FlowMonID和IOAM迹类型字段。所述FlowMonID用于识别
+被监控的流动。 IOAM-跟踪型是指定哪个数据类型在该节点所使用的24位标识符。
+2）当数据包流到达P1，P1收集基于在所述分组的IOAM TLV的IOAM迹-
+Type字段的IOAM数据，并将所收集的数据报告给分析仪。
+3）当数据包流到达PE3，PE3还收集基于在分组的IOAM TLV的IOAM迹-
+Type字段IOAM数据，并将所收集的数据报告给分析仪。此后PE3匹配以H.en
+caps行为绑定SID，并推动与BSID的其自己的SRH根据SRv6政策，其中包
+含一个SID列表{PE3，P2，PE4}一个外IPv6报头。
+4）PE3封装的外IOAM TLV根据本地配置并在报文中携带IOAM
+TLV的数据字段中的外IPv6报头SRH。外IOAM数据字段同步从内IOAM
+TLV，如FlowMonID，IOAM迹型，IOAM选项类型等IOAM信息。 5
+）当数据包流到达P2，在AS2收集IOAM数据路由器基于在所述外SRH的IOAM
+TLV的IOAM-跟踪型。 6）PE4移除外IPv6报头，并恢复内部分组。后续设
+备根据内IPv6报头，并根据所述内IOAM TLV收集IOAM数据继续转发包。
+
+  因为在多个自主系统的整个前向路径中使用相同的函数，所以分析器基于每个设备报告
+的收集的数据来检测和识别网络中的异常，以便准确地检测每个服务的延迟和数据包丢失，
+使网络质量服务级别协议（SLA）实时可见，实现快速故障划界和位置。
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 6]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+5.管道模型的原位OAM工艺示例
+
+  使用图1说明了管道模型。当流量从CE1发送到CE2时，该过程是：1）PE1接
+收数据包并用注定的PE3的BSID列表封装SRH，其被实例化为订购SRV6 SI
+DS列表<PE1，P1，PE2，BSID>。作为SRH封装的一部分，AS1的In
+gress节点PE1将IOAM TLV添加到数据包的SRH。
+2）当数据包流量到达P1和PE2时，P1和PE2基于数据包的IOAM-
+Trace型字段收集IOAM数据，并将收集的数据报告给分析器。
+3）当数据包流到达PE3时，PE3还基于数据包中的IOAM-Trace型字段收集
+IOAM数据，并将收集的数据报告给分析仪。之后，PE3与H.Encaps行为匹配
+绑定SID，并根据BSID的SRV6策略按下其自己的SRH将外部IPv6报头按下
+，其中包含一个SID列表{PE3，P2，PE4}。 4）如果配置需要，PE3识别
+基于本地配置需要IOam检测的目标业务流，并封装外部SRH中的IOAM
+TLV。然后PE3为目标流分配新的FlowMonid，使用新的IOAM-
+Trace-Type和Ioam-Option-Type填充IOAM数据字段。
+5）当数据包流到达P2时，AS2中的路由器基于外部SRH的IOAM
+TLV中的IOam-Trace型收集IOAM数据。 6）PE4删除外部IPv6头
+，并恢复内部数据包。随后的设备根据内部IPv6报头继续转发分组，并根据内部IOa
+m TLV收集IOAM数据。
+
+  因为两个AS的使用不同的局部流动，根据PE1所识别的脊布，分析器只能计算PE
+3和PE4在AS2之间的这种流的转发性能。无法在AS2中测量其他节点之间的性能数
+据。6. IANA考虑因素
+
+  对IANA没有要求。
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 7]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+7.安全考虑因素
+
+  TBA.
+
+8.致谢
+
+  作者要感谢人们对这项工作的评论。
+
+9.参考资料
+
+9.1。规范参考文献
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+  [ID.IETF-IPPM-IOAM-DATA]女料理，F.，Bhandar
+i，S.，Pignataro，C.，Gredler，H.，Liedy，J.，Yo
+uell，S.，Mizrahi，T.，Mozes，D。，Lapukhov，P.，
+Chang，R.和Bernier，D.，“原位OAM的数据字段”，草稿 -
+IETF-IPPM-IOAM-DATA，正在进行中。[ID.DRAFT-ALI-
+SPRING-IOAM-SRV6] ALI，Z.，Gandhi，R.，Filsf
+ils，C.，Brockners，F.，Nainar，N.，Pignataro，
+C.，Li，C.，Chen，M.，Dawra，G.，“用于原位OAM数据的段路由
+标题封装”，草稿 -  Ali-Spring-Ioam-SRV6，正在进行中。
+
+9.2。信息参考资料
+
+  [I-D.6Man-extension-heather-insertion]
+D.Voyer等，“在受控域中插入IPv6段路由标题”，Jraft-
+Voyer-6man-Extension-Ression-
+Ression，正在进行中。
+
+  [ID.IETF-6MAN-IPv6-ALT-MARK] FIOCCOLA，
+G.，ZHOU，T.，Cociglio，M.，Qin，F.和R.
+Pang，“IPv6应用的替代标记方法”，草案 - IETF-6Man-
+IPv6-Alt-Mark-04（正在进行的工作），3月2021年。
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 8]
+
+Internet-Draft      Data Encapsulation Model of IOAM TLV
+
+  作者的地址
+
+  yuan香Q IU H3C technology co.Ltd,
+no.466 Chang herd. Hangzhou 310008 China
+email: 球员向@还3从.com
+
+  jin容Y eh3C technology co.Ltd email:
+金融.有@还3从.com
+
+  ha OL IH3C technology co.Ltd email:
+利好@还3从.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Qiu, et al.               Expires December 5, 2021             [Page 9]
+

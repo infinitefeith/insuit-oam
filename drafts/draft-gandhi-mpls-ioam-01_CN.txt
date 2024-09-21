@@ -1,0 +1,689 @@
+
+
+
+
+  MPLS工作组R. Gandhi，Ed.Internet- Z.
+Aliupdates：5586（如果批准）F.
+BrocknersPtened状态：标准赛道Cisco
+Systems，Inc.Expires：3月13日，2022 B. Wen
+Comcast B. Demraene Orange
+V.Kozak康卡斯特2010年9月9日
+
+  用于原位OAM数据草案的MPLS数据平面封装-Gandhi-MPLS-
+IOAM-01
+
+  抽象的
+
+  原位操作，管理和维护（IOam）在数据包中记录数据包中的运行和遥测信息，而数
+据包在网络中的两个节点之间遍历一条路径。本文档定义了如何使用新的通用相关通道（G
+-ACH）与MPLS数据平面封装运输IOAM数据字段的运输方式。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于3月13日至2022年3月13日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件受到BCP 78的约束和与IETF文件有关的IETF
+Trust的法律规定
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 1]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  (https : //trustee.ietf.org/license-in
+fo）在本文件的出版日期生效。请仔细审查这些文件，因为它们描述了对本文件的权利和
+限制。从本文档中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4
+.在第41条中所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Requirement Language  . . . . . . . . . . . . . . . . . .   3
+     2.2.  Abbreviations . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  MPLS Extensions for IOAM Data Fields  . . . . . . . . . . . .   4
+     3.1.  IOAM Generic Associated Channel . . . . . . . . . . . . .   4
+     3.2.  IOAM Presence Indicators  . . . . . . . . . . . . . . . .   5
+   4.  Edge-to-Edge IOAM . . . . . . . . . . . . . . . . . . . . . .   6
+     4.1.  Edge-to-Edge IOAM Presence Indicator  . . . . . . . . . .   6
+     4.2.  Procedure for Edge-to-Edge IOAM . . . . . . . . . . . . .   6
+   5.  Hop-by-Hop IOAM . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.1.  Hop-by-Hop IOAM Presence Indicator  . . . . . . . . . . .   7
+     5.2.  Procedure for Hop-by-Hop IOAM . . . . . . . . . . . . . .   8
+   6.  Considerations for IOAM . . . . . . . . . . . . . . . . . . .   9
+     6.1.  Considerations for ECMP . . . . . . . . . . . . . . . . .   9
+     6.2.  Node Capability . . . . . . . . . . . . . . . . . . . . .   9
+     6.3.  Nested MPLS Encapsulation . . . . . . . . . . . . . . . .   9
+   7.  MPLS Encapsulation with Control Word and Another G-ACh for
+       IOAM Data Fields  . . . . . . . . . . . . . . . . . . . . . .  10
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  11
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  12
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  13
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  13
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  13
+
+1.介绍
+
+  原位操作，管理和维护（IOam）在数据包遍历特定网络域中记录数据包内的操作和
+遥测信息。术语“原位”是指IOAM数据字段被添加到数据包中，而不是在专用于OAM
+的探测包内发送。IOam数据字段在[I-D.ITF-IPPM-IOAM-
+DATA中]定义，可用于OAM的各种用例。IOAM数据字段可进一步更新
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 2]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  [i-d.ietf-ippm-ioam-direct-
+export]用于直接导出用例和loopback和活动标志的[i-d.ietf-
+ippm-ioam-flags]。
+
+  本文档定义了使用新的通用相关通道（G-ACH）的MPLS数据平面封装如何运输
+IOAM数据字段。
+
+2.惯例
+
+2.1。要求语言
+
+  关键词“必须”，“必须不是”，“必填”，“应该”，“不得”，“应该”，“应该
+”，“应该”，“推荐”，“可以”，“可以”和“可选”在本文件中是如[RFC211
+9]
+[RFC8174]中所描述的，当它们出现在所有资本中时，如[RFC2119]
+[RFC8174]中所描述的那样解释。
+
+2.2。缩写
+
+  本文档中使用的缩写：
+
+  ECMP平等成本多路径
+
+  E2E边缘到边缘
+
+  EL熵标签
+
+  ELI熵标签指示灯
+
+  ELC熵标签控制
+
+  G-ACH通用相关通道
+
+  HBH淘汰赛
+
+  IOAM原位运营，管理和维护
+
+  MPLS多协议标签切换
+
+  OAM运营，管理和维护
+
+  锅焊接过境
+
+  告诉
+
+
+
+
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 3]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+3. IOAM数据字段的MPLS扩展
+
+3.1。IOAM通用相关频道
+
+  IOam数据字段在[i-d.ietf-ippm-ioam-data中]定义。
+IOAM数据字段携带在MPLS报头中，如图1所示。IOAM数据字段中可以存在多于
+一个跟踪选项。G-ACH [RFC5586]提供了运输OAM和其他控制消息的机制
+，通过MPLS数据平面。在MPLS标题中的MPLS标签堆栈之后，必须立即添加具有
+新IOAM G-ACH类型的IOAM G-ACH标题[RFC5586]，如图1所
+示，在IOAM数据字段之前。G-ACH标签（GAL）[RFC5586]不得添加在
+MPLS标签堆栈中。
+
+  本文档在[RFC5586]的第2.1节中更新以下段落：“G-ACH不得用于将
+用户流量运输”到“G-ACH可以与用户流量一起传输OAM信息”。
+
+  请注意，G-ACH并不真正用于在本文档中传输用户流量，而是将IOAM数据字段
+传输到用户流量。
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    |0 0 0 1|Version| Length        |          IOAM G-ACh           |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+    | Reserved      | Block Number  | IOAM-OPT-Type |IOAM HDR Len   |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  I
+    |                                                               |  O
+    |                                                               |  A
+    ~                 IOAM Option and Data Space                    ~  M
+    |                                                               |  |
+    |                                                               |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    |                                                               |
+    |                                                               |
+    |                 Payload + Padding                             |
+    |                                                               |
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 1 : IOAM通用相关通道与IOAM数据字段
+
+  IOAM数据字段使用MPLS标题中的以下字段封装：
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 4]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  IP Version Number 0001b : 前四个八位字节是G-
+ACH标题的IP版本字段部分，如[RFC5586]所定义。
+
+  Version : 版本字段设置为0，如[RFC4385]中所定义。
+
+  Length : 4八位单位的IOAM G-ACH数据的长度。请注意，此字段
+标记为[RFC5586]保留，并由本文档更新新的IOAM G-ACH类型。
+
+  IOAM G-ACh : IOAM
+[RFC5586]的通用相关通道（G-ACH）类型（值TBA1）。
+
+  Reserved : 在传输时必须设置为零，并在收到后忽略。
+
+  Block Number : 块号可用于聚合在数据平面中收集的IOAM数据，
+例如，计算数据流的每个块的测量度量。它还用于将IOAM数据与不同节点相关联。
+
+  IOAM-OPT-Type :
+定义IOAM选项类型的8位字段，如[I-D.ietf-IPPM-IOAM-
+DATA]第8.1节中所定义的。
+
+  IOAM HDR Length :
+8位无符号整数。4-octet单位的IOAM标头的长度。
+
+  IOAM选项和数据空间：IOAM选项标题和数据如IOAM-
+Opt类型字段所定义，并且在[I-D.ietf-IPPM-IOAM-
+Data]的第5节中定义。
+
+3.2。IOam存在指标
+
+  必须使用IOam存在指示符来指示MPLS报头中的IOAM数据字段。本文档中定
+义了两个IOAM类型：边缘到边缘（E2E）和跳跃（HBH）IOam。如果只需要边
+缘节点来处理IOAM数据，则必须使用E2E IOam存在指示符，以便中间节点可以
+忽略它。如果两个边缘和中间节点都需要处理IOAM数据，则必须使用HBH IOAM
+存在指示符。不同的IOAM存在指示灯允许通过检查是否需要处理IOAM数据字段来优
+化在中间节点上的IOAM处理。
+
+  [RFC6790]定义了MPLS熵标签（EL）和熵标签指标（ELI）。[I-
+D.DECRA-MPLS-SLID编码 - 熵标签-ID]定义熵标签控制（ELC
+）字段，并在熵标签的TTL字段中携带。在本文档中定义了ELC中的标志（称为e），
+以指示E2E IOam的存在和另一个
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 5]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  ELC中的标志（称为H）被定义为指示HBH IOam的存在。ELC字段中这些
+标志的位位置可以在网络中始终如一地是用户定义的。或者，可以由IANA分配这些标志
+的位位置。
+
+4.边缘到边缘IOam
+
+4.1。边缘到边缘IOAM存在指示灯
+
+  E2E
+IOam存在指示符（熵标签控制场中的标志e）用于指示MPLS报头中的E2E
+IOam数据字段的存在，如图2所示。
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Label(1)                             | TC  |S|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    .                                                               .
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Label(n)                             | TC  |S|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label Indicator (7)          | TC  |0|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label                        | TC  |1|  ELC(E)       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                Packet as shown in Figure 1                    |
+    .                                                               .
+    +---------------------------------------------------------------+
+
+  Figure 2 : 示例MPLS E2E IOam封装
+
+  E2E IOAM数据字段仅携带需要在封装和解封装的节点上处理的选项类型。携带
+的IOam选项类型可以是IOAM边缘到边缘选项类型[i-d.ietf-ippm-
+ioam-data]。E2E IOAM数据字段不应携带任何IOAM选项类型，该类
+型需要在中间节点上的IOAM处理，因为它不会由它们处理。
+
+4.2。边缘到边缘IOam的过程
+
+  E2E IOM程序总结如下：
+
+  o封装节点与标签下方的E2E IOam存在指示器插入ELI，EL对，其FEC
+是端部（解封）节点和MPLS报头中的一个或多个IOAM数据字段。
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 6]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  o中间节点不会处理IOAM数据字段。
+
+  o解封装节点可以将分组的副本与接收时间戳包到慢速路径，用于当节点识别E2E
+IOam存在指示器时的IOAM数据字段处理。各种E2E
+OAM用例需要接收时间戳，包括流遥控器。请注意，数据包不一定是对控制平面中的。
+
+  o Depaped节点使用[i-d.ietf-ippm-ioam-data]
+中定义的过程处理IOAM数据字段。IOAM处理的示例是导出数据字段，通过流遥测等
+发送数据字段等。
+
+  o解封节点必须从收到的数据包中删除IOAM数据字段。解封装的数据包在下游转发
+或终止与常规数据分组相似。
+
+5.跳跃的Ioam
+
+5.1。Hop-by-Hop Ioam存在指示灯
+
+  HBH
+IOam存在指示符（熵标签控制场中的标志H）用于指示MPLS报头中的HBH
+IOAM数据字段的存在，如图3所示。
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Label(1)                             | TC  |S|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    .                                                               .
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Label(n)                             | TC  |S|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label Indicator (7)          | TC  |0|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label                        | TC  |1|  ELC(H)       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                Packet as shown in Figure 1                    |
+    .                                                               .
+    +---------------------------------------------------------------+
+
+  Figure 3 : 示例MPLS用于HBH IOAM的封装
+
+  HBH IOAM数据字段携带在中间和/或封装和解封节点处需要处理的选项类型。
+携带的IOam选项类型可以是IOAM预先分配的迹线
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 7]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  选项类型，IOAM增量跟踪选项类型和IOAM传输（POT）选项类型的IOAM
+证明，以及边缘到边缘选项类型[I-D.ietf-IPPM-IOAM-DATA]。
+
+5.2。逐跳Ioam的程序
+
+  HBH IOAM程序总结如下：
+
+  o封装节点将ELI，EL对与HBH IOAM存在指示器插入到的标签下方，其F
+EC是MPLS报头中的一个或多个IOam数据字段。
+
+  o使用HBH IOAM函数启用的中间节点处理包括在MPLS报头中识别HBH
+IOAM状态指示符时所定义的IOAM数据字段的数据包。
+
+  当节点识别HBH IOAM存在指示符时，中间节点可以将分组的副本与接收时间戳
+的慢速路径包装到IOAM数据字段处理的慢路。各种HBH
+OAM用例需要接收时间戳，包括流遥控器。请注意，数据包不一定是对控制平面中的。
+
+  o中间节点将处理后的数据包的副本转发到下游。
+
+  o解封装节点可以将分组的副本与接收时间戳包到慢速路径，以便在节点识别HBH
+IOAM存在指示符时的IOAM数据字段处理。各种E2E
+OAM用例需要接收时间戳，包括流遥控器。请注意，数据包不一定是对控制平面中的。
+
+  o Depaped节点使用[i-d.ietf-ippm-ioam-data]
+中定义的过程处理IOAM数据字段。IOAM处理的示例是导出数据字段，通过流遥测等
+发送数据字段等。
+
+  o解封节点必须从收到的数据包中删除IOAM数据字段。解封装的数据包在下游转发
+或终止与常规数据分组相似。
+
+
+
+
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 8]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+6. IOam的考虑因素
+
+6.1。ECMP的考虑因素
+
+  封装节点需要确保IOAM数据字段不会以众所周知的IP版本号（例如，IPv4和
+IPv6为0x6的0x4），因为这可以改变使用IP标题的ECMP的散列函数。这是
+通过在MPLS标签堆栈[RFC5586]之后使用IOAM G-ACB使用IOAM
+G-ACB实现。
+
+  当熵标签[RFC6790]用于ECMP的散列函数时，本文档中定义的过程不会更
+改ECMP行为。
+
+6.2。节点能力
+
+  可以删除IOAM数据字段并执行IOAM功能的解封装节点可能无法支持它。封装节
+点需要知道解封装的节点是否可以支持IOAM函数。此功能交换的信令扩展位于本文档的
+范围之外。
+
+  不能支持本文档中定义的IOAM函数的中间节点可以简单地跳过IOAM处理。
+
+6.3。嵌套的MPLS封装
+
+  具有IOAM数据字段的数据包可以在MPLS报头中携带具有IOAM存在指示器的
+一个或多个熵标签。中间节点应检查标签堆栈中的第一个熵标签，以获取IOAM存在指示
+器以处理IOAM数据字段。
+
+  支持IOAM的中间节点应在插入MPLS报头中的新熵标签时将ELC字段从收到的
+熵标签复制到新的熵标签，这可以基于本地策略。
+
+  当使用IOam存在指示器接收到数据包时，嵌套的MPLS封装支持不同IOAM的
+节点，该节点必须使用支持的IOAM状态指示器添加新的熵标签。
+
+
+
+
+
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                 [Page 9]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+7. MPLS用控制字和另一个G-ACH封装IOAM数据字段
+
+  在MPLS报头后立即在MPLS封装中添加了IOAM数据字段，包括IOAM G
+-ACH标头。在数据包中的IOAM数据字段之后，必须分别在图4和图5中所示之后添
+加任何控制字[RFC4385]或另一G-ACH
+[RFC5586]。这允许中间节点容易地在MPLS报头之后立即访问的HBH IO
+AM数据字段。解封装节点可以删除包括IOAM数据字段的MPLS封装，然后处理控制
+字或其他G-ACH。随后的G-ACH通过使用G-ACH中的“长度”字段来定位。
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label Indicator (7)          | TC  |0|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label                        | TC  |1|  ELC(H)       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |0 0 0 1|Version| Length        | IOAM G-ACh                    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    | Reserved      | Block Number  | IOAM-OPT-Type |IOAM HDR Len   |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  I
+    |                                                               |  O
+    |                                                               |  A
+    ~                 IOAM Option and Data Space                    ~  M
+    |                                                               |  |
+    |                                                               |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    |0 0 0 0| Specified by PW Encapsulation [RFC4385]               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |                                                               |
+    ~                 Payload + Padding                             ~
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 4 : 示例MPLS使用HBH IOam使用通用PW控制字封装
+
+
+
+
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                [Page 10]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label Indicator (7)          | TC  |0|  TTL          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Entropy Label                        | TC  |1|  ELC(H)       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |0 0 0 1|Version| Length        | IOAM G-ACh                    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    | Reserved      | Block Number  | IOAM-OPT-Type |IOAM HDR Len   |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  I
+    |                                                               |  O
+    |                                                               |  A
+    ~                 IOAM Option and Data Space                    ~  M
+    |                                                               |  |
+    |                                                               |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    |0 0 0 1|Version| Reserved      | Channel Type                  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |                                                               |
+    ~                 Payload + Padding                             ~
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 5 : 示例MPLS与其他G-ACH与HBH IOam封装
+
+8.安全考虑因素
+
+  IOam的安全注意事项通常在[I-D.ITTF-IPPM-IOAM-
+DATA中]讨论并应用于本文档中定义的过程。
+
+  IOam被视为“占域”功能，其中一个或多个运算符根据其需求决定配置IOAM。
+IOam用于部署有限域[RFC8799]。因此，它假设IOAM操作中涉及的节点先
+前验证了路径的完整性。仍然，运营商需要正确保护IOAM域以避免恶意配置和使用，这
+可能包括将恶意IOAM数据包注入域中。
+
+  支持G-
+ACH的路由器受[RFC4385]和[RFC5586]中定义的相同安全注意事项。
+
+
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                [Page 11]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+9. IANA考虑因素
+
+  IANA维护G-ACH类型注册表（请参阅<https://www.iana.
+org/assignments/g-ach-parameters/g-ach- 
+parameters.xhtml>）。请求IANA从“MPLS广义相关通道（G-
+ACH）类型（包括伪通信通道类型）”注册表分配IOAM G-ACH类型的值。
+
+                +-------+-----------------+---------------+
+                | Value | Description     | Reference     |
+                +-------+-----------------+---------------+
+                | TBA1  | IOAM G-ACh Type | This document |
+                +-------+-----------------+---------------+
+
+  Table 1 : IOAM G-ACH类型
+
+10.参考文献
+
+10.1。规范参考文献
+
+  [ID.DENAE-MPLS-SLID-endoded-entopt-
+Label-ID] DeDraene，B.，Filsfils，C.，Hensic
+kx，W.，Saad，T.，Beeram，VP和L.
+Jalil，“使用熵标签用于在MPLS网络中的网络切片识别。“，草稿 -
+DeNraene-MPLS-SLID编码 - 熵标签-
+ID-02（正在进行的工作），8月2021。
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“进步奥姆直接出口”，草案-IETF-
+IPPM-IOAM-直接出口 -  06（正在进行的工作），8月2021年。
+
+  [id.ietf-ippm-ioam-flags] Mizrahi，T.，女
+郎，斯ivakolundu，R.，Pignataro，C.，Kfir，A.，Ga
+fni，B.，Spiegel，M。和J.
+Lemon，“原位OAM环回和活动标志”，草稿 -  IETF-IPPM-
+IOAM-FLAGS-06（正在进行中），8月2021年。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+
+
+Gandhi, et al.           Expires March 13, 2022                [Page 12]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  [RFC5586] BOCCI，M.，ED。，Vigoureux，M.，Ed
+。和S.Bryant，ED。，“MPLS通用相关通道”，RFC 5586，DOI
+10.17487 /
+RFC5586，2009年6月<https：//www.rfc-
+editor.org/info/rfc5586>
+
+  [RFC6790] Kompella，K.，Drake，J.，Amante，
+S.，Henderickx，W.和L.
+Yong“在MPLS转发中使用熵标签”，RFC 6790，DOI
+10.17487 /
+RFC6790，2012年11月，<https://www.rfc-
+editor.org/info/rfc6790>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+10.2。信息参考资料
+
+  [RFC4385]
+Bryant，S.，Swallow，G.，Martini，L.和D.
+McPherson，“假风格仿真边缘到边缘（PWE3）控制字用于MPLS
+PSN”，RFC 4385，DOI 10.17487
+/RFC4385，2006年2月，<https://www.rfc-
+editor.org/info/rfc4385>。
+
+  [RFC8799]木匠，B.和B.刘，“有限域名和互联网协议”，RFC
+8799，DOI 10.17487 /
+RFC8799，7月20日，<https://www.rfc-
+editor.org/info/rfc8799>。
+
+  致谢
+
+  作者谨此感谢Patrick Khordoc，Sagar
+Soni，Shwetha Bhandari，Clarence
+Filsfils和Vengada Prasad
+Govindan讨论Ioam。作者还要感谢Tarek Saad，Loa
+Anderson，Greg Mirsky，Stewart Bryant，Xiao
+Min和Cheng Li提供许多有用的评论。作者还要感谢Mach
+Chen，Andrew Malis，Matthew Bocci和Nick
+Delregno的MPLS-RT审查。
+
+  作者的地址
+
+  Rakesh Gandhi（编辑）Cisco Systems，Inc。加拿大
+
+  Email : R Gandhi@Cisco.com
+
+  Zafar Ali Cisco Systems，Inc。
+
+  Email : 咋里@Cisco.com
+
+
+
+Gandhi, et al.           Expires March 13, 2022                [Page 13]
+
+Internet-Draft       In-situ OAM for MPLS Data plane      September 2021
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  宾文康卡斯特
+
+  Email : bin_wen@cable.Comcast.com
+
+  Bruno DeDraene橙色
+
+  Email : Bruno.的CR AE呢@orange.com
+
+  Voitek Kozak Comcast.
+
+  Email : VO IT EK_KO子AK@Comcast.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gandhi, et al.           Expires March 13, 2022                [Page 14]
+
+

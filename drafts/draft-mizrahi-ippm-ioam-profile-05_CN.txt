@@ -1,0 +1,396 @@
+
+
+
+
+  网络工作组T. Mizrahiinternet-Arflaf-
+Some：信息F.
+BrocknersExpires：2月20日，2022年Cisco S.
+Bhandari，ED。思想特·瑞典人思科思科思科思科A. Kfir
+B.Gafni Nvidia M.Spiegel赤脚网络T.周华平J.
+Lemon Broadcom 2019年8月19日
+
+  原位OAM配置文件草案-Mizrahi-IPPM-IOAM-
+Profile-05
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）用于监控网络性能并检测流量瓶颈和异常。这是通
+过将IOAM数据纳入飞行中的数据包来实现的。本文档介绍了使用案例驱动的IOAM配
+置文件的概念。IOAM配置文件定义了用于IOAM的用例或一组用例，以及限制IOA
+M规范的范围和特征的关联规则集，从而将其限制到完整功能的子集。定义配置文件的动机
+是限制IOAM功能的范围，允许在特定用例的上下文中允许更简单的实现，验证和互操作
+性测试，这些情况不需要IOam的完整功能。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 1]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年2月20日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Specifying an IOAM Profile  . . . . . . . . . . . . . . . . .   3
+     2.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.2.  Use Cases . . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.3.  IOAM Options  . . . . . . . . . . . . . . . . . . . . . .   4
+     2.4.  IOAM Option Header Field Values . . . . . . . . . . . . .   4
+     2.5.  Opaque State Snapshot . . . . . . . . . . . . . . . . . .   4
+     2.6.  Timestamp Format  . . . . . . . . . . . . . . . . . . . .   5
+   3.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   5
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   5
+   5.  Normative References  . . . . . . . . . . . . . . . . . . . .   5
+   Appendix A.  An IOAM Profile Example  . . . . . . . . . . . . . .   5
+     A.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .   6
+     A.2.  Use Cases . . . . . . . . . . . . . . . . . . . . . . . .   6
+     A.3.  IOAM Options  . . . . . . . . . . . . . . . . . . . . . .   6
+     A.4.  IOAM Option Header Field Values . . . . . . . . . . . . .   6
+     A.5.  Opaque State Snapshot . . . . . . . . . . . . . . . . . .   6
+     A.6.  Profile Coexistence . . . . . . . . . . . . . . . . . . .   6
+     A.7.  Validity  . . . . . . . . . . . . . . . . . . . . . . . .   6
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   7
+
+
+
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 2]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+1.介绍
+
+  IOAM [I-D.IETF-IPPM-IOAM-
+DATA]用于通过将IOAM数据字段结合到飞行中的数据包中来监视网络中的流量。
+
+  本文档介绍了用例驱动IOAM配置文件的概念。定义配置文件的动机是限制IOAM
+功能的范围，允许在特定用例的上下文中允许更简单的实现，验证和互操作性测试，这些情
+况不需要IOam的完整功能。
+
+  IOAM配置文件定义了用于IOAM的用例或一组用例，以及限制IOAM规范的范
+围和特征的关联规则集，从而将其限制到完整功能的子集。根据本文档的指南，未来的文件
+可以定义一个或多个IOAM配置文件。当前文档未指定任何IOAM配置文件。
+
+  此文档不需要对oam [i-d.ietf-ippm-ioam-data]的数
+据字段的任何更改。此外，预计未来的IOAM配置文件规范将不需要更改IOAM，因为
+个人资料根据定义源于现有功能的子集。
+
+2.指定IOAM个人资料
+
+2.1。概述
+
+  配置文件定义了一组限制IOam的范围或功能的一组规则。缺省情况下，IOam中
+未具体寻址或限制的IOAM中的任何细节如IOAM [I-D.ITTF-IPPM-
+IOAM-DATA]所定义。其余部分呈现了一组可以在配置文件规范中解决的主题。个
+人资料可以包括这些主题中的一些或全部，以及可选的其他主题。
+
+  轮廓可以部分地使用对IOam阳模型的特定分配来定义。IOam
+yang模型[i-d.ietf-ippm-ioam-yang]定义了一组与IOA
+M相关的属性，例如启用了哪种IOam选项类型，以及使用哪些数据字段。例如，只有使
+用ICREMENTAL跟踪选项的IOAM配置文件可以由阳模型中定义的各个属性的分
+配定义。应该注意的是，虽然阳模型有助于配置文件的定义，但它不会替换配置文件定义。
+具体地，配置文件定义包括用于使用配置文件的用例，并且可能一些
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 3]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+  不能由yang模型的分配定义的属性，例如不透明状态快照字段的语义。
+
+2.2。用例
+
+  IOAM配置文件应定义使用配置文件的用例。用例可以描述使用IOAM数据的部署
+方案或特定应用程序。使用情况通常应定义IOAM所需的功能。例如，可以定义IOAM
+配置文件，使得它需要传输延迟监视，但不需要路径跟踪。然后，这些要求会影响配置文件
+中使用的IOAM数据字段。
+
+2.3。IOam选项
+
+  IOAM数据可以在四种可能的IOAM选项之一中表示：预先分配的跟踪选项，增量
+跟踪选项，传输函数（pot）选项和边缘到边缘选项。IOAM配置文件可以指定允许选
+项的子集。配置文件可以在当前配置文件中为必需的某些选项或当前配置文件中禁止的某些
+选项。此外，在IOAM定义若干可能的操作模式的情况下，配置文件可以选择这些操作模
+式之一作为唯一的允许模式。
+
+  对于每个IOAM选项，配置文件规范可以将配置文件的范围限制为某些功能。例如，
+可以定义轮廓以使用增量跟踪选项，使得在配置文件中仅使用特定的数据类型，而其他数据
+类型则不是。
+
+2.4。IOAM选项标头字段值
+
+  IOAM配置文件可以为IOAM选项标头中的某些字段定义特定值或特定值范围。例
+如，配置文件可以定义允许在跟踪选项报头的标志字段中使用的特定值。
+
+2.5。不透明状态快照
+
+  如[I-D.ITF-IPPM-IOAM-DATA]所定义的不透明状态快照是一
+个可变长度字段，可用于IOAM跟踪选项。不透明状态快照以灵活的类型/长度/值方式
+定义。IOAM配置文件可以为不透明状态快照定义特定格式，包括例如特定长度和不透明
+数据的特定解释。在这种情况下，IOAM配置文件应该指定架构ID值。
+
+
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 4]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+2.6。时间戳格式
+
+  配置文件可以指定要在IOAM数据字段中使用的特定时间戳格式。
+
+3. IANA考虑因素
+
+  本文档不包括IANA的任何请求。
+
+  [RFC-Editor Note : 随意删除此部分。]
+
+4.安全考虑因素
+
+  IOam的安全注意事项通常在[I-D.ITEF-IPPM-IOAM-DATA
+中]讨论。本文档介绍了IOAM简介的概念;由于IOAM配置文件是IOAM的特定用
+例，因此与配置文件相关的任何安全威胁也与[i-d.ietf-ippm-ioam-
+data中所定义的全吹iaam相关。因此，当前文档不呈现超过[i-d.ietf-
+ippm-ioam-data]之外的任何新的安全考虑因素。
+
+  此外，在某些情况下，与充分实现IOAM相比，简档可以限制IOam的一组特征，
+从而减少了潜在威胁的一组潜在威胁。实际上，特定的IOAM配置文件可以优化特定的安
+全姿势或要求。
+
+5.规范性参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [ID.IETF-IPPM-IOAM-
+yang]周，T.，Guichard，J.，Brockners，F.和S.
+Raghavan，“An-BiTu Oam的杨数据模型”，草案 -  IETF-
+IPPM-IOAM - 杨01（正在进行的工作），7月2021。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  附录A. IOAM个人资料示例
+
+
+
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 5]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+  A.1。概述
+
+  本节介绍了IOAM配置文件规范的示例。配置文件使用跳跃限制，节点ID和传输延
+迟数据字段，因此称为HHNT配置文件。
+
+  A2。用例
+
+  此配置文件适用于路径跟踪和传输延迟监控，同时使用每个数据包只有两个数据字段的
+紧凑数据。配置文件可以在具有大量跳跃的网络中有用。
+
+  A.3。IOam选项
+
+  HNT配置文件使用增量跟踪选项。包括根据当前配置文件的IOAM数据的数据包包
+括单个IOam选项 - 增量跟踪选项。具体而言，在此配置文件中使用两个数据字段：
+hop_lim和node_id字段和传输延迟字段。
+
+  A.4。IOAM选项标头字段值
+
+  此配置文件中增量跟踪选项标题中的IOAM-Trace-Type字段具有固定值
+;设置位0（最高有效位）和位4，而比特的其余部分为零，指示在该选项中使用的两个数
+据字段。
+
+  A.5。不透明状态快照
+
+  此配置文件中从未使用过的状态快照。请注意，如[i-d.ietf-ippm-
+ioam-data]中所定义的，nodelen字段表示除了不包括不透明状态快照的
+数据的长度。由于该字段未在当前配置文件中使用，因此Nodelen表示数据的实际长
+度。
+
+  A.6。个人资料共存
+
+  假设当前配置文件用于限制管理域中，其中没有使用其他IOAM配置文件。因此，假
+设当前的轮廓不与其他配置文件共存。
+
+  A.7。有效性
+
+  一个IOam转换/解封装的节点，它接收没有符合当前配置文件的IOAM选项的数
+据包，应该向前/解码数据包，如果能够执行
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 6]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+所以。如果解封的节点无法解封装不符合当前配置文件的IOAM选项，则丢弃数据包。
+
+  作者的地址
+
+  Tala Mizrahi Huwai 8-2 Matam Haifa
+3190501以色列
+
+  Email : 他俩.密宗RA Hi.平衡点@Gmail.com
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Ramesh Sivakolundu Cisco Systems，Inc
+.170 West Tasman博士San Jose博士，CA 95134
+U.S.A.
+
+  Email : SRAM E神@Cisco.com
+
+
+
+
+
+
+
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 7]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+  Carlos Pignataro Cisco
+Systems，Inc。7200-11 Kit Creek Road
+Research Triangle Park，NC 27709美国
+
+  Email : 擦屁股那她@Cisco.com
+
+  Aviv Kfir Nvidia.
+
+  Email : AVI VK@NVIDIA.com
+
+  Barak Gafni Nvidia 350 Oakmead
+Parkway，套房100 Sunnyvale，CA 94085 U.S.a.
+
+  Email : 个bar AK@NVIDIA.com
+
+  Mickey Spiegel赤脚网络4750 Patrick Henry
+Drive Santa Clara，CA 95054美国
+
+  Email : 没Spiegel@barefoot networks.com
+
+  TI安然Zhou hu A为 156 be i青RD. Beijing
+100095 China
+
+  Email : 周恬然@华为.com
+
+
+
+
+
+
+
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 8]
+
+Internet-Draft                IOAM Profiles                  August 2021
+
+  Jennifer Lemon Broadcom 270 Innovation
+Drive San Jose，CA 95134 US
+
+  Email : Jennifer.lemon@broad com.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mizrahi, et al.         Expires February 20, 2022               [Page 9]
+
+

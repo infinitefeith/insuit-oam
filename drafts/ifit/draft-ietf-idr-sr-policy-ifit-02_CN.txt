@@ -1,0 +1,801 @@
+
+
+
+
+  IDR F. Qininternet-
+Friaw中国MobileInged状态：标准轨道H.
+Yuanexpires：2022年1月10日，Unionpay T.周G.
+Fioccola Y.王华平7月9日，2021年9月9日
+
+  BGP SR策略扩展为启用IFIT草案-IETF-IDR-SR-
+Policy-IfIT-02
+
+  抽象的
+
+  段路由（SR）策略是由一个或多个段列表和必要的路径属性组成的一组候选SR路径
+。它使得能够实例化一个有序的段列表，具有特定的交通转向的意图。原位流信息遥测（I
+FIT）是指网络OAM数据平面上路径遥测技术，特别是最受欢迎的是原位OAM（IO
+AM）和替代标记。本文档将扩展名为BGP定义为分发携带IFIT信息的SR策略。因
+此，在应用SR策略时，可以自动启用IFIT方法。
+
+  要求语言
+
+  关键词“必须”，“必须不是”，“必填”，“应该”，“不得”，“应该”，“应该
+”，“应该”，“推荐”，“可以”，“可以”和“可选”在本文件中是要解释如BCP
+14 [RFC2119]
+[RFC8174]何时，并且仅当它们出现在所有资本中时，如此所示。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 1]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  此互联网草案将于2022年1月10日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Motivation  . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  IFIT methods for SR Policy  . . . . . . . . . . . . . . . . .   4
+   4.  IFIT Attributes in SR Policy  . . . . . . . . . . . . . . . .   5
+   5.  IFIT Attributes Sub-TLV . . . . . . . . . . . . . . . . . . .   6
+     5.1.  IOAM Pre-allocated Trace Option Sub-TLV . . . . . . . . .   8
+     5.2.  IOAM Incremental Trace Option Sub-TLV . . . . . . . . . .   9
+     5.3.  IOAM Directly Export Option Sub-TLV . . . . . . . . . . .   9
+     5.4.  IOAM Edge-to-Edge Option Sub-TLV  . . . . . . . . . . . .  10
+     5.5.  Enhanced Alternate Marking (EAM) sub-TLV  . . . . . . . .  11
+   6.  SR Policy Operations with IFIT Attributes . . . . . . . . . .  12
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
+   9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  14
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  14
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  16
+   Appendix A. . . . . . . . . . . . . . . . . . . . . . . . . . . .  16
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
+
+1.介绍
+
+  段路由（SR）策略[i-d.ietf-spring-semment-
+route-policy]是一组候选SR路径，包括一个或多个段列表和必要的路径属
+性。它使得能够实例化一个有序的段列表，具有特定的交通转向的意图。
+
+  原位流信息遥测（IFIT）表示一系列流量的路径遥测技术（例如，IOAM，替代
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 2]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  标记），可以提供高精度的流洞察力和实时网络问题通知（例如，抖动，延迟，数据包
+丢失）。特别是，IFIT指的是路径上的网络OAM（操作，管理和维护）数据平面遥测
+技术，包括原位OAM（IOAM）[ID.IETF-IPPM-IOAM-DATA]
+和备用标记[RFC8321]。它可以实时地提供每个数据包的整个转发路径的流量信息
+。
+
+  自动网络需要在部署的服务上进行服务级别协议（SLA）监控。因此，系统可以快速
+检测SLA违规或性能下降，从而改变服务部署。因此，SR策略本机IFIT可以促进闭
+环控制并启用SR服务的自动化。
+
+  本文档定义了边框网关协议（BGP）的扩展，以分配携带IFIT信息的SR策略。
+因此，可以在应用SR策略时自动启用IFIT行为。
+
+  此BGP扩展允许将IFIT功能与SR-Policy一起发出信号。以这种方式，
+ifit方法会自动激活和运行。IFIT应用程序的灵活性和动态性通过在控制器上和网
+络节点上使用其他功能给出，但这在此处不符。
+
+  IFIT是根据[RFC8799]关注网络域的解决方案，介绍了特定域解决方案的
+概念。网络域包括单个管理中的一组网络设备或实体。如[RFC8799]中提到的，由
+于多种原因，例如策略，支持的选项，网络管理和安全要求的风格，建议将包括新兴IFI
+T技术的应用程序限制为受控域。因此，必须在这种受控域中部署IFIT方法。
+
+2.动机
+
+  IFIT方法正在多个协议中引入，以下是用于段路由的相关文档的正确图片。实际上
+，IFIT方法对于在MPLS数据平面（SR-MPLS）和IPv6数据平面上的段路
+由（SRV6）上的段路由而变得成熟，这是本选秀的主要焦点：
+
+  IOAM : 数据平面的参考文档是用于SR-
+MPLS的SRV6和[I-D.Gandhi-MPLS-IOAM-
+SR]的I-D.ietf-IPPM-IOAM-IPv6-选项。
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 3]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  Alternate Marking :
+数据平面的参考文档是SRV6和[ID.IETF-MPLS-
+RFC6374-SFL]的[ID.IETF-6MAN-IPv6-ALT-
+MARK]，[ID.Gandhi-MPLS-RFC6374-SR]用于SR-
+MPLS。
+
+  SR-MPLS和SRV6的这些数据平面IFIT方法的定义意味着对各种路由协议
+（例如BGP）的要求，并且本文档旨在定义BGP扩展以分配携带IFIT信息的SR策
+略。这允许发出IFIT功能，因此当SR策略候选路径通过BGP分发时，自动配置IF
+IT方法并准备运行。
+
+  应注意，对于PCEP（路径计算元素通信协议），[I-D.CHEN-PCE-
+PCEP-IFIT]提出了PCEP的扩展，以分配携带IFIT信息的路径，从而为S
+R政策启用IFIT方法。
+
+3. SR政策的IFIT方法
+
+  原位运营，管理和维护（IOAM）[I-D.IETF-IPPM-IOAM-DA
+TA]在数据包中记录在数据包中的操作和遥测信息，而数据包遍历网络中的两个点之间的
+路径。就RFC 7799 [RFC7799]中给出的分类而言，IOam可以被分类
+为混合型1.可以利用有源OAM不适用或不提供所需结果的IOam机制。当SR策略启
+用IOAM时，IOAM标题将被插入到用于SR路径中的每个流量的每个数据包中。
+
+  替代标记[RFC8321]技术是一种混合性能测量方法，每RFC 7799 [
+RFC7799]测量方法的分类。因为此方法基于标记连续批量的数据包。它可用于测量
+实时流量上的数据包丢失，延迟和抖动。
+
+  本文档旨在定义控制平面。虽然IOAM和替代标记的数据平面应用的相关文件分别是
+[ID.IETF-IPPM-IOAM-
+IPv6-选项]和IPv6数据平面上的段路由的[id.ietf-6man-
+ipv6-alt-mark]（srv6），[id.ietf-mpls-
+rfc6374-sfl]，[id.gandhi-mpls-
+rfc6374-sr]和[id.gandhi-mpls-ioam-
+sr]用于在MPLS数据平面上进行段路由（SR-MPLS）。
+
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 4]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+4. SR政策中的IFIT属性
+
+  如[I-D.ietf-IDR-Segment-Routing-Te-
+Teodical]中所定义，定义了一种新的SAFI（使用CodePoint 73
+的SR策略SAFI）以及新的NLRI。NLRI包含SR策略候选路径，并且根据[i
+d.ietf-idr-segment-roting-te-te-te-
+tegration]，SR策略候选路径的内容在[ID.IETF-
+中定义的隧道封装属性中被编码。IDR-Tunnel-
+encaps]使用带CodePoint
+15的新隧道类型名为SR策略类型.SR策略编码结构如下：
+
+  SR Policy SAFI NLRI : <逻辑输入器，策略 -
+颜色，端点>属性：隧道encaps属性（23）隧道类型：SR策略绑定SID SR
+V6绑定SID首选项优先级策略名称策略候选路径名称显式空标签策略（Enlp）段列
+表权重段段.........
+
+  候选路径包括多个SR路径，每个SR路径由段列表指定。IFIT可以应用于候选路
+径，以便以相同的方式监控所有SR路径。新的SR策略编码结构如下所示：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 5]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  SR Policy SAFI NLRI : <逻辑，策略，端点>属性：隧道e
+ncaps属性（23）隧道类型：sr策略绑定sid srv6绑定sid sid 
+reference优先级策略名称策略候选路径名称显式null标签策略（exp）i
+fit属性段段段列表段段。... ...
+
+  IFIT属性可以在候选路径级别附加为子TLV。可能有不同的ifit工具。以下
+部分将描述不同IFIT工具的要求和使用，并在BGP中定义相应的子TLV编码。
+
+  一旦使用IFIT属性，如果数据包在头部到达，并且基于[ID.IETF-
+Spring-Semment-Round-Prodict-Rody-Policy
+]中描述的转向类型，它可能会导致进入SR策略，其中IFIT方法是应用。因此，将根
+据Enabled IFIT方法使用相应的IOAM或替代标记信息来管理。
+
+  请注意，这里描述的IFIT属性也可以是概括的，并且包含为其他SAFIS和NL
+RIS的子TLV。
+
+5. IFIT属性子TLV
+
+  IFIT属性子TLV的格式定义如下：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 6]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                   +---------------+---------------+
+                                   |      Type     |    Length     |
+   +-------------------------------+---------------+---------------+
+   |                                                               |
+   //                           sub-TLVs                          //
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图。1 IFIT属性子TLV
+
+
+
+  Type : 由IANA分配。
+
+  Length : 值字段的总长度不包括类型和长度字段。
+
+
+
+  * IOAM预先分配的跟踪选项子TLV，
+
+  * IOAM增量跟踪选项子TLV，
+
+  * IOam直接导出选项sub-tlv，
+
+  * IOAM边缘到边缘选项Sub-TLV，
+
+  *增强的替代标记（EAM）子TLV。
+
+  IFIT属性子TLV的存在意味着支持IFIT方法（IOAM和/或备用标记）。
+值得一提的是，IOam和替代标记可以一次激活一个或可以共存;因此，可以只有IOA
+M或仅启用作为子TLV的备用标记。目前为IOAM和备用标记定义的子TLV在下一节
+中详述。
+
+  在空缀的情况下子TLV，即不再是IFIT子TLV和Length = 0，IF
+IT方法不会被激活。如果存在两个冲突的IOAM子TLV（例如，预先分配的跟踪选项
+和增量跟踪选项），则表示它们不可用，两种方法都没有激活。如果存在相同类型的子TL
+V的一个实例，则同样适用。无论如何，IFIT属性子TLV的各个字段的验证由SRP
+M（SR策略模块）处理。
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 7]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  停止IFIT方法的过程可以通过设置空IFIT属性子TLV来完成，而对于修改I
+FIT方法参数，可以相应地更新IFIT属性子TLV。另外，保证了向后兼容性，因为
+不了解IFIT属性子TLV的实现，因此可以简单地忽略它。
+
+5.1。IOAM预先分配的跟踪选项子TLV
+
+  预计IOAM跟踪数据将在数据包遍历的每个节点上收集，以确保在整个路径中的可见
+性，以在IOAM域中占用。预分配的跟踪选项将为每个节点创建预先分配的空间以填充其
+信息。
+
+  IOAM预先分配的跟踪选项子TLV的格式定义如下：
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +---------------+---------------+-------------------------------+
+   |    Type=1     |   Length=6    |    Namespace ID               |
+   +---------------+---------------+--------------+--------+-------+
+   |         IOAM Trace Type                      | Flags  | Rsvd  |
+   +----------------------------------------------+--------+-------+
+
+  图2 IOAM预先分配的跟踪选项Sub-TLV
+
+
+
+  Type : 1（由IANA分配）。
+
+  Length : 如图6所示，它是值字段的总长度（不包括类型和长度字段）。
+
+  Namespace ID : 一个16位标识符的IOAM-
+命名空间。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.4节中所述。
+
+  IOAM Trace Type :
+一个24位标识符，它指定节点数据列表中使用的数据类型。定义与[I-D.ietf-
+IPPM-IOAM-DATA的第4.4节中所述。
+
+  Flags : 一个4位字段。该定义与[i-d.ietf-ippm-
+ioam-flags]和[i-d.ietf-ippm-ioam-
+data]的第4.4节中描述的相同。
+
+  Rsvd : 保留4位字段以进一步使用。它必须在收据上零零。
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 8]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+5.2。IOAM增量跟踪选项子TLV
+
+  增量跟踪选项包含一个可变节点数据字段，其中每个节点在选项标题之后立即分配并按
+下其节点数据。
+
+  IOAM增量跟踪选项子TLV的格式定义如下：
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +---------------+---------------+-------------------------------+
+   |    Type=2     |   Length=6    |    Namespace ID               |
+   +---------------+---------------+--------------+--------+-------+
+   |         IOAM Trace Type                      | Flags  | Rsvd  |
+   +----------------------------------------------+--------+-------+
+
+  图3 IOAM增量跟踪选项Sub-TLV
+
+
+
+  Type : 2（由IANA分配）。
+
+  Length : 如图6所示，它是值字段的总长度（不包括类型和长度字段）。
+
+  所有其他字段定义与第4.1节中的预先分配跟踪选项子TLV相同。
+
+5.3。IOAM直接导出选项子TLV
+
+  IOam直接导出选项用作要直接导出到收集器的IOAM数据的触发器，而不被推入
+飞行中数据包。
+
+  IOAM直接导出选项子TLV的格式定义如下：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022                [Page 9]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                   +---------------+---------------+
+                                   |    Type=3     |   Length=12   |
+   +-----------------------------------------------+---------------+
+   |        Namespace ID           |            Flags              |
+   +-------------------------------+---------------+---------------+
+   |               IOAM Trace Type                 |      Rsvd     |
+   +-----------------------------------------------+---------------+
+   |                         Flow ID                               |
+   +---------------------------------------------------------------+
+
+  图4 IOam直接导出选项子TLV
+
+
+
+  Type : 3（由IANA分配）。
+
+  Length : 如图12所示，它是值字段的总长度（不包括类型和长度字段）。
+
+  Namespace ID : 一个16位标识符的IOAM-
+命名空间。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.4节中所述。
+
+  Flags : 一个16位字段。该定义与[I-D.ITEF-IPPM-
+IOAM-Intion-Export]第3.2节中所述相同。
+
+  IOAM Trace Type :
+一个24位标识符，它指定节点数据列表中使用的数据类型。定义与[I-D.ietf-
+IPPM-IOAM-DATA的第4.4节中所述。
+
+  Rsvd : 保留4位字段以进一步使用。它必须在收据上零零。
+
+  Flow ID : 32位流标识符。该定义与[I-D.ITEF-IPPM-
+IOAM-Intion-Export]第3.2节中所述相同。
+
+5.4。IOAM边缘到边缘选项Sub-TLV
+
+  “IOAM边沿到Edge”选项是携带IOAM封装节点添加的数据，并由IOAM
+解封节点解释。
+
+  IOAM边缘到边缘选项子TLV的格式定义如下：
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 10]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                   +---------------+---------------+
+                                   |    Type=4     |    Length=4   |
+   +-----------------------------------------------+---------------+
+   |        Namespace ID           |         IOAM E2E Type         |
+   +-------------------------------+-------------------------------+
+
+  图5IOAM边缘到边缘选项子TLV
+
+
+
+  Type : 4（由IANA分配）。
+
+  Length : 如图4所示，它是值字段的总长度（不包括类型和长度字段）。
+
+  Namespace ID : 一个16位标识符的IOAM-
+命名空间。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.6节中所述。
+
+  IOAM E2E Type : 一个16位标识符，它指定E2E选项数据中使用
+的数据类型。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.6节中所述。
+
+5.5。增强的替代标记（EAM）子TLV
+
+  增强型备用标记（EAM）子TLV的格式定义如下：
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                   +---------------+---------------+
+                                   |    Type=5     |   Length=4    |
+   +-------------------------------+-------+-------+-------+-------+
+   |           FlowMonID                   |     Period    |H|E| R |
+   +---------------------------------------+---------------+-------+
+
+  图6增强了替代标记子TLV
+
+
+
+  Type : 5（由IANA分配）。
+
+  Length : 如图4所示，它是值字段的总长度（不包括类型和长度字段）。
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 11]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  FlowMonID : 一个20位标识符，用于唯一地标识测量域内的受监视流。
+定义与[I-D.ietf-6man-IPv6-Alt-
+Mark]第5.3节中所述相同。
+
+  Period : 两个替代标记周期之间的时间间隔。该单位是秒。
+
+  H : 一个标志，表示测量是逐跳的。
+
+  E : 一种标志，表示测量结束到底。
+
+  R : 保留2位字段以进一步使用。它必须在收据上零零。
+
+6.使用IFIT属性的SR策略操作
+
+  SR策略安装和使用的详细信息在[i-d.ietf-spring-
+segment-tourding-
+prodice]中指定。本文档通过添加IFIT属性补充[i-d.ietf-
+idr-segment-touring-te-teming-te-
+prodent]中描述的SR策略操作。
+
+  [i-d.ietf-idr-eDr-segent-te-te-te-te-
+te-te-policy]中描述的操作始终有效。唯一的区别是为SR策略NLRI添
+加IFIT属性子TLV，可以影响BGP扬声器的接受，但实现可以提供忽略无法识别或
+不支持的iFIT子TLV的选项。可以评估已确定可接受，可用和有效的SR
+Policy NLRIs以用于传播，包括IFIT信息。
+
+  错误处理操作也在[id.ietf-idr-segment-touring-
+te-te-te-teging]中描述，确实是BGP扬声器必须执行SR
+Policy NLRI的语法验证，以确定它是否畸形，包括TLV / Sub-
+tlvs。在检测到任何错误的情况下，在属性或其TLV / sub-
+TLV级别，必须应用“处理退出”策略。
+
+  必须执行本文档中引入的IFIT属性子TLV的验证以确定它们是否畸形或无效。I
+FIT属性子TLV的各个字段的验证由SRPM（SR策略模块）处理。
+
+7. IANA考虑因素
+
+本文档在注册表“BGP隧道封装属性子TLV”中定义了IANA分配的新子TLV：
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 12]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+
+   Codepoint    Description                      Reference
+   -------------------------------------------------------------
+   TBD1         IFIT Attributes Sub-TLV          This document
+
+  此文档请求创建名为“IFIT属性子TLV”的新注册表。根据RFC 8126
+[RFC8126]，此注册表的分配策略是“必需的规范”。
+
+  以下文档分配以下初始子TLV CodePoints：
+
+   Value   Description                                Reference
+   -------------------------------------------------------------
+   1       IOAM Pre-allocated Trace Option Sub-TLV    This document
+
+  2 IOAM增量跟踪选项Sub-TLV本文档
+
+  3 ioam直接导出选项sub-tlv本文档
+
+  4 IOAM Edge-To-Edge选项Sub-TLV本文档
+
+  5增强型备用标记子TLV本文档
+
+8.安全考虑因素
+
+基础BGP安全模型的安全机制适用于本文档中描述的扩展。请参阅[i-d.ietf-
+idr-segment-te-te-policy]的安全注意事项部分。
+
+  SR在可信SR域RFC 8402 [RFC8402]中运行，其安全注意事项也
+适用于携带SR策略信息时的BGP会话。可以使用BGP SR策略SAFI凝固会话的
+隔离来确保在SR域之外不通告SR策略信息。此外，必须将仅在SR域内（包括路由器和
+控制器应用）仅被配置为接收此类信息。
+
+  IFIT方法（IOAM和替代标记）的实现是安全和隐私问题的，如[I-D.IT
+TF-IPPM-IOAM-DATA]和RFC 8321 [RFC8321]中所述
+。无论如何，BGP扩展中的IFIT参数不正确，不应对SR政策以及网络产生不利影响
+，因为它仅影响遥测方法的操作。
+
+  IFIT数据必须在有限域中传播，以避免恶意攻击和解决方案以确保此要求是
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 13]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  分别在[i-d.ietf-ippm-ioam-
+data]和[i-d.ietf-6man-ipv6-alt-mark]中讨论。
+
+  IFIT方法（IOAM和备用标记）应用于在本地管理网络节点的受控域内。有限的
+管理域为网络管理员提供了选择，监视和控制对网络的访问的方法，也使其成为该文档中定
+义的BGP扩展的可信域。
+
+9.致谢
+
+  本文档的作者要感谢Ketan Talaulikar，Jie
+Dong的joel Halpern致辞和审查本文件。
+
+10.参考文献
+
+10.1。规范参考文献
+
+  [ID.IETF-6MAN-IPv6-ALT-MARK] FIOCCOLA，
+G.，ZHOU，T.，Cociglio，M.，Qin，F.和R.
+Pang，“IPv6应用的替代标记方法”，草案 - IETF-6Man-
+IPv6-Alt-Mark-04（正在进行的工作），3月2021年。
+
+  [ID.IETF-IDR-SEGMENT-ROTENT-TE-POLY] P
+RVIDI，S.，FILSFIL，C.，TALAULIKAR，K.，MATLES
+，P.，ROSEN，E.，JAIN，D.和S.林，“BGP中的广告段路由策略”，
+草稿 -  IETF-IDR-SEGMENT-RUTING-TE-
+POLY-11（正在进行的工作），11月20日。
+
+  [ID.IETF-IDR-TUNNEL-ENCAPS]
+PATEL，K.，VELDE，GVD，Sangli，SR和J.
+SMUDDER，“BGP隧道封装属性”，草案-IETF-IDR-隧道 -
+22（工作在进步），1月2021。
+
+  [ID.IETF-IPPM-IOAM-
+DATA，S.，F.，Bhandari，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，草稿 -  IETF-IPPM-
+IOAM-Data-12（工作中进展），2月2021年。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+03（正在进行的工作），2月2021年。
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 14]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  [id.ietf-ippm-ioam-flags] Mizrahi，T.，女
+郎，斯ivakolundu，R.，Pignataro，C.，Kfir，A.，Ga
+fni，B.，Spiegel，M。和J. Lemon，“In-Bialu
+Oam标志”，草案 -  IETF-IPPM-IOAM-
+FLAGS-04（正在进行的工作），2月2021年。
+
+  [ID.IETF-IPPM-IOAM-IPv6-选项] Bhandari，S
+.，Brockners，F.，Pignataro，C.，Greder，H.，Li
+eddy，J.，Youell，S.，Mizrahi，T.，Kfir，A.，Gaf
+ni，B.，Lapukhov，P.，Spiegel，M.，Krishnan，S.
+，S.，Asati，R.和M. Smith，“原位OAM IPv6选项”，草案-
+IETF-IPPM-IOam-
+IPv6-options-05（正在进行的工作），2月2021年。
+
+  [id.ietf-spring-semment-trouding-
+policy] Filsfils，C.，Talaulikar，K.，Voyer，
+D.，Bogdanov，A.和P. Mattes，“段路由政策架构”，草稿 -
+IETF-Spring -  4月2021年4月， -  4月2021年 -
+4.Seyment-Routing-Policy-11（正在进行中）。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC7799]
+Morton，A.，“主动和被动度量和方法（在与杂交类型之间）”，RFC
+7799，DOI 10.17487 /
+RFC7799，2016年5月，<https://www.rfc-
+editor.org/info/ rfc7799>。
+
+  [RFC8126]棉，M.，Leiba，B.和T.Narten，“用于在RF
+CS中编写IANA考虑因素”部分的准则“，BCP 26，RFC 8126，DOI
+10.17487 / RFC8126，2017年6月<https：//
+www.rfc-editor.org / info / rfc8126>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+  [rfc8321] Fioccola，G.，Ed。，Capello，A.，C
+ociglio，M.，Castaldelli，L.，Chen，M.，Zheng，
+L.，Mirsky，G.和T.
+Mizrahi，“替代标记用于被动和混合性能监测的方法“，RFC
+8321，DOI 10.17487 /
+RFC8321，2018年1月，<https://www.rfc-
+editor.org/info/rfc8321>。
+
+  [RFC8402] Filsfils，C.，Ed。，Providi，S.，E
+d。，Ginsberg，L.，DeDraene，B.，Litkowski，S.和
+R. Shakir，“段路由架构”，RFC 8402，DOI 10.17487/
+rfc8402，2018年7月，<https://www.rfc-
+editor.org/info/rfc8402>。
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 15]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  [RFC8799]木匠，B.和B.刘，“有限域名和互联网协议”，RFC
+8799，DOI 10.17487 /
+RFC8799，7月20日，<https://www.rfc-
+editor.org/info/rfc8799>。
+
+10.2。信息参考资料
+
+  [ID.CHEN-PCE-PCEP-
+IFIT]陈，H.，元，H.，周，T.，Li，W.，Fioccola，G.和Y.
+Wang，“路径计算元件通信协议（PCEP）扩展为启用IFIT“，2月2021年
+2月2021年草案 - 陈氏PCE-PCEP-IFIT-02（正在进行中）。
+
+  [ID.Gandhi-MPLS-IOAM-SR] Gandhi，R.，Ali
+，Z.，Filsfils，C.，Brockners，F.，Wen，B.和V.Ko
+zak，“MPLS数据平面封装就地OAM数据“，草案 - 甘地-MPLS-
+IOAM-SR-06（正在进行的工作），2月2021年。
+
+  [ID.Gandhi-MPLS-RFC6374-SR] Gandhi，R.，
+Filsfils，C.，Voyer，D.，Salsano，S.和M.
+Chen，使用RFC 6374进行段的序列与MPLS数据平面进行序列测量“，草案
+- 甘地-MPLS-RFC6374-SR-05（正在进行的工作），6月20日。
+
+  [ID.IETF-MPLS-RFC6374-SFL] Bryant，S.，燕
+子，G.，陈，M。，Fioccola，G.和G.Mirsky，“RFC6374同
+义流量标签”，草案-IETF-MPLS-
+RFC6374-SFL-10（正在进行的工作），3月2021年3月。
+
+  附录A.
+
+  作者的地址
+
+  Fe ng为q in China Mobile no. 32 X
+u按五门吸ave., ξ成district Beijing China
+
+  Email : 琴凤尾@China Mobile.com
+
+
+
+
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 16]
+
+Internet-Draft             bgp-sr-policy-ifit                  July 2021
+
+  hang yuan union pay 1899 GU-tang RD.,
+PU懂Shanghai China
+
+  Email : 远航@union pay.com
+
+  TI安然Zhou hu A为 156 be i青RD.,
+H矮点district Beijing China
+
+  Email : 周恬然@华为.com
+
+  Giuseppe Fioccola华为Risstrasse，25慕尼黑德国
+
+  Email : Giuseppe.F IOC cola@华为.com
+
+  ya里Wang hu A为 156 be i青RD.,
+H矮点district Beijing China
+
+  Email : 王亚丽11@华为.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Qin, et al.             Expires January 10, 2022               [Page 17]
+
+

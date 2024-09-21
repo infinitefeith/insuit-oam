@@ -1,0 +1,1117 @@
+
+
+
+
+  IPPM M. Spiegelinternet-
+SomeBrize赤脚网络，英特尔公司化的状态：信息F.
+BrocknersExpres：13月2022日Cisco S.Bhandari
+Insignspot R. Sivakolundu Cisco
+2010年7月12日
+
+  使用IPFix草案-Spiegel-IPPM-IOAM-
+RAWEXPORT-05使用IPFIX草案原始数据导出
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。本文档讨论了原始操作，管理和维护（IOAM）
+信息如何以RAW，即从网络设备到系统的未解释，格式，例如使用IPFIX的监视或分
+析系统。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于1月13日至2022年1月到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 1]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  本文档受到BCP 78和IETF Trust的法律规定，与IETF文件（ht
+tps://trustee.ietf.org/许可证 - 信息）有关本文件的出版
+日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档中提取的代
+码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中所述，并且
+在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.1.  Requirements  . . . . . . . . . . . . . . . . . . . . . .   4
+     1.2.  Scope . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   3.  IPFIX for IOAM raw data export  . . . . . . . . . . . . . . .   6
+     3.1.  Key IPFIX information elements leveraged for IOAM raw data
+           export  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     3.2.  New IPFIX information elements leveraged for IOAM raw data
+           export  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+       3.2.1.  ioamReportFlags . . . . . . . . . . . . . . . . . . .   7
+       3.2.2.  ioamEncapsulationType . . . . . . . . . . . . . . . .   8
+       3.2.3.  ioamPreallocatedTraceData . . . . . . . . . . . . . .   8
+       3.2.4.  ioamIncrementalTraceData  . . . . . . . . . . . . . .   9
+       3.2.5.  ioamE2EData . . . . . . . . . . . . . . . . . . . . .   9
+       3.2.6.  ioamPOTData . . . . . . . . . . . . . . . . . . . . .  10
+       3.2.7.  ioamDirectExportData  . . . . . . . . . . . . . . . .  10
+       3.2.8.  ipHeaderPacketSectionWithPadding  . . . . . . . . . .  11
+       3.2.9.  ethernetFrameSection  . . . . . . . . . . . . . . . .  12
+   4.  Examples  . . . . . . . . . . . . . . . . . . . . . . . . . .  13
+     4.1.  Fixed Length IP Packet  . . . . . . . . . . . . . . . . .  13
+     4.2.  Variable Length IP Packet (length < 255)  . . . . . . . .  13
+     4.3.  Variable Length IP Packet (length > 255)  . . . . . . . .  14
+     4.4.  Variable Length ETHERNET Packet (length < 255)  . . . . .  15
+     4.5.  Variable Length IP Packet with Fixed Length IOAM
+           Incremental Trace Data  . . . . . . . . . . . . . . . . .  16
+     4.6.  Variable Length IP Packet with Variable Length IOAM
+           Incremental Trace Data  . . . . . . . . . . . . . . . . .  17
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  18
+   6.  Manageability Considerations  . . . . . . . . . . . . . . . .  19
+   7.  Security Considerations . . . . . . . . . . . . . . . . . . .  19
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  19
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  19
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  19
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .  20
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  21
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 2]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+1.介绍
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。IOAM数据字段在[i-d.ietf-
+ippm-ioam-data]中定义。本文档讨论了原位操作，管理和维护（IOAM
+）信息如何以原始格式导出，即，从网络设备到系统的未解释格式，例如使用IPFix的
+监控或分析系统[RFC7011]。
+
+  “IOAM数据的原始导出”是指节点在数据包中收到的IOAM数据导出IOAM数
+据的操作模式。导出节点既不是解释，聚合也不重新格式化IOAM数据。 IOAM数据
+的原始导出是支持一个操作模型，其中IOAM数据的处理和解释是从封装/更新/解除的
+IOAM数据的操作分离的，这也被称为IOAM数据平面操作。下图显示了IOAM导出
+的关注的分离：导出IOAM数据由执行IOAM数据平面操作的“IOam节点”执行，
+而IOAM数据处理系统执行IOAM数据的解释。关注的分离是从执行数据平面操作的节
+点的非负载解释，聚合和格式化IOAM数据。换句话说，专注于数据平面操作的节点，即
+分组转发和处理IOAM数据的转发也不会被任务为解释IOAM数据，但可以将此任务留
+给另一个系统。请注意，出于可扩展性原因，单个IOAM节点可以选择将IOAM数据导
+出到多个IOAM数据处理系统。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 3]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+
+                       +-------------+
+                       | Monitoring/ |
+                       | Analytics   |
+                       | system      |
+                       +-------------+
+                              ^
+                              |  Processed/interpreted/aggregated
+                              |  IOAM data
+                              |
+                       +-------------+
+                       | IOAM data   |
+                       | processing  |
+                       | system      |
+                       +-------------+
+                              ^
+                              |  Raw export of
+                              |  IOAM data
+                              |
+                       +------------+
+                       |            |
+                   ..--| IOAM node  |--..
+                       |            |
+                       +------------+
+
+  IOAM node : IOAM封装，IOAM拆卸或IOAM转换节点。
+
+  IOAM data processing system :
+接收原始IOAM数据的系统，并提供了IOAM数据的格式化，聚合和解释。
+
+  Monitoring/Analytics system :
+从各种来源接收遥测和其他操作信息的系统，并提供所接收的数据的相关性和解释。
+
+  IOAM数据的原始导出通常由网络边缘的网络设备生成。依赖于部署和用例，例如在
+直接导出[id.ietf-ippm-direct-
+export]或在运营商对丢弃数据包感兴趣的情况下，可以通过IOam
+Transit生成IOAM数据的原始导出节点。
+
+1.1。要求
+
+  IOAM数据的原始导出要求：
+
+  *导出数据包中包含的所有IOAM信息。
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 4]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  *导出特定的IOAM数据类型 -
+增量跟踪类型，预分配的跟踪类型，传输型证明，边缘到边缘类型，直接导出类型。
+
+  *导出与数据包关联的IOAM跟踪数据，即使该数据永远不会包含在网络中的发送或
+接收的数据包中，例如在直接导出的情况下。
+
+  *支持将IOAM数据从多个数据包合并到一个原始导出数据包中。
+
+  *支持输出数据包的其他部分，除了IOAM数据，作为原始导出的一部分。这可能是
+分组标题的部分和/或数据包有效载荷的部分。该附加信息为IOAM数据提供上下文（例
+如用于用于流识别），并且是使IOAM数据处理系统能够对接收数据进行进一步的分析。
+
+  *报告导出IOAM数据的原因。“出口原因”是补充从数据包检索的IOAM数据。
+例如，如果由于拥塞由于节点被节点丢弃了数据包，则导出该丢弃的数据包的IOAM数据
+以及指示IOAM数据所属的数据包由于拥塞而被丢弃的指示。
+
+1.2。范围
+
+  本文档讨论了使用IPFIX的IOAM数据的原始导出。
+
+  以下内容被认为是本文件的范围：
+
+  *除Ioam数据的原始导出以外的IPFIX的协议。
+
+  *在导出之前解释或聚合IOAM数据。
+
+  *网络设备的配置，以便他们可以确定何时生成IOAM报告，以及在这些报告中包含
+的信息。
+
+  *触发IOAM报告生成的事件。
+
+*在分布式遥测监控系统中选择特定目的地，将发送IOAM报告的分布式遥测监控系统。
+
+  *流程统计或已处理/解释/聚合IOAM数据的导出格式。
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 5]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+2.惯例
+
+  关键词“必须”，“必须不是”，“必填”，“应该”，“不得”，“应该”，“应该
+”，“应该”，“推荐”，“可以”，“可以”和“可选”在本文件中是如[RFC211
+9]中所述解释。
+
+  本文档中使用的缩写：
+
+  E2E : 边缘到边缘
+
+  IOAM : 原位运营，管理和维护
+
+  MTU : 最大传输单元
+
+  OAM : 运营，管理和维护
+
+  POT : 过境证明
+
+3. IOAM原始数据导出的IPFIX
+
+  IPFIX是一个通用导出协议，可以导出任何信息元素，只要它们在信息模型中描述
+。IPFix协议非常适合，并且被定义为[RFC5476]中导出数据包样本的协议。
+
+  IPFIX / PSAMP
+[RFC7011]，[RFC5476]已经定义了导出导出导出上下文和RAW IO
+AM数据导出所需的数据包部分所需的许多信息元素。此文档指定了IPFIX信息模型的
+扩展，用于满足第1.1节中的要求。
+
+3.1。键IPFIX信息元素利用IOAM原始数据导出
+
+  此处列出了IOAM原始数据导出所需的现有IPFIX信息元素。他们的细节可在I
+ANA的IPFIX注册表[IANA-IPFIX]中使用。
+
+  用于携带包含IOAM数据的数据包部分的现有IPFIX信息元素如下：
+
+  313  -  ipheaderPacketsection.
+
+  315  - 数据链接框架
+
+  以下信息元素将用于向IpheaderPacketsection和DataLi
+nkFrames提供上下文，如[IANA-IPFIX]中所述：
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 6]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  408  -  DataLinkFrame类型
+
+  409  - 部分OFFSET.
+
+  410  -  Sectionexportedoctets.
+
+  以下信息元素将用于提供流程的转发状态和任何附件。
+
+  89  - 转发静电
+
+3.2。用于IOAM原始数据导出的新IPFIX信息元素
+
+  使用IPFIX的IOAM数据RAW导出需要一组本节中描述的新信息元素。
+
+3.2.1。ioamreportflags.
+
+
+
+  此信息元素描述与IOAM报告相关的属性。
+
+  IOamReportFlags数据类型是8位字段。此处定义了以下位：
+
+  位0删除关联 - 丢弃的兴趣包。
+
+  Bit 1拥塞队列关联 - 表示监视队列中拥塞的存在。
+
+  位2跟踪流动协会 - 匹配感兴趣的流程。
+
+  第3-7位保留
+
+  请求IANA为IOAM报告标志创建一个新的子区域，并在说明中使用初始列表填写
+。IOAM封装类型的新作业通过IANA通过专家评论[RFC5226]
+I.E.，由IETF区域主任指定的一组专家审查之一。
+
+  Abstract Data Type : unsigned8.
+
+  Data Type Semantics : 旗帜
+
+  ElementId : TBD1。
+
+  Status : 当前的
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 7]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+3.2.2。ioamencapsulationtype.
+
+
+
+  此信息元素指定封装类型以解释IOAMprealLocatedTraceDat
+a，Ioamincrementaltracedata，Ioame2edata，I
+oampotData，IoamDirectexportData。
+
+  此处定义了以下IOAMEncapSulateType值：
+
+  0 None  : IOAM数据在[i-d.ietf-ippm-ioam-
+data中定义的格式]
+
+  1 GRE  : IOAM数据遵循[i-d.weis-ippm-ioam-
+eth]中定义的格式]
+
+  2 IPv6  : IOam数据遵循[i-d.ietf-ippm-ioam-
+ipv6-options中定义的格式]
+
+  3 VXLAN-GPE  : IOAM数据遵循[i-d.brockners-
+ippm-ioam-vxlan-gpe]中定义的格式]
+
+  4 GENEVE Option :
+IOam数据遵循[i-d.brockners-ippm-ioam-
+geneve]中定义的格式
+
+  5 GENEVE Next Protocol :
+IOAM数据遵循[i-d.weis-ippm-ioam-eth]中定义的格式]
+
+  6 NSH  : IOam数据遵循[i-d.ietf-sfc-ioam-
+nsh中定义的格式]
+
+  请求IANA为IOAM封装类型创建一个新的次述，并从描述中使用初始列表填充它
+。IOAM封装类型的新作业通过IANA通过专家评论[RFC5226]
+I.E.，由IETF区域主任指定的一组专家审查之一。
+
+  Abstract Data Type : unsigned8.
+
+  Data Type Semantics : 确认
+
+  ElementId : 开始
+
+  Status : 当前的
+
+3.2.3。ioampreallocatedtracedata.
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 8]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  此信息元素在[i-d.ietf-ippm-ioam-
+data]中定义的IOAM预分配跟踪数据的n个八位字节。
+
+  数据的格式由IoamencapsulateType信息元素确定，如果存在。当
+存在IOAMEncapSulateType信息元素并且具有除“无”之外的值，并且
+具有足够的长度时，该元素还可以从后续标题和有效载荷报告八位字节。如果没有存在IO
+AmencapSulateType信息元素，则封装类型应假定为“无”，并且此信息
+元素仅包含来自IOAM预分配的跟踪选项的八位字节。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : 创建
+
+  Status : 当前的
+
+3.2.4。ioamincrementaltracedata.
+
+
+
+  此信息元素携带[i-d.ietf-ippm-ioam-
+data中定义的IOAM增量跟踪数据的n个八位字节。
+
+  数据的格式由IoamencapsulateType信息元素确定，如果存在。当
+存在IOAMEncapSulateType信息元素并且具有除“无”之外的值，并且
+具有足够的长度时，该元素还可以从后续标题和有效载荷报告八位字节。如果没有存在IO
+AMEncapSulateType信息元素，则封装类型应假定为“无”，并且此信息
+元素仅包含来自IOAM增量跟踪选项的八位字节。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : TBD4.
+
+  Status : 当前的
+
+3.2.5。Ioone2edata.
+
+
+
+  此信息元素携带[i-d.ietf-ippm-ioam-
+data]中定义的IOAM E2E数据的n个八位字节。
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022                [Page 9]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  数据的格式由IoamencapsulateType信息元素确定，如果存在。当
+存在IOAMEncapSulateType信息元素并且具有除“无”之外的值，并且
+具有足够的长度时，该元素还可以从后续标题和有效载荷报告八位字节。如果没有存在IO
+AMEncapSulateType信息元素，则将假定封装类型为“无”，并且此信息
+元素仅包含来自IOAM边缘到边缘选项的八位字节。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : TBD5
+
+  Status : 当前的
+
+3.2.6。ioampotdata.
+
+
+
+  此信息元素在[I-D.ietf-IPPM-IOAM-DATA中定义的IOAM
+POT数据的N个八位字节。
+
+  数据的格式由IoamencapsulateType信息元素确定，如果存在。当
+存在IOAMEncapSulateType信息元素并且具有除“无”之外的值，并且
+具有足够的长度时，该元素还可以从后续标题和有效载荷报告八位字节。如果没有存在Io
+amencapSulateType信息元素，则封装类型应假定为“无”，并且此信息
+元素仅包含来自IOAM传输选项的证明八位字节。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : TBD6.
+
+  Status : 当前的
+
+3.2.7。Ioamdirectexportdata.
+
+
+
+  此信息元素携带[i-d.ietf-ippm-ioam-direct-
+export]中定义的IOAM直接导出数据的n个八位字节。
+
+除了从数据包中的IOAM直接导出选项标头中的字段之外，此信息元素基于IOam-T
+race型值包括来自导出节点的所有跟踪数据。此数据附加在此后面的IOamDire
+ctExportData内部
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 10]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  IOam-Trace型字段的顺序，类似于IOAM封装Nodes在增量跟踪选项
+标头中附加跟踪数据的方式。
+
+  数据的格式由IoamencapsulateType信息元素确定，如果存在。当
+存在IOAMEncapSulateType信息元素并且具有除“无”之外的值，并且
+具有足够的长度时，该元素还可以从后续标题和有效载荷报告八位字节。如果没有存在Io
+amencapsulateType信息元素，则封装类型应假定为“无”，并且此信息
+元素仅包含来自IOAM直接导出选项加上相应的跟踪数据的八位字节。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : 阐明
+
+  Status : 当前的
+
+3.2.8。ipheaderPacketsectionWithPadding.
+
+
+
+  此信息元素从采样数据包的IP标头携带一系列N个八位字节，将截面OFFSET八
+位字节启动到IP标题中。
+
+  但是，如果存在与该信息元素对应的截面OFFEOFSET字段，则零的截面OFF
+EOFFETSET，并且八位字段必须来自IP报头的开始。但是，如果存在与该信息元
+素对应的截面OFFEOFSET字段，则零的截面OFFEOFFETSET，并且八位
+字段必须来自IP报头的开始。...但是，如果存在与该信息元素对应的截面OFFEO
+FSET字段，则零的截面OFFEOFFETSET，并且八位字节必须来自IP报头的
+开始。...无法加载全部结果重试正在重试…正在重试…
+
+  具有足够的长度，此元素还报告IP有效载荷的八位字节。但是，根据[RFC547
+7]和[RFC2804]的安全注意事项部分，任意数据包流的完整数据包捕获是明确的
+。
+
+  当该信息元素具有固定长度时，这可以包括用于填充该固定长度的填充八字节。
+
+  当该信息元素具有可变长度时，可变长度可以包括最多3个填充型叠加，用于保留子等
+级信息元素的4八位字节对准或同一组内的后续记录。
+
+  在固定或可变长度的任何一种情况下，填充的八位字节的量可以在与此信息元素对应的
+部分（部分）中指定，在这种情况下
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 11]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  余数（如果有的话）必须填充。如果没有与此信息元素对应的SectionExpo
+rtedoctets字段，则必须填充所有八位字节，除非IP数据包的总长度小于此信
+息元素的固定长度，在这种情况下，剩余部分必须填充。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : 津
+
+  Status : 当前的
+
+3.2.9。以太网框架
+
+
+
+  该信息元素从采样分组的IEEE 802.3以太网帧中携带一系列n个八位字节，
+在前导码和开始帧定义符（SFD）之后，如果存在与该信息元素对应的截面OFFSET
+字段，则将截面OFFSET八位字节加上框架。
+
+  具有足够的长度，此元素还报告八位字节从以太网有效载荷报告八位字节。但是，根据
+[RFC5477]和[RFC2804]的安全注意事项部分，任意数据包流的完整数据
+包捕获是明确的。
+
+  当该信息元素具有固定长度时，这可以包括用于填充该固定长度的填充八字节。
+
+  当该信息元素具有可变长度时，可变长度可以包括最多3个填充型叠加，用于保留子等
+级信息元素的4八位字节对准或同一组内的后续记录。
+
+  在固定或可变长度的任何一种情况下，填充的八位字节的量可以在与此信息元素对应的
+区段输出型字段中指定，在这种情况下，其余（如果有的话）必须填充。如果没有与此信息
+元素对应的SectionExportedoctets字段，则必须填充所有八位字节
+，除非以太网帧的总长度小于此信息元素的固定长度，在这种情况下，剩余部分必须填充。
+
+  Abstract Data Type : Octetarray.
+
+  ElementId : 哭
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 12]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  Status : 当前的
+
+  例子
+
+  本节示出了一组示例，如何使用IPFIX携带如何携带数据包的其他部分的IOAM
+信息。
+
+4.1。固定长度IP数据包
+
+  此示例显示了固定的长度IP数据包。IOAM数据是ipheaderPacket
+section的一部分。
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+---
+|        Version Number         |             Length            |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Export Time (seconds)                     |IPFIX
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Message
+|                        Sequence Number                        |Header
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Observation Domain ID                     |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|    Set ID ( = Template ID)    |             Length            |SetHdr
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|ioamReportFlags| fwdingStatus  |     sectionExportedOctets     |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                 ipHeaderPacketSection (start)                 |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record1
+|                              ...                              |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                 ipHeaderPacketSection (end)                   |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|ioamReportFlags| fwdingStatus  |     sectionExportedOctets     |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                 ipHeaderPacketSection (start)                 |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record2
+|                              ...                              |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                 ipHeaderPacketSection (end)                   |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+
+4.2。可变长度IP数据包（长度<255）
+
+  此示例显示了可变长度IP数据包，具有长度<255字节。IOam数据是iphe
+aderPacketsectionWithPadding的一部分。
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 13]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|        Version Number         |             Length            |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Export Time (seconds)                     |IPFIX
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Message
+|                        Sequence Number                        |Header
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Observation Domain ID                     |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|    Set ID ( = Template ID)    |             Length            |SetHdr
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|ioamReportFlags| fwdingStatus  | paddingOctets | Length (< 255)|   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|            ipHeaderPacketSectionWithPadding (start)           |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record1
+|                              ...                              |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|            ipHeaderPacketSectionWithPadding (end)             |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|ioamReportFlags| fwdingStatus  | paddingOctets | Length (< 255)|   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|            ipHeaderPacketSectionWithPadding (start)           |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record2
+|                              ...                              |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|            ipHeaderPacketSectionWithPadding (end)             |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+
+4.3。可变长度IP数据包（长度> 255）
+
+  此示例显示了可变长度IP数据包，具有长度> 255字节。IOam数据是iph
+eaderPacketsectionWithPadding的一部分。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 14]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|        Version Number         |             Length            |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Export Time (seconds)                     |IPFIX
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Message
+|                        Sequence Number                        |Header
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Observation Domain ID                     |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|    Set ID ( = Template ID)    |             Length            |SetHdr
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|ioamReportFlags| fwdingStatus  |         paddingOctets         |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+| paddingOctets |      255      |      Length (0 to 65535)      |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|            ipHeaderPacketSectionWithPadding (start)           |Record1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                              ...                              |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|            ipHeaderPacketSectionWithPadding (end)             |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+
+4.4。可变长度以太网包（长度<255）
+
+  此示例显示了可变长度以太网包，具有长度<255字节。IOAM数据是以太网帧的
+一部分。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 15]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|        Version Number         |             Length            |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Export Time (seconds)                     |IPFIX
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Message
+|                        Sequence Number                        |Header
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                     Observation Domain ID                     |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|    Set ID ( = Template ID)    |             Length            |SetHdr
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+|ioamReportFlags| fwdingStatus  | paddingOctets | Length (< 255)|   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                  ethernetFrameSection (start)                 |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record1
+|                              ...                              |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+|                  ethernetFrameSection (end)                   |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---+--
+
+4.5。具有固定长度IOAM增量跟踪数据的可变长度IP数据包
+
+  该示例显示了具有长度<255字节和固定长度Ioamincrementaltr
+aceData的可变长度IP分组。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 16]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+|        Version Number         |             Length            |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                     Export Time (seconds)                     |IPFIX
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Message
+|                        Sequence Number                        |Header
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                     Observation Domain ID                     |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+|    Set ID ( = Template ID)    |             Length            |SetHdr
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+|               ioamIncrementalTraceData (start)                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                              ...                              |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|               ioamIncrementalTraceData (end)                  |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record1
+|ioamReportFlags| fwdingStatus  |ioamEncapType  | Length (< 255)|  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|            ipHeaderPacketSectionWithPadding (start)           |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                              ...                              |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|            ipHeaderPacketSectionWithPadding (end)             |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+
+4.6。可变长度IP数据包，具有可变长度IOAM增量跟踪数据
+
+  此示例显示了具有长度<255字节和可变长度Ioamincrementaltr
+acata的可变长度IP分组，其长度<255个字节分别。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 17]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+|        Version Number         |             Length            |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                     Export Time (seconds)                     |IPFIX
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Message
+|                        Sequence Number                        |Header
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                     Observation Domain ID                     |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+|    Set ID ( = Template ID)    |             Length            |SetHdr
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+|ioamReportFlags| fwdingStatus  |ioamEncapType  | Length (< 255)|  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|               ioamIncrementalTraceData (start)                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                              ...                              |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|               ioamIncrementalTraceData (end)                  |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+Record1
+|                 paddingOctets                 | Length (< 255)|  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|            ipHeaderPacketSectionWithPadding (start)           |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                              ...                              |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|            ipHeaderPacketSectionWithPadding (end)             |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--+---
+
+5. IANA考虑因素
+
+  请求IANA在[IANA-IPFIX]中为以下信息元素分配代码点：
+
+  tbd1 ioamreportflags.
+
+  TBD2 IOAMENCAPLASITYTYPE.
+
+  TBD3 IOAMPREALLOCATEDTRACEDATA
+
+  TBD4 IOAMINCREMENTALTRACEDATA
+
+  tbd5 ioame2data.
+
+  TBDS YoAMPOT.
+
+  TBD7 IOAMDirectExportData.
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 18]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  TBD8 ipheaderPacketsectionWithPadding.
+
+  TBD9以太网汇编
+
+  有关详细信息，请参见第3.2节。
+
+  请求IANA在第3.2.1节中定义的3.2.1节和IOAMEncapsula
+tionType中定义的ioamreportflags创建子序列。
+
+6.可管理性考虑因素
+
+  在本文档的后续版本中将解决可管理性注意事项。
+
+7.安全考虑因素
+
+  安全注意事项将在本文档的后续版本中解决。
+
+8.致谢
+
+  作者要感谢Barak Gafni，Tal Mizrahi，John
+Lemon，以及Aviv Kfir对原始IOAM数据出口的思考和评论。
+
+9.参考资料
+
+9.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA]
+BROCKINERS，F.，BHANDARI，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，正在进行中，互联网草案，草稿 -
+IETF-IPPM-Ioam-data-14,24六月六月二十一，<https:
+//www.ietf.org/archive/id/draft-ietf
+-ipm-ioam-data-14.txt>。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC5476]克莱斯，B.，ED。，Johnson，A.和J.Quitt
+ek，“数据包采样（PSAMP）协议规范”，RFC 5476，DOI
+10.17487 /
+RFC5476，2009年3月，<HTTPS：//www.RFC-
+Editor.org/info/rfc5476>。
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 19]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  [RFC7011]克莱斯，B.，ED。，Trammell，B.，ED。和P.
+Aitken，“IP流信息导出（IPFIX）协议的规范，用于交换流信息”，STD
+77，RFC 7011，DOI 10.17487 /
+RFC7011，2013年9月，<https://www.rfc-
+editor.org/info/rfc7011>。
+
+9.2。信息参考资料
+
+  [id.brockers-ippm-ioam-geneve]牛皮舞蹈仪，f。
+，bhandari，s。，govindan，五，帕尼替达罗，C.，Nainar，
+N.，Greder，H.，Lieddy，J.，Youell，S。，Mizrahi
+，T.，Lapukhov，P.，Gafni，B.，Kfir，A.和M.Spieg
+el，“Geneve封装的原位OAM数据”，正在进行中，互联网草案，草案 -
+普罗基斯-IPPM-ioam-geneve-05，11月19日11月19日，<h
+ttps://www.ietf.org/互联网草稿/草案 -
+jrazners-ippm-ioam-geneve-05.txt>。
+
+  [id.brockers-ippm-ioam-vxlan-gpe] kock
+ners，f。，bhandari，s。，govindan，五，帕尼德拉，c。，g
+redler，H.，Liedy，J.，Youell，S.，Mizrahi，T.，
+Kfir，A.，Gafni，B.，Lapukhov，P.和M.Spiegel，“
+VXLAN-GPE封装出于原位OAM数据”，正在进行中，互联网草案，草案 -
+普罗基斯 -  IPPM-IOAM-VXLAN-GPE-03，2019年11月4
+日，<http://www.ietf.org/internet-
+drafts/draft- kockners-ippm-ioam-vxlan-
+gpe-03.txt>。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“进出奥姆直接出口”，工作正在进行中，
+互联网草案，草案 -  IETF-IPPM-IOAM-Direct-Export
+-05,12七月七月十二日，<https://www.ietf.org/Arch
+ive/ id / braft-ietf-ippm-ioam- direct-
+export-05.txt>。
+
+  [ID.IETF-IPPM-IOAM-IPv6-选项] Bhandari，S
+.，Brockners，F.，Pignataro，C.，Greder，H.，Li
+eddy，J.，Youell，S.，Mizrahi，T.，Kfir，A.，Gaf
+ni，B.，Lapukhov，P.，Spiegel，M.，Krishnan，S.
+，S.，Asati，R.和M. Smith，“原位OAM
+IPv6选项”，正在进行中，互联网草案，草稿 -  IETF-IPPM-
+IOAM-IPv6-Options-05,2月2021，<https://www
+.ietf.org/archive/id/draft-ietf-Ippm-
+Ioam-IPv6-Options-05.txt>。
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 20]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  [ID.IETF-SFC-IOAM-NSH] Brockners，F.和S.
+Bhandari，“网络服务标题（NSH）封装出于原位OAM（IOAM）数据”，
+正在进行中，互联网草案，草案 -  IETF-sfc-ioam-
+nsh-05,12
+12月12日，<https://www.ietf.org/internet-
+drafts/draft-ietf-sfc-ioam-nsh-05.txt>。
+
+  [ID.WEIS-IPPM-IOAM-ETH] WEIS，B.，女郎，B.，
+山，C.，Bhandari，S。，Govindan，V.，Pignataro，C
+.，Gredler，H.，Lieddy，J.，Youell，S.，Mizrahi
+，T.，Kfir，A.，Gafni，B.，Lapukhov，P.和M. Spie
+gel，“EtherType协议识别原位OAM数据”，正在进行中，互联网草案，草
+案-Weis-IPPM-IOAM-ETH-04,13
+5月20日，<http://www.ietf.org/internet-
+草稿/草案-weis-ippm-ioam-eth-04.txt>。
+
+  [IANA-IPFIX]“IP流信息导出（IPFIX）实体”，<https:
+//www.iana.org/assignments/ipfix/ipfix.x
+html>。
+
+  [rfc2804] IAB和IESG，“IETF政策”，RFC
+2804，DOI 10.17487 /
+RFC2804，2000年5月，<https://www.rfc-
+editor.org/info/rfc2804>。
+
+  [rfc5226] Narten，T.和H.
+Alvestrand，“在RFCS中编写IANA考虑因素部分的准则”，RFC
+5226，DOI 10.17487 /
+RFC5226，2008年5月，<https://www.rfc-
+editor.org/info/RFC5226>。
+
+  [RFC5477]饮食，T.，克莱斯，B.，Aitken，P.，Dressl
+er，F.和G. Carle，“数据包采样导出的信息模型”，RFC
+5477，DOI 10.17487 /
+RFC5477，2009年3月，<HTTPS：//www.rfc-
+editor.org/info/rfc5477>。
+
+  作者的地址
+
+  米奇Spiegel赤脚网络，英特尔公司4750 Patrick Henry
+Drive Santa Clara，CA，95054美利坚合众国
+
+  Email : Mickey.Spiegel@Intel.com
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee 249,3楼
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 21]
+
+Internet-Draft            IOAM raw data export                 July 2021
+
+  40549杜塞尔多夫，北莱茵 - 威斯特法伦州德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Ramesh Sivakolundu Cisco
+Systems，Inc.170 West
+Tasman博士圣何塞博士，美国95134，美国95134
+
+  Email : SRAM E神@Cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spiegel, et al.          Expires 13 January 2022               [Page 22]
+
+

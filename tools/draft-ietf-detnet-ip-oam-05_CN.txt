@@ -1,0 +1,445 @@
+
+
+
+
+  Detnet工作组G. Mirskyinternet-Draft
+Ericssonintended状态：信息M.
+Chenexpires：2023年2月23日Huawei D. Black
+Dell EMC 2022年8月22日
+
+  使用IP数据平面绘制-IETF-DETNET-IP-
+OAM-05的确定性网络（DETNET）的操作，管理和维护（OAM）
+
+  抽象的
+
+本文档定义了使用IP数据平面在确定性网络中使用操作，管理和维护协议和机制的原理。
+
+  该备忘录的状态
+
+  该Internet草稿完全符合BCP 78和BCP 79的规定。
+
+  Internet草案是Internet工程工作组（IETF）的工作文件。请注
+意，其他小组还可以将工作文件作为Internet草案分发。当前的Internet
+草稿列表在https://datatracker.ietf.org/drafts
+/current/。
+
+  Internet草案是最长六个月有效的文件草案，并且可以随时更新，更换或淘汰
+其他文档。除了“正在进行的工作”之外，使用互联网选拔作为参考材料或引用它们是不合
+适的。
+
+  该互联网草稿将于2023年2月23日到期。
+
+  版权声明
+
+  版权（C）2022 IETF Trust和被确定为文档作者的人。版权所有。
+
+
+
+
+
+
+
+
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 1]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+  本文档应遵守BCP 78和IETF Trust与IETF文档（https:/
+/trustee.ietf.org/lices inclice-info）有关的
+法律规定，并在本文档发布之日起生效。请仔细查看这些文件，因为它们描述了您对本文档
+的权利和限制。从本文档中提取的代码组件必须包括修订后的BSD许可文本，如《信托法
+律规定》第4节中所述，并如修订的BSD许可中所述无保修。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions used in this document . . . . . . . . . . . . . .   3
+     2.1.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.2.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Active OAM for DetNet Networks with the IP Data Plane . . . .   4
+     3.1.  Mapping Active OAM and IP DetNet flows  . . . . . . . . .   4
+     3.2.  Active OAM Using IP-in-UDP Encapsulation  . . . . . . . .   5
+     3.3.  Active OAM Using DetNet-in-UDP Encapsulation  . . . . . .   5
+     3.4.  Active OAM Using GRE-in-UDP Encapsulation . . . . . . . .   6
+   4.  Active OAM for DetNet IP Interworking with OAM of non-IP DetNet
+           domains . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
+   7.  Acknowledgment  . . . . . . . . . . . . . . . . . . . . . . .   7
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
+     8.2.  Informational References  . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+
+1.简介
+
+  [RFC8655]引入并解释了确定性网络（Detnet）体系结构。
+
+  操作，管理和维护（OAM）协议用于检测，在网络中定位缺陷以及监视网络性能。某
+些OAM功能，例如，故障检测，积极地在网络中工作，而另一些功能，例如，缺陷定位，
+通常是按需进行的。这些任务是通过[RFC7799]（OAM方法）定义的活性和混合
+动力的组合来实现的。
+
+
+
+
+
+
+
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 2]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+  [i-d.tpmb-detnet-oam-framework]列出了针对De
+tnet域的OAM的功能要求。该列表可以进一步用于差距分析可用的OAM工具，以确
+定现有的可能增强功能或是否需要新的OAM工具来支持主动和按需路径监视和服务验证。
+此外，该文档使用IP数据平面定义了Detnet网络的OAM使用原理。
+
+2.本文档中使用的约定
+
+2.1。术语
+
+  本文档中使用的术语“ detnet OAM”与更长版本的“
+OAM协议，方法和工具”的确定性网络互换。
+
+  确定性网络
+
+  DIFFSERV区分服务
+
+  OAM : 运营，管理和维护
+
+  PREF数据包复制和消除功能
+
+  POF数据包订购功能
+
+  RDI远程缺陷指示
+
+  ICMP互联网控制消息协议
+
+  ACN相关的频道标头
+
+  底层网络或底层层：提供Detnet节点之间连接性的网络。提供Detnet节点
+之间LSP连接性的MPLS网络是底层层的一个示例。
+
+  detnet节点 - 一个节点，该节点是Detnet域中的演员。在域内执行p
+ref的detnet域边缘节点和节点是detnet节点的示例。
+
+2.2。关键字
+
+  关键词“必须”，“必须”，“必需”，“应”，“不得”，“应该”，“不应该”，
+“建议”，“不建议”，“可能”和“可选”“在本文档中，应如BCP 14
+[RFC2119]
+[RFC8174]中所述解释，并且仅在所有首都出现在所有首都时，如下所示。
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 3]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+3.使用IP数据平面的Detnet网络的活动OAM
+
+  OAM协议和机制在特定网络层的数据平面内作用。因此，至关重要的是，数据平面封
+装以这样的方式支持OAM机制，以使Dretnet
+OAM数据包在带中，并且正在监视Detnet流量，即，Detnet
+OAM测试数据包与Detnet Data Praper
+for同时遵循的路径完全相同单向和双向挖掘路径。
+
+  在[RFC8939]第6节中指定的IP封装的传输网络中的Detnet数据平面
+封装。对于IP底层网络，通过订单匹配到已提供的信息集的订购匹配，其中包括IP协议
+，源端口号，目标端口号。主动IP OAM协议，例如双向转发检测（BFD）[RFC
+5880]或简单的双向主动测量协议（邮票）[RFC8762]，使用UDP传输和众
+所周知的UDP端口号作为目标端口。因此，Detnet节点必须能够将IP Detn
+et流与特定的测试会话相关联，以确保测试数据包经历与Detnet流量数据包相同的
+处理。例如，可以用3匹匹配（与DSCP值结合使用的目的地和源IP地址）来实现，以
+识别IP Detnet流。在这种情况下，无论是使用ICMP，BFD还是使用邮票协
+议，同一对IP节点之间的IP OAM会话都将与受监视的IP
+Detnet流量共享网络处理。
+
+  通过使用Internet Control Message协议（ICMP）回声
+请求，回声回复和定义的错误消息集，例如，目的地不可访问，通过使用Internet
+Control Message协议（ICMP），使用Internet
+Control Message协议（ICMP），将完成IP网络中的大多数按需故障
+检测和本地化。代码点。[RFC0792]和[RFC4443]分别为IPv4和IP
+v6网络定义ICMP。因为ICMP是另一个IP协议，例如，例如UDP，Detne
+t节点必须能够将指定的IP
+Detnet节点生成的ICMP数据包与这对端点之间的IP
+Detnet流相关联并与另一个IP Detnnet节点相关联。
+
+3.1。映射活动OAM和IP Detnet流
+
+  使用UDP传输的IP OAM协议，例如BFD [RFC5880]和Stamp
+[RFC8762]，可用于检测影响IP Detnet流量的故障或性能降解。当OA
+M协议使用的UDP目标端口号是IANA分配的一个，则可以使用UDP源端口来实现O
+AM的联合路由，而在多径环境中，受监视的IP
+Detnet流量，例如，链接聚合组或相等成本多路径。（这也适用
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 4]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+  为了封装第3.2节和第3.3节中描述的技术。）为了最大程度地提高OAM的准确
+性导致检测故障和监测IP Detnet的性能，测试数据包应与IP Detnet数
+据包所经历的节点相同的治疗方法。因此，必须将用于测试数据包的DSCP值映射到De
+tnet。
+
+3.2。使用IP-IN-UDP封装的活动OAM
+
+  如上所述，通过多种协议实现IP活动OAM。一些协议使用UDP传输，而ICMP
+是网络层协议。可以通过使用IP/UDP隧道携带IP测试数据包来减少操作工作映射到
+受监视的Detnet流量的IP OAM协议的量。然后，为了确保OAM数据包穿越相
+同的节点和链接，必须将IP/UDP隧道映射到受监视的Detnet流程中。请注意，
+在这种情况下，测试数据包的DITNET域被视为单个IP链接。结果，不能使用通常的
+Traceroute步骤来追踪Transit detnet
+IP节点，并且可能需要修改示踪剂。
+
+3.3。使用detnet-in-udp封装的活动OAM
+
+  可以使用Detnet-In-UDP封装来实现IP
+Detnet中的活动OAM。使用IP Detnet节点之间的Detnet-in-
+UDP隧道可确保有效的OAM测试数据包与受监视的IP Detnet
+Flow数据包命运共享。结果，测试数据包与IP
+Detnet流共享隧道，从统计上讲，对正在监视的IP Detnet流量共享命运。
+
+  [i-d.varga-detnet-ip-
+preof]描述了如何使用MPLS/ IP数据平面上的MPL [RFC9025]
+来支持数据包的复制，消除和订购函数，以降低数据包丢失，提高ON-ON-ON-
+ON-ON-ON-可能性时间数据包交付，并确保IP Detnet的服务子层中的订
+单数据包交付。为了确保活动的OAM测试数据包遵循Detnet服务子层中监视的De
+tnet流的路径，使用了图1所示的封装。
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 5]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+
+         +---------------------------------+
+         |                                 |
+         |         DetNet App-Flow         |
+         |       (original IP) Packet      |
+         |                                 |
+         +---------------------------------+ <--\
+         |            DetNet ACH           |    |
+         +---------------------------------+    +--> PREOF capable
+         |       Service-ID (S-Label)      |    |    DetNet IP data
+         +---------------------------------+    |    plane encapsulation
+         |            UDP Header           |    |
+         +---------------------------------+    |
+         |            IP Header            |    |
+         +---------------------------------+ <--/
+         |            Data-Link            |
+         +---------------------------------+
+         |             Physical            |
+         +---------------------------------+
+
+  Figure 1 : Detnet相关的通道标头格式
+
+  其中detnet ach是[i-d.ietf-detnet-mpls-
+oam]中定义的detnet相关的通道标头。
+
+3.4。使用GRE-IN-UDP封装的活动OAM
+
+[RFC8086]定义了将UDP中封装GRE（通用路由封装）标头的方法。GRE-
+IN-IDP封装可用于IP Detnet
+OAM，因为它可以简化将OAM测试会话映射到由N元组识别的特定IP
+Detnet流的任务。将GRE-IDP隧道与受监视的IP
+Detnet流程匹配，可以使用Y.1731/G.8013 [ITU-T.1731
+]作为OAM的全面工具集。GRE标头中的协议类型字段必须设置为IANA分配给IE
+EE 802.1AG连接故障管理（CFM）协议 / ITU-
+T建议Y.1731的0x8902。Y.1731/G.8013支持IP
+Detnet
+OAM功能所需的支持，即连续性检查，单向数据包丢失和数据包延迟测量。
+
+4.与非IP Detnet域的OAM一起使用Detnet IP互动的活动OAM
+
+  IP数据平面提供DetNet服务的域，可以与TSN和与MPLS数据平面的De
+tnet域一起使用，以提供端到端的服务。在这种情况下，使用OAM检测缺陷和监测性
+能的能力至关重要。[i-d.ietf-detnet-mpls-
+oam]确定了两个OAM互动模型 - 对等和隧道。Dretnet域之间的IP和M
+PLS数据平面之间的互通在第6.2节中分析
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 6]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+  [i-d.ietf-detnet-mpls-oam]。同样，与MPLS数据平
+面和TSN的OAM之间的OAM互处理的要求和建议同样适用于具有IP数据平面的De
+tnet域。
+
+5. IANA考虑
+
+  本文档没有任何IANA分配请求。可以在发布草案之前删除本节。
+
+6.安全考虑
+
+  本文档描述了现有的故障管理和性能监视IP OAM协议的适用性，除网络共有或已
+记录的引用Detnet和OAM协议外，没有引发任何安全问题或问题。
+
+7.确认
+
+  TBA
+
+8.参考
+
+8.1。规范参考
+
+  [i-d.ietf-detnet-mpls-oam]
+Mirsky，G.，Chen，M.，Varga，B。和J. Farkas，“使用
+MPLS数据平面的确定性网络（DETNET）的操作，管理和维护（OAM）“在进行
+中进行工作，Internet-Draft，Draft-ietf-detnet-
+Mpls- OAM-07，2022年3月7日，<https://datatrac
+ker.ietf.org/doc/doc/html/draft-ietf-
+ietf-ietf-detnet-mpls-mpls-mpls-mpls-
+mpls-mpls-oam-oam-07>。
+
+  [RFC0792] Postel，J。，“
+Internet控制消息协议”，STD 5，RFC 792，DOI 10.174
+87/RFC0792，1981年9月，<https://wwwww.rfc-ed
+itor.org/info/info/info/info/info/rfc792
+>。
+
+  [RFC2119]
+Bradner，S。，“在RFC中使用以表示需求级别的关键词”，BCP
+14，RFC 2119，DOI 10.17487/RFC2119，1997年3月
+，<https://wwww.rfc-editor.org/rfc-
+editor.org/info/RFC2119>。
+
+  [RFC4443]RFC4443，2006年3月，<https://www.
+rfc-editor.org/info/rfc44443>。
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 7]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+  [RFC8086]
+Yong，L.，Ed。，Crabbe，E.，Xu，X。和T. Herbert，“
+Gre-In-udp封装”，RFC 8086，DOI 10.17487/RFC8
+086，2017年3月，2017年3月/www.rfc-
+editor.org/info/RFC8086>。
+
+  RFC8174>。
+
+  [RFC8655]
+Finn，N.，Thubert，P.，Varga，B。和J.
+Farkas，“确定性网络体系结构”，RFC 8655，DOI 10.17487
+/RFC8655，2019年10月，<https：//wwwwwww.rfc-
+editoritor.org/info/rfc8655>。
+
+  [RFC8939] Varga，B.，Ed。，Farkas，J.，Berge
+r，L.，Fedyk，D。和S.
+Bryant，“确定性网络（Detnet）数据平面：IP”，RFC
+8939，DOI 10.17487/RFC8939，2020年11月，<http
+s://www.rfc-editor.org/info/rfc8939>。
+
+  [RFC9025] Varga，B.，Ed。，Farkas，J.，Berge
+r，L.，Malis，A。和S. Bryant，“确定性网络（Detnet）数据
+平面：UDP/IP上的MPLS，RFC 9025，RFC 9025，doi 10
+.17487/rfc9025，2021年4月，<https://www.rfc-
+editor.org/info/info/rfc9025>。
+
+8.2。信息参考
+
+  [I-D.TPMB-DETNET-OAM-FRAMEWORK] Mirsky
+，G。，Theoleyre，F。，Papadopoulos，G。Z.进度，Int
+ernet-Draft，Draft-TPMB-DETNET-OAM-框架-01，
+2021年3月30日，<https://datatracker.ietf.org
+/doc/doc/html/draft-tpmb-detnet--detnet-
+oam-oam-framework-01>。
+
+  [i-d.varga-detnet-ip-preof]
+Varga，B.，Farkas，J。和A. G.
+Malis，“确定性网络（detnet）：通过UDP/IP上的MPLS
+preof of udp/ip preof of
+udp/ip”，正在进行中，Internet Draft，Internet-
+Draft，，，，Internet-Draft，，Draft-varga-
+detnet-ip- preof-02，2022年2月1日，<https://d
+atatracker.ietf.org/doc/html/html/draft-
+varga-varga-varga-detnet-ip-preof-02>。
+
+  [ITU-T.1731] ITU-T，“基于以太网的网络的操作，管理和维护（
+OAM）功能和机制”，ITU-T G.8013/Y.1731，2015年8月。
+
+
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 8]
+
+Internet-Draft           OAM for DetNet over IP              August 2022
+
+  [RFC5880] Katz，D。和D.
+Ward，“双向转发检测（BFD）”，RFC 5880，DOI 10.17487
+/RFC5880，2010年6月，<https://wwwwwwww..rfc-
+editor.or.or.or.or.or.or.or.or.or.or.or.
+or.or.or.or.or.or.orfo/rfc5888880>。
+
+  [RFC7799]
+Morton，A。，“主动和被动指标和方法（中间有混合类型）”，RFC
+7799，doi 10.17487/rfc7799，2016年5月，<https
+://wwwww.rfc-editor.org/info/
+<https://www.rfc-
+editor.org/info/info/rfc7799>。
+
+  [RFC8762]
+Mirsky，G.，Jun，G.，Nydell，H。和R.
+Foote，“简单的双向主动测量协议”，RFC 8762，DOI
+10.17487/RFC8762，2020年3月，2020年3月.rfc-
+editor.org/info/rfc8762>。
+
+  作者的地址
+
+  Greg Mirsky Ericsson Email : Greg
+i米RS可以@Gmail.com
+
+  Mach(Guoyi) Chen Huawei Email :
+马超.陈@华为.com
+
+  大卫·布莱克·戴尔EMC 176南街霍普金顿，马萨诸塞州，美国01748美国
+电子邮件：david.black@dell.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mirsky, et al.          Expires 23 February 2023                [Page 9]
+
+

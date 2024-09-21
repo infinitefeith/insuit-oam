@@ -11,7 +11,7 @@ from lxml import etree
 class Translator():
     def __init__(self):
         self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless")
+        #self.chrome_options.add_argument("--headless")
         self.browser = webdriver.Chrome(options=self.chrome_options)
 
     def __del__(self):
@@ -37,9 +37,9 @@ class Translator():
             submit.clear()
             submit.send_keys(input)
             # 如果网速慢可以延长等待时间
-            time.sleep(1)
+            time.sleep(3)
         else:
-            trans_url = "https://translate.google.cn/?sl=auto&tl=" + dest + "&text=" + input + "&op=translate"
+            trans_url = "https://translate.google.com/?sl=auto&tl=" + dest + "&text=" + input.replace('%', '%25') + "&op=translate"
             self.browser.get(trans_url)
         # 下面因为德文某些单词分阴性和阳性所以要再判断一次（不翻德文的可以不用）
         try:

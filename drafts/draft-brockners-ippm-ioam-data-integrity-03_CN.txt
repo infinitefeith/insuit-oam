@@ -1,0 +1,759 @@
+
+
+
+
+  IPPM F. Brocknersternet-Somet
+ciscoineed状态：标准轨迹S.
+Bhandariexpires：2月1日，2022年2月1日思想标准T.
+Mizrahi Huawei 7月31日，2021年7月31日
+
+  In-situ OAM数据字段的完整性 -  Braft-
+Brockners-IPPM-Ioam-Data-Integrity-03
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。IOAM部署可能需要确保IOAM数据字段的完
+整性。此文档指定保证IOAM数据字段完整性的方法。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年2月1日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-
+info）有关本文件的出版日期。请仔细审查这些文件，因为它们描述了您的权利和限制
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 1]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  到这份文件。从本文档中提取的代码组件必须包括简化的BSD许可证文本，如信托法
+律规定第4.在第41条中所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   3.  Threat Analysis . . . . . . . . . . . . . . . . . . . . . . .   4
+     3.1.  Modification: IOAM Data Fields  . . . . . . . . . . . . .   5
+     3.2.  Modification: IOAM Option-Type Headers  . . . . . . . . .   5
+     3.3.  Injection: IOAM Data Fields . . . . . . . . . . . . . . .   6
+     3.4.  Injection: IOAM Option-Type Headers . . . . . . . . . . .   6
+     3.5.  Replay  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     3.6.  Management and Exporting  . . . . . . . . . . . . . . . .   6
+     3.7.  Delay . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.8.  Threat Summary  . . . . . . . . . . . . . . . . . . . . .   7
+   4.  Methods of providing integrity to IOAM data fields  . . . . .   8
+     4.1.  Integrity Protected IOAM Option-Types . . . . . . . . . .   8
+     4.2.  Subheader for Integrity Protected IOAM Option-Types . . .   9
+     4.3.  Space optimized symmetric key based signing of IOAM data   11
+       4.3.1.  Overhead consideration  . . . . . . . . . . . . . . .  11
+     4.4.  Space optimized asymmetric key based signing of trace
+           data  . . . . . . . . . . . . . . . . . . . . . . . . . .  12
+       4.4.1.  Overhead consideration  . . . . . . . . . . . . . . .  12
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+     5.1.  IOAM Option-Type Registry . . . . . . . . . . . . . . . .  13
+     5.2.  IOAM Integrity Protection Algorithm Suite Registry  . . .  13
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  14
+   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  14
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  14
+     8.2.  Informative References  . . . . . . . . . . . . . . . . .  14
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
+
+1.介绍
+
+  “原位”操作，管理和维护（IOAM）在数据包遍历特定网络域时记录数据包内的O
+AM信息。术语“原位”是指OAM数据被添加到数据分组而不是在专门专用于OAM的数
+据包内发送。IOam是补充机制，如Ping，Traceroute或其他主动探测机
+制。就“主动”或“被动”Oam而言，“原位”OAM可以被认为是混合OAM类型。“
+原位”机制不需要发送额外的数据包。IOam将信息添加到已有的数据包中，因此不能考
+虑
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 2]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  被动的。就[RFC7799]中给出的分类可以被描绘为混合型I.可以利用使用例
+如ICMP不适用或不提供所需结果的机制来利用IOam机制，例如证明某种交通流量预
+定义路径，用于实时数据流量的SLA验证，网络中的网络中的交通分布路径的详细统计数
+据，这些路径分布多个路径的流量，或者通过网络设备不同地处理探测流量的场景。
+
+  当前[I-D.IETF-IPPM-IOAM-DATA]假定IOAM部署在有限
+域中，操作员具有选择，监控和控制对所有网络设备的访问，使域成为可信网络。因此，I
+OAM跟踪数据在分组中携带清楚，并且对任何节点或中间夹无篡改，没有保护数据。因此
+，在不受信任或半信制的环境中收集的IOAM跟踪数据不能用于关键的操作决策。无法检
+测到用户数据包中的IOAM数据字段的任何流氓或未授权的更改。
+
+  IETF上次呼叫的最近讨论[id.ietf-ippm-ioam-data]揭
+示了IOam可能使用IOam，其中IOam数据字段的完整性保护至少是可取的，知道
+IOam数据字段完整性保护将产生额外的努力在设备处理IOAM数据字段的数据路径中
+。因此，除了解决收集的任何完整性违反IOAM跟踪数据的任何完整性违反IOAM跟踪
+数据的可知性问题之外，还将考虑以下其他注意事项和要求：
+
+1.数据平面处理IOAM跟踪数据，因此任何方法的生存能力都必须在数据平面处理/转
+发速率下可行的任何方法，以便在数据平面处理/转发速率下（ioam数据可能被应用于
+路由器前进的所有流量）。
+
+2. IOAM跟踪数据在数据包中携带。证明数据完整性所需的额外空间需要是最佳的，
+即不应超过MTU或对数据包处理具有不利影响。
+
+3.应尽可能重播旧的IOAM跟踪数据的保护。如果没有重放保护，则rogue节点可
+以呈现旧的IOAM跟踪数据屏蔽任何正在进行的网络问题/活动，使得IOAM跟踪数据
+收集无用。
+
+  本文档是协助IPPM工作组设计和指定那些诚信的部署的解决方案
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 3]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  IOAM数据字段是一个问题。本文档提出了几种方法来实现IOAM数据字段的完整
+性保护。
+
+保护不同方法的讨论保护IOAM数据字段的完整性主要侧重于保护[id.ietf-
+ippm-ioam-data-
+data]中指定的IOam选项类型的完整性，但指定的方法不限于这些IOAM选项
+- 型。该方法可以应用于其他IOAM选项类型，例如DEX [I-D.ITTF-
+IPPM-IOAM-DIRECT-EXPLION]选项类型。
+
+2.惯例
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中应被解释如BCP 14
+[RFC2119] [RFC8174]中所述
+
+  本文档中使用的缩写：
+
+  IOAM : 原位运营，管理和维护
+
+  MTU : 最大传输单元
+
+  OAM : 运营，管理和维护
+
+  POT : 过境证明
+
+  SFC : 服务功能链
+
+3.威胁分析
+
+  本节介绍了IOAM背景下对完整性相关威胁的威胁分析。假设讨论的威胁与下层协议
+无关;假设其他图层的威胁是由部署在这些层的安全机制的威胁。
+
+  本文档专注于IOAM数据字段的完整性保护。因此，威胁分析包括与损害IOAM数
+据字段的完整性相关的威胁或导致的威胁。其他安全方面（例如机密性）不在本文档的范围
+内。
+
+  在整个分析中，路径和偏离路径攻击者之间存在区别。如[I-D.ITF-
+DIVNET-Security]中所讨论的，ON-
+PATIO攻击者位于允许拦截和修改飞行中的协议包的位置，而OFF-
+PATCH攻击者只能通过生成协议分组攻击。
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 4]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  分析还包括每个威胁的影响。一般而言，成功攻击对OAM协议的影响[RFC727
+6]是一种不存在的故障的假错觉，或者防止检测实际的错误;在这两种情况下，攻击可能
+导致拒绝服务（DOS）。此外，创建不存在的问题的假错觉可能沿着路径触发一些IOA
+M节点中的不必要的处理，并且可能导致将导出到管理平面的更多IOam相关数据而不是
+传统的必要。除了这些一般影响之外，在下面的每个部分中讨论了威胁特定的影响。
+
+3.1. Modification : IOam数据字段
+
+  威胁
+
+  攻击者可以恶意修改IOAM数据字段的IOAM数据字段。修改可以应用于所有分组
+或选择性地应用于Z路径分组的子集。这种威胁适用于路径攻击者。
+
+  影响
+
+  通过系统地修改某些或所有INAM数据字段，攻击者可以创建网络中路径的假图片，
+存在错误的节点及其位置以及网络性能。
+
+3.2. Modification : IOam选项类型标题
+
+  威胁
+
+  路径攻击者可以在一个或多个IOam选项类型标题中修改IOAM数据字段，以便更
+改或扰乱沿路径处理IOAM数据字段的节点的行为。
+
+  影响
+
+  更改IOAM选项类型的标题可能有几个含义。攻击者可以恶意地提高处理IOAM数
+据字段的节点中的处理开销，并增加IOAM数据字段的导线开销，例如通过修改IOAM
+Trace-Option标头中的IOAM-Trace-Type字段。攻击者还可以
+通过修改RemainingLen字段来防止处理IOAM数据字段的一些节点并通过修
+改IOAM数据字段。
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 5]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+3.3. Injection : IOam数据字段
+
+  威胁
+
+  攻击者可以使用IOAM选项类型和IOAM数据字段注入数据包。此威胁适用于路径
+和偏移攻击者。
+
+  影响
+
+  此攻击和IT的影响与第3.1节类似。
+
+3.4. Injection : IOam选项类型标题
+
+  威胁
+
+  攻击者可以使用IOAM选项类型标题注入数据包，从而操纵处理网络中的IOAM数
+据字段的其他节点。这种威胁适用于路径和离路径攻击者。
+
+  影响
+
+  此攻击和IT影响与第3.2节类似。
+
+3.5。重播
+
+  威胁
+
+  攻击者可以使用IOAM数据字段重播数据包。具体地，攻击者可以用新数据分组重放
+先前发送的IOAM选项类型，从而将旧的IOAM数据字段附加到新的用户分组。这种威
+胁适用于路径和离路径攻击者。
+
+  影响
+
+  与以前的威胁一样，这种威胁可以创建一个不存在的故障的假图像，或者可以过载流量
+处理IOAM数据字段的不必要的处理。
+
+3.6。管理和出口
+
+  威胁
+
+  危及IOAM数据字段的完整性的攻击可以在管理平面上应用，例如，通过操纵网络管
+理分组。此外，IOAM数据的完整性
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 6]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  将导出到接收实体的字段也可能受到损害。管理平面攻击不在本文档的范围内;网络管
+理协议预计将包括固有的安全功能。导出数据的完整性也不在本文档的范围内。预计出口格
+式的规范将讨论相关的安全方面。
+
+  影响
+
+  管理协议的恶意操作可能导致将IOAM数据字段处理到故障的节点，以重载，或将不
+必要的IOAM数据字段合并到用户数据包中。损害导出的IOAM数据字段的完整性的影
+响类似于本节中描述的先前威胁的影响。
+
+3.7。延迟
+
+  威胁
+
+  路径攻击者可以延迟包含IOAM数据字段的一些或全部传输数据包，以便创建拥塞的
+错误错觉。延迟攻击在确定性网络[ID.IETF-DIRNET-SECURIONS
+]和同步[RFC7384]的上下文中是众所周知的，并且可以通过使用冗余路径在这些
+环境中稍微减轻，以沿着沿着沿着攻击的方式路径。这种方法不会在IOAM的上下文中解
+决威胁，因为它不符合测量特定路径的要求或沿路径检测问题。有人指出，这种威胁不在本
+文件范围内减轻的威胁范围内。
+
+  影响
+
+  由于IOAM可以应用于流量的一小部分，因此攻击者可以仅检测和延迟包括IOAM
+数据字段的数据包，从而防止延迟和负载测量的真实性。
+
+3.8。威胁总结
+
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 7]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+
+   +-------------------------------------------+--------+------------+
+   | Threat                                    |In scope|Out of scope|
+   +-------------------------------------------+--------+------------+
+   |Modification: IOAM Data Fields             |   +    |            |
+   +-------------------------------------------+--------+------------+
+   |Modification: IOAM Option-Type Headers     |   +    |            |
+   +-------------------------------------------+--------+------------+
+   |Injection: IOAM Data Fields                |   +    |            |
+   +-------------------------------------------+--------+------------+
+   |Injection: IOAM Option-Type Headers        |   +    |            |
+   +-------------------------------------------+--------+------------+
+   |Replay                                     |   +    |            |
+   +-------------------------------------------+--------+------------+
+   |Management and Exporting                   |        |     +      |
+   +-------------------------------------------+--------+------------+
+   |Delay                                      |        |     +      |
+   +-------------------------------------------+--------+------------+
+
+  Figure 1 : 威胁分析摘要
+
+4.为IOAM数据字段提供完整性的方法
+
+  此部分指定其他IOAM选项类型，以携带数据字段以提供完整性保护。完整性保护方
+法可以利用如下子部分中所述的对称或非对称密钥基于符号。
+
+4.1。完整性受保护的IOAM选项类型
+
+通过在IOAM选项类型注册表中分配以下IOAM选项类型，扩展了[I-D.ITF-
+IPPM-IOAM-DATA中定义的每个IOAM选项以包含Integrity受保
+护（IP）IOam选项类型。
+
+  64 IOAM预先分配的跟踪完整性受保护选项类型对应于IOAM预先分配的跟踪
+选项类型，具有完整性保护。
+
+  65 IOAM增量跟踪完整性受保护的选项类型对应于IOAM增量跟踪选项类型，
+具有完整性保护。
+
+  66 IOam POT完整性保护型选项型对应于IOAM
+POT选项型，具有完整性保护。
+
+  67 IOAM E2E Integrity
+Protectation选项类型对应于IOAM E2E选项类型，具有完整性保护。
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 8]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+4.2。Integrity Protected Ioam选项类型的子标题
+
+  Ioam Integrity保护选项中使用完整性数据子标头。它定义如下：
+
+
+        0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Signature-suite|  Nonce length |         Reserved.             |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                        Nonce                                  ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                       Signature                               ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+  Signature-suite : 8位无符号整数。此字段定义了用于计算摘要
+和签名的算法，并在选项类型标题和排除签名字段中的数据字段。
+
+  Nonce length :
+8位无符号整数。此字段指定八字节中的Once字段的长度。
+
+  Reserved : 16位保留字段。在传输时必须设置为零并在收到后忽略。
+
+  Nonce : 随机是一个可变长度字段，长度为长度指定。
+
+  Signature : 签名是由签名 -
+套件指定的方法和算法生成的数字签名值。
+
+  Ioam选项类型为Integrity Protected选项时，Ioxam选
+项类型标题遵循IOam选项类型标题。预先分配和增量跟踪选项标题如[i-d.iet
+f-ippm-ioam-data]中定义。当IOAM选项类型设置为IOAM预先分
+配的跟踪完整性保护选项类型或IOAM增量跟踪完整性受保护选项 -
+类型键入Integrity Protection
+Sube头遵循原始IOAM选项类型标题：：
+
+
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022                [Page 9]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        Namespace-ID           |NodeLen  | Flags | RemainingLen|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |               IOAM-Trace-Type                 |  Reserved     |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Signature-suite|  Nonce length |         Reserved.             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Nonce                                  ~
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       Signature                               ~
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  当[i-d.ietf-ippm-ioam-data-
+data]中定义的Ioam pot选项标题后跟Ioam选项类型设置为IOam
+Pop Integrity Protected选项类型的完整性保护子标题：
+
+     0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |       Namespace-ID            |IOAM POT Type  | IOAM POT flags|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Signature-suite|  Nonce length |         Reserved.             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Nonce                                  ~
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       Signature                               ~
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  当IOAM选项类型设置为IOAM E2E Integrity
+Protected Option-Type时，如[I-D.ITF-IPPM-
+Ioam-Data-data]中定义的Ioam
+E2E选项标题后跟Iocation Protection
+Sube头，后跟Ioam选项类型
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        Namespace-ID           |         IOAM-E2E-Type         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Signature-suite|  Nonce length |         Reserved.             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Nonce                                  ~
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       Signature                               ~
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 10]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+4.3。基于空间优化的IOAM数据签名
+
+  该方法假设已将对称密钥分发给相应的节点以及验证器（验证器接收所有密钥）。如何
+分发键的机制的细节超出了本文档的范围。“签名”字段填充如下：
+
+1.第一个节点在不包括签名字段，随机数及其对称密钥的IOAM选项的哈希上创建一个
+Once和签名。包含“非IOAM”选项的完整性保护子报头中的字段。生成的签名包含
+在相应的签名字段中。
+
+2.传输节点将通过创建数据为[签名||的数据签名来更新签名字段哈希（node_d
+ata_list [x]）]在IOAM跟踪完整性保护选项的情况下，其对称密钥。T
+ransit节点更新IOAM
+POT选项将通过创建数据所在的数据签名来更新签名字段[签名||哈希（IOAM
+POT选项排除签名字段）]如果IOAM POT
+Integrity保护选项的情况下，其对称键。
+
+3.验证器将迭代地通过收集的IOAM选项字段重新创建签名，并与签名字段匹配以验证
+数据完整性。
+
+  此方法使用以下算法：
+
+1.使用对称密钥计算签名的算法必须是高级加密标准（AES）AES-256。[AE
+S] [NIST.800-38D]。
+
+2.使用的摘要/哈希算法必须是SHA-256 [SHS]。
+
+4.3.1。开销
+
+  签名将使用AES-256消耗32个字节。使用此方法，签名仅为整个数据包携带一
+次。由于存在具有完整性保护的具有完整性保护的专用选项，因此在计算签名和验证时的性
+能问题的情况下，可以使用数据采样使用数据采样来使用这些选项来实现具有完整性保护的
+数据包的子集。
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 11]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+4.4。空间优化的跟踪数据的不对称关键签名
+
+  该方法假设每个IOAM节点生成不对称密钥，并且相应的节点可以访问其密钥。验证
+器接收所有公钥。如何生成和共享键的机制的细节超出了本文档的范围。“签名”字段填充
+如下：
+
+1.第一个节点在IOAM选项的哈希上创建一个nonce并签署它填充选项中的签名字
+段，innce及其私钥中的签名字段。生成的签名包含在签名字段中。
+
+2.传输节点将通过创建数据为[签名||的数据签名来更新签名字段哈希（node_d
+ata_list [x]）]在IOAM跟踪完整性受保护选项的情况下，其私钥。Tr
+ansit节点更新IOAM
+POT选项将通过创建数据所在的数据签名来更新签名字段[签名||哈希（IOAM
+POT选项不包括签名字段）]如果是IOAM POT完整性保护选项的私钥。
+
+3.验证器将迭代地通过收集的IOAM选项字段重新创建签名，并匹配签名字段使用IO
+AM节点的公钥验证数据完整性。
+
+  此方法使用以下算法：
+
+1.使用的签名算法必须是具有曲线P-256 [RFC6090]
+[DSS]的椭圆曲线数字签名算法（ECDSA）。
+
+2.使用的摘要/哈希算法必须是SHA-256 [SHS]。
+
+4.4.1。开销
+
+  签名基于所采用的SHA-256 ECDSA P-256算法消耗32个字节。使
+用此方法，签名仅为整个数据包运送一次。由于存在具有完整性保护的具有完整性保护的专
+用选项，因此在计算签名和验证时的性能问题的情况下，可以使用数据采样使用数据采样来
+使用这些选项来实现具有完整性保护的数据包的子集。
+
+5. IANA考虑因素
+
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 12]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+5.1。IOam选项类型注册表
+
+  以下代码点在“IOam选项类型注册表”中定义：
+
+  64 IOAM预先分配的跟踪完整性受保护选项类型
+
+  65 IOAM增量跟踪完整性保护选项类型
+
+  66 IOAM锅完整性保护选项类型
+
+  67 IOAM E2E完整性保护选项类型
+
+5.2。IOAM完整性保护算法套件注册表
+
+  “IOAM Integrity Protection Protection
+Suite Registry”在“位于OAM（IOAM）协议参数”组中。IANA
+分配的单八位字节“IOAM Integrity Protection
+Protection Suite Registry”标识符标识签名套件标识符字段
+中使用的摘要算法和签名算法。IANA已为摘要算法和签名算法注册了以下算法套件标识
+符。
+
+  IOAM完整性保护算法套件注册表
+
+        Algorithm    Digest       Signature    Specification
+        Suite        Algorithm    Algorithm    Pointer
+        Identifier
+      +------------+------------+-------------+-----------------------+
+      | 0x0        | Reserved   | Reserved    | This document         |
+      +------------+------------+-------------+-----------------------+
+      | 0x1        | SHA-256    | ECDSA P-256 | [SHS] [DSS] [RFC6090] |
+      |            |            |             | This document         |
+      +------------+------------+-------------+-----------------------+
+      | 0x2        | SHA-256    | AES-256     | [AES] [NIST.800-38D]  |
+      |            |            |             | This document         |
+      +------------+------------+-------------+-----------------------+
+      | 0xEF-0xFF  | Unassigned | Unassigned  |                       |
+      +------------+------------+-------------+-----------------------+
+
+  未来的分配将使用[RFC8126]中定义的标准操作进程进行。分配由单八位字节
+算法套件标识符值和相关的摘要算法名称和签名算法名称组成。
+
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 13]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+6.安全考虑因素
+
+  本节将在本文件的未来修订中完成。
+
+7.致谢
+
+  作者谨此感谢Santhosh N，Rakesh
+Kandula，Saiprasad Muchala，Greg
+Mirsky，Benjamin Kaduk和Martin Duke的意见和建议。
+
+8.参考资料
+
+8.1。规范参考文献
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC8126]棉，M.，Leiba，B.和T.Narten，“用于在RF
+CS中编写IANA考虑因素”部分的准则“，BCP 26，RFC 8126，DOI
+10.17487 / RFC8126，2017年6月<https：//
+www.rfc-editor.org / info / rfc8126>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+8.2。信息参考资料
+
+  [AES]国家标准与技术研究所，“先进的加密标准（AES）”，FIPS
+PUB 197,2001，<http://csrc.nist.gov/publi
+cations/fips/fips197/fips-197.pdf>。
+
+  [DSS]国家标准与技术研究所，“数字签名标准（DSS）”，NIST
+FIPS出版物186-4，DOI 10.6028 / NIST.FIPS.186
+-4，2013，<http：//nvlpubs.nist.gov/nistpub
+s / fips / nist.fips.186-4.pdf>。
+
+  [id.ietf-detnet-security]格罗斯曼，E.，Mizra
+hi，T.和AJ黑客，“确定性网络（Detnet）安全考虑因素”，草案 -
+IETF-DERNET-
+Security-16（正在进行中），3月2021年3月。
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 14]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+05（正在进行的工作），7月2021年。
+
+  [NIST.800-38D]国家标准与技术研究所，“建议块密码操作模式：Ga
+lois / Counter Mode（GCM）和GMAC”，NIST特刊800
+-38D，2001，<http：// CSRC。nist.gov/publica
+tions/nistpubs/800-38d/sp-800-38d.pdf>。
+
+  [RFC6090]
+McGRew，D.，Igoe，K.和M.盐兵，“基本椭圆曲线加密算法”，RFC
+6090，DOI 10.17487 /
+RFC6090，2011年2月，<https://www.rfc-
+editor.org/信息/ RFC6090>。
+
+  [RFC7276]
+Mizrahi，T.，Sprecher，N.，Bellagamba，E.和Y.
+Weingarten，“运营，管理和维护（OAM）工具”，RFC
+7276，DOI 10.17487 /
+RFC7276，2014年6月，<https://www.rfc-
+editor.org/info/rfc7276>。
+
+  [rfc7384]
+Mizrahi，T.，“数据包交换网络中的时间协议的安全要求”，RFC
+7384，DOI 10.17487 /
+RFC7384，2014年10月，<https://www.rfc-
+editor.org/info/rfc7384>。
+
+  [RFC7799]
+Morton，A.，“主动和被动度量和方法（在与杂交类型之间）”，RFC
+7799，DOI 10.17487 /
+RFC7799，2016年5月，<https://www.rfc-
+editor.org/info/ rfc7799>。
+
+  [SHS]国家标准与技术研究所，“安全哈希标准（SHS）”，NIST
+FIPS出版物180-4，DOI 10.6028 / NIST.FIPS.180
+-4，2015，<http://nvlpubs.nist.gov/nistpub
+s / fips / nist.fips.180-4.pdf>。
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 15]
+
+Internet-Draft         IOAM Data Fields Integrity              July 2021
+
+  作者的地址
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha Bhandari Insignspot
+3楼，Indiqube
+Orion，第24个主路，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Tala Mizrahi Huwai 8-2 Matam Haifa
+3190501以色列
+
+  Email : 他俩.密宗RA Hi.平衡点@Gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires February 1, 2022               [Page 16]
+
+

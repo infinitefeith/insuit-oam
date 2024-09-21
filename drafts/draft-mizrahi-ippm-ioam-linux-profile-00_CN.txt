@@ -1,0 +1,333 @@
+
+
+
+
+  网络工作组T. Mizrahiinternet-Srime Huaweiip
+ted状态：信息J.Iurmanexpires：4月3日，2022年Uliege
+F. Brockners Cisco 9月30日，2021年9月30日
+
+  in situ Oam配置文件用于Linux内核实现草案-Mizrahi-
+IPPM-IOAM-Linux-Profile-00
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）用于监控网络性能并检测流量瓶颈和异常。本文档
+定义了在Linux内核实现中使用的IOAM配置文件，从Linux
+5.15内核开始。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于4月3日至2022年到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如第4.E节所述
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 1]
+
+Internet-Draft             IOAM Linux Profile             September 2021
+
+  信托法律规定，并在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  The Linux IOAM Profile  . . . . . . . . . . . . . . . . . . .   2
+     2.1.  Use Cases . . . . . . . . . . . . . . . . . . . . . . . .   2
+     2.2.  IOAM Version  . . . . . . . . . . . . . . . . . . . . . .   3
+     2.3.  IOAM Options  . . . . . . . . . . . . . . . . . . . . . .   3
+     2.4.  Encapsulation . . . . . . . . . . . . . . . . . . . . . .   3
+     2.5.  IOAM Supported Data Fields  . . . . . . . . . . . . . . .   4
+     2.6.  Trace Option-Type Flags . . . . . . . . . . . . . . . . .   4
+     2.7.  Timestamp Format  . . . . . . . . . . . . . . . . . . . .   4
+     2.8.  Profile Coexistence . . . . . . . . . . . . . . . . . . .   4
+     2.9.  Validity  . . . . . . . . . . . . . . . . . . . . . . . .   5
+   3.  Notes about the IOAM Support in Linux . . . . . . . . . . . .   5
+   4.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   6.  Normative References  . . . . . . . . . . . . . . . . . . . .   6
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   7
+
+1.介绍
+
+  IOAM [I-D.IETF-IPPM-IOAM-
+DATA]用于通过将IOAM数据字段结合到飞行中的数据包中来监视网络中的流量。
+
+  IOam Profile [id.mizrahi-ippm-ioam-pro
+file]定义ioam的用例或一组用例，以及限制IOam规范的范围和特征的关联规
+则集，从而将其限制为子集完整的功能。
+
+  本文档介绍了Linux内核实现中使用的IOAM的配置文件。配置文件旨在正式指
+定范围内的特征子集，并使其他实现能够与Linux实现互操作。
+
+2. Linux Ioam个人资料
+
+2.1。用例
+
+  Linux内核实现允许以下任何节点中的任何功能：
+
+  o IOAM封装节点
+
+  o Ioam Transit节点
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 2]
+
+Internet-Draft             IOAM Linux Profile             September 2021
+
+  o ioam Depapsulate节点
+
+  一种可能的用例是一组基于Linux的主机，它用作IOAM封装和解封装的节点，
+由Ioam传输节点互连，这些节点不一定是基于Linux的。因此，预期基于Linu
+x的实现与符合此配置文件的其他实现互操作。
+
+  另一种可能的用例是一个同质设置，其中所有IOAM节点都是基于Linux的。
+
+2.2。IOAM版本
+
+  当前配置文件基于[I-D.ITF-IPPM-IOAM-
+DATA-14]，它是IOAM的正在进行的工作版本。
+
+2.3。IOam选项
+
+  当前配置文件使用预先分配的跟踪选项类型。假设在IOAM封装的数据包中使用一个
+IOam选项。
+
+2.4。封装
+
+  IOAM封装使用IPv6扩展头。此扩展标题用于IOAM预先分配的跟踪选项类型
+- 如[I-D.ITF-IPPM-IOAM-
+IPv6-Options-06]中所定义，它是IPv6
+IOam选项的工作进度版本。
+
+  IPv6扩展标题是一个逐跳选项标题，其中包含IOAM跟踪选项类型。逐跳选项标
+题可以包含一个或多个选项，使得这些选项之一是IOAM预先分配的跟踪选项类型。图1
+说明了当IOAM预先分配的跟踪选项类型是唯一的逐跳选项时，此逐跳选项标题的格式。
+如果出现更多选项，则格式将相应地更改。
+
+  如图1所示，前2个八位字节是逐跳选项报头[RFC8200]，其次是2个八位级
+填充字段。以下4个八位字节是IOAM IPv6选项标题[I-D.ITF-
+IPPM-IOAM-IPv6-Options-06]。IOam选项包括8个八位字
+节预先分配的跟踪选项类型标题[I-D.ietf-IPPM-IOAM-
+DATA-14]，后跟选项数据。
+
+
+
+
+
+
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 3]
+
+Internet-Draft             IOAM Linux Profile             September 2021
+
+
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Next Header  |  Hdr Ext Len  |            Padding            |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+    |  Option Type  |  Opt Data Len |   Reserved    |   IOAM Type   |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  I
+    |        Namespace-ID           |NodeLen  | Flags | RemainingLen|  O
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  A
+    |               IOAM-Trace-Type                 |  Reserved     |  M
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  .
+    |                                                               |  .
+    .                                                               .  .
+    .                          Option Data                          .  O
+    .                                                               .  P
+    .                                                               .  T
+    .                                                               .  I
+    .                                                               .  O
+    .                                                               .  N
+    |                                                               |  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+
+  Figure 1 : IPv6 IOAM扩展头格式
+
+2.5。IOAM支持的数据字段
+
+  当前配置文件支持用于预先分配跟踪选项类型的[id.ietf-ippm-
+ioam-data-14]中定义的所有数据字段类型，除了校验和互补字段，此配置文
+件中不需要，由于IOAM跟踪选项可直接封装在IPv6扩展头中，而无需使用校验和的
+任何其他层。
+
+2.6。跟踪选项类型标志
+
+  此配置文件仅使用溢出标志。
+
+2.7。时间戳格式
+
+  此配置文件使用POSIX时间戳格式。
+
+2.8。个人资料共存
+
+  假设当前配置文件用于限制管理域中，其中没有使用其他IOAM配置文件。因此，假
+设当前的轮廓不与其他配置文件共存。
+
+
+
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 4]
+
+Internet-Draft             IOAM Linux Profile             September 2021
+
+2.9。有效性
+
+  一个IOam转换/解封装的节点，它接收与不符合当前配置文件的IOAM选项的数
+据包将在没有IOAM处理的情况下向前/解码数据包，如果它能够这样做。如果解封的节
+点无法解封装不符合当前配置文件的IOAM选项，则丢弃数据包。
+
+3.关于Linux中IOAM支持的说明
+
+  当前的Linux实现支持预先分配的跟踪选项类型的[i-d.ietf-
+ippm-ioam-data-14]中定义的所有数据字段类型。具体来说，Linu
+x实现不会更新传输延迟，队列深度，校验和补充和缓冲区占用。这四种数据字段类型被动
+支持，这意味着Linux实现可以添加包括这些字段的预先分配的跟踪选项类型，但无法
+使用系统信息填充它们。它们被空值填充，因此，可以使用支持这些字段的其他IOAM节
+点来实现互操作性。
+
+  下表总结了Linux实现中的数据字段类型支持。
+
+  数据字段类型hap_lim和node_id（短格式）支持Ingress_if
+_id和EIGRE_IF_ID（短格式）支持的时间戳秒支持的时间戳分数支持的TI
+MESTAMP分数支持的传输延迟被动支持命名空间特定数据（短格式）支持的队列深度
+被动支持校验和队列补充被动支持HOP_LIM和NODE_ID（宽格式）支持的IN
+Gress_IF_ID和EIGR_IF_ID（宽格式）支持的命名空间特定数据（宽
+格式）支持的缓冲区占用被动支持不透明状态快照支持
+
+  通过将可配置值合并到这些字段中，Linux实现中都支持不透明状态快照和命名空
+间特定数据。值得注意的是，基于Linux的IOAM节点可以与使用不透明状态快照和
+/或命名空间特定数据以更灵活的方式互操作。
+
+
+
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 5]
+
+Internet-Draft             IOAM Linux Profile             September 2021
+
+4. IANA考虑因素
+
+  本文档不包括IANA的任何请求。
+
+5.安全考虑因素
+
+  [i-d.mizrahi-ippm-ioam-profile]讨论了IOAM
+配置文件的安全注意事项。目前的文件不提供任何新的安全考虑因素。
+
+6.规范性参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [ID.IETF-IPPM-IOAM-DATA-14]
+BROCKNERS，F.，BHANDARI，S.和T.
+Mizrahi，“位于oam的数据字段”，草稿-IETF-IPPM-IOAM-
+DATA-14（在进行中，6月2021年。
+
+  [id.ietf-ippm-ioam-ipv6-options-06]
+Bhandari，S.和F. Brockners，“进步OAM
+IPv6选项”，草稿-IETF-IPPM-IOAM-
+IPv6-Options-06（正在进行的工作），7月2021年。
+
+  [id.mizrahi-ippm-ioam-profile] mizrahi
+，t，t.，女郎，斯ivakolundu，r.，pignataro，C.，Kfi
+r，A.，Gafni，B.，Spiegel，M。，周，T.和J.
+Lemon，“原位OAM配置文件”，草案 -  Mizrahi-IPPM-
+IOAM-Profile-05（正在进行的工作），8月2021年。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC2473] CORTA，A.和S.
+Deering，“IPv6规范中的通用数据包隧道”，RFC 2473，DOI
+10.17487 /
+RFC2473，1998年12月，<https://www.rfc-
+editor.org/info/rfc2473>。
+
+  [rfc8200] Deering，S.和R.
+Hinden，“Internet协议，第6版（IPv6）规范”，STD
+86，RFC 8200，DOI 10.17487 /
+RFC8200，2017年7月，<https://www.rfc-
+editor.org/ info / rfc8200>。
+
+
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 6]
+
+Internet-Draft             IOAM Linux Profile             September 2021
+
+  作者的地址
+
+  Talmi Mizrahi Huwai 8-2 Matam Hafa以色列
+
+  Email : 他俩.密宗RA Hi.平衡点@Gmail.com
+
+  Justin Iurman Liege 10，Allee de
+LaDéouverte（B28）Sart-Tilman，Liege
+4000比利时
+
+  Email : Justin.IU RMAN@u列个.不饿
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mizrahi, et al.           Expires April 3, 2022                 [Page 7]
+
+

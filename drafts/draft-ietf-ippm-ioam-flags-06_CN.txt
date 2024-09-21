@@ -1,0 +1,547 @@
+
+
+
+
+  IPPM T. Mizrahiinternet-Arch-Arf
+HuaweiInted状态：标准曲目F.
+BrocknersExpires：2022年3月1日Cisco S.
+Bhandari，ED。Inslicationspot R.
+Sivakolundu C. Pignataro Cisco A. Kfir
+B.Gafni Nvidia M.Spiegel赤脚网络J. Lemon
+Broadcom 8月28日，2021年8月28日
+
+  原位OAM环回和活动标志草案 -  IETF-IPPM-IOAM-
+FLABS-06
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的运行和遥测信息，而
+在网络中的两个点之间遍历。本文档在IOAM跟踪选项标题中定义了两个新标志，特别是
+环回和活动标志。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年3月1日到期。
+
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 1]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Requirements Language . . . . . . . . . . . . . . . . . .   3
+     2.2.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  New IOAM Trace Option Flags . . . . . . . . . . . . . . . . .   3
+   4.  Loopback in IOAM  . . . . . . . . . . . . . . . . . . . . . .   3
+     4.1.  Loopback: Encapsulating Node Functionality  . . . . . . .   4
+       4.1.1.  Loopback Packet Selection . . . . . . . . . . . . . .   5
+     4.2.  Receiving and Processing Loopback . . . . . . . . . . . .   5
+     4.3.  Loopback on the Return Path . . . . . . . . . . . . . . .   6
+     4.4.  Terminating a Looped Back Packet  . . . . . . . . . . . .   6
+   5.  Active Measurement with IOAM  . . . . . . . . . . . . . . . .   7
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
+   7.  Performance Considerations  . . . . . . . . . . . . . . . . .   9
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  11
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .  11
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
+
+1.介绍
+
+  IOAM [I-D.IETF-IPPM-IOAM-
+DATA]用于通过将IOAM数据字段结合到飞行中的数据包中来监视网络中的流量。
+
+  IOAM数据可以在四种可能的IOAM选项之一中表示：预先分配的跟踪选项，增量
+跟踪选项，传输函数（pot）选项和边缘到边缘选项。本文档在预先分配和增量跟踪选项
+中定义了两个新标志：环回和活动标志。
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 2]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+2.惯例
+
+2.1。要求语言
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+2.2。术语
+
+  本文档中使用的缩写：
+
+  IOAM : 原位运营，管理和维护
+
+  OAM : 运营，管理和维护
+
+3.新的IOAM跟踪选项标志
+
+  本文档在预先分配和增量跟踪选项中定义了两个新标志：
+
+  位1“环回”（L-BIT）。当设置时，环回标志触发将数据包的副本发送回源，如
+第4节中进一步描述的。
+
+  位2“活动”（a-bit）。当设置时，活动标志表示数据包是一个活动测量分组而
+不是数据包，其中在[RFC7799]中定义的意义上使用“活动”。分组可以是IOA
+M探测分组，或复制的数据分组（第5节的第二和第三用例）。
+
+4.在IOAM中的环回
+
+  环回标志用于请求沿路径的每个传输设备循环回到发件人的数据包的副本。环回允许I
+OAM封装节点跟踪给定目的地的路径，并接收关于前进和返回路径的每跳数据。环回旨在
+提供一个加速替代的Traceroute，其允许封装节点沿着沿着一个往返时间的路径
+接收来自多个传输节点的响应，并通过发送单个分组。
+
+  如图1所示，IOAM封装节点可以推动IOAM封装，该IOAM封装将环回标志包
+含在其前方的某些或全部分组上。IOam
+Transit节点和解封装节点都会创建数据包的副本并循环它们
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 3]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  回到封装节点。解封装节点还终止了IOAM封装，然后将数据包转发到目的地。封装
+节点终止两个IOAM循环副本。
+
+
+ +--------+     +--------+     +--------+     +--------+     +--------+
+ |        |     |  IOAM  |.....|  IOAM  |.....|  IOAM  |     |        |
+ +--------+     +--------+     +--------+     +--------+     +--------+
+ | L2/L3  |<===>| L2/L3  |<===>| L2/L3  |<===>| L2/L3  |<===>| L2/L3  |
+ +--------+     +--------+     +--------+     +--------+     +--------+
+   Source      Encapsulating    Transit      Decapsulating   Destination
+                   Node           Node           Node
+
+                <------------  IOAM domain  ----------->
+
+                     IOAM encap. with Loopback flag
+ Data packet  ------->============================>----------->
+                                   |             |
+                  IOAM looped back |             |
+                     <=============+             |
+                                 IOAM looped back|
+                     <===========================+
+
+  Figure 1 : Loopback在IOAM中。
+
+  只有在存在来自传输节点的返回路径和朝向源（封装节点）的返回路径时，才可以使用
+环回。具体地，Loopback仅适用于封装，其中封装节点的标识可用在封装标题中。
+如果封装节点接收未源自当前封装节点的循环背包，则丢弃分组。
+
+4.1. Loopback : 封装节点功能
+
+  封装节点使用具有Loopback标志集的IOAM跟踪选项生成合成分组，或者在
+传输数据包的子集中设置Loopack标志。环回主要使用，即按需，即，当检测到故障
+时。封装节点还需要确保Loopback操作中的IOAM报头中有足够的空间，其包括
+在原始路径上添加跟踪数据，然后在返回路径上再次添加到的传输节点。
+
+  具有环回标志集的IOam Trace选项必须在IOam-
+Trace型的最重要位置中具有值为“1”，而在IOAM-
+Trace类型的其余部分中的“0”在“0”中。因此，每个传输节点
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 4]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  处理此跟踪选项仅添加单个数据字段，它是hop_lim和node_id数据字段
+。允许每跳允许单个数据字段的原因是最小化放大攻击的影响。
+
+  IOAM封装节点不得将Loopback标志推出IOAM封装到已包含IOAM封
+装的数据包上。该要求旨在防止IOAM环回嵌套，其中循环的后退分组可以在嵌套的IO
+AM域中受到环回。
+
+4.1.1。Loopback数据包选择
+
+  如果IOAM封装节点包含环回标志，则转发的所有流量中，它可能导致过多的环路背
+包，这可能会过载网络和封装节点。因此，支持环回标志的IOAM封装节点必须支持选择
+性地将环回标志结合到由其转发的分组的子集中。
+
+  先前已经定义了各种数据包选择和采样方法，例如[RFC7014]和[RFC54
+75]。可以通过IOAM封装节点应用类似的技术来将环回应用于转发流量的子集。
+
+使用环回标志转发或传输的流量子集不应超过任何IOAM封装节点接口的接口容量的1
+/ n。注意，该要求适用于包含环回标志的总流量，包括由IOAM封装节点生成的IO
+AM封装节点和探测分组转发的流量。在此上下文中，n是网络运营商可以配置的参数。如
+果存在上限，则在网络中的任何路径中的IOAM传输节点的数量上，建议使用n，使得n
+>> M.基本原理是包括环回标志触发的分组沿着路径的每个IOam传输节点的一个循
+环的背包，总共M循环的背包。因此，如果n >> m，则循环背包的数量显着低于由I
+Oam封装节点转发的数据分组的数量。如果没有关于网络拓扑或大小的先验知识，建议使
+用n> 100。
+
+4.2。接收和处理环回
+
+  设置的环回标志被设置为处理此选项的传输节点，它们是创建接收数据包的副本，并将
+复制返回到数据包的源。在这种情况下
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 5]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  源是IOAM封装节点，并假设源地址在封装标题中可用。因此，原始数据包的源地址
+用作复制分组中的目标地址。执行复制操作的节点的地址用作源地址。IOam Tran
+sit节点在*创建数据包的副本后按下所需的数据字段*，以允许基于副本的出口而不是
+原始数据包设置任何出口相关信息。副本也被截断，即在将循环的背包朝向封装节点发送之
+前删除后迁移到IOam选项之后的任何有效负载。原始数据包持续到目的地。必须在节点
+向源发送回来的数据包的副本中清除L-位。
+
+  支持接收和处理环回标志的IOAM节点必须支持限制循环背包的速率。应限制循环背
+包的速率，使得循环背包的数量显着低于设备转发的数据包数。循环的背部数据速率不应超
+过任何IOAM节点接口的接口容量的1 / n。建议使用n> 100。根据IOAM
+节点的架构考虑，环回响应速率可以限于较低的数量，以避免加载IOAM节点。
+
+4.3。回归路径上的环回
+
+  在回到源的路上，复制的数据包被处理如具有IOAM信息的任何其他数据包，包括在
+每个传输节点（假设有足够的空间）中添加任何请求的数据。
+
+4.4。终止循环数据包
+
+  一旦返回数据包到达IOAM域边界，就与包含IOAM信息的任何其他数据包一样，
+发生了IOAM解封。请注意，循环的背包没有L比特集。通过检查与第一跳对应的Hop
+_lim / node_id字段中的节点ID，启动原始环回分组的IOAM封装节点
+将接收的数据包识别为IOAM循环的包。如果节点ID与当前的IOAM节点匹配，则表
+示这是由当前IOAM节点发起的循环的背包，并相应地处理。如果在节点ID中没有匹配
+，则数据包被处理如传统的IOAM封装的数据包。
+
+  请注意，IOAM封装节点可以是端点（例如IPv6主机），或推动隧道的交换机/
+路由器
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 6]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  封装到数据包上。在这两种情况下，上面描述的功能避免了从IOAM域中泄漏的IO
+AM数据。特异性地，如果IOAM循环背包到达不是发起环回的IOAM节点的IOAM
+边界节点，则该节点不会将数据包作为环回处理;删除了IOAM封装，因为数据包没有终
+止任何有效载荷。在任何一种情况下，当数据包到达IOAM边界时，会移除IOAM封装
+，防止IOam信息从IOAM域中泄漏出来。
+
+5.用IOam主动测量
+
+  主动测量方法[RFC7799]利用合成产生的分组以便于测量。本节介绍了使用I
+OAM活动标志的主动测量案例。
+
+  活动标志表示数据包用于活动测量。一个IOam解封节点，其在其跟踪选项之一中包
+含活动标志设置的数据包必须终止分组。主动标志旨在通过指示不应进一步转发分组来简化
+解封节点的实现。它并不旨在作为现有的活动OAM协议的替代品，其可以在更高层中运行
+并使用活动标志。
+
+  图2中示出了IOAM部署方案的示例。该图描绘了两个端点，源和目的地。来自源到
+目的地的数据流量通过一组网络设备转发，包括IOAM封装节点，该节点包含一个或多个
+IOAM选项，解码节点，其删除IOAM选项，可选地一个或多个传输节点。IOAM选
+项封装在IOAM封装类型之一中，例如[i-d.ietf-sfc-in-
+nsh]，或[i-d.ietf-ippm-ioam-ipv6-选项]。
+
+
+ +--------+     +--------+     +--------+     +--------+     +--------+
+ |        |     |  IOAM  |.....|  IOAM  |.....|  IOAM  |     |        |
+ +--------+     +--------+     +--------+     +--------+     +--------+
+ | L2/L3  |<===>| L2/L3  |<===>| L2/L3  |<===>| L2/L3  |<===>| L2/L3  |
+ +--------+     +--------+     +--------+     +--------+     +--------+
+   Source      Encapsulating    Transit      Decapsulating   Destination
+                   Node           Node           Node
+
+                <------------  IOAM domain  ----------->
+
+  Figure 2 : 使用ioam的网络。
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 7]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  该草案专注于使用IOAM的三种可能的使用活性测量案例。使用图2的示例来描述这
+些用例。
+
+  o Endpoint active measurement : 在源和目标之
+间发送综合探针报文，遍历IOAM域。由于探测分组在端点之间发送，因此这些数据包被
+IOAM域视为数据包，并且不需要在IOAM层处进行特殊处理。具体地，在这种情况下
+不使用活动标志，并且IOam层不需要知道在更高的层处使用活动测量机制。
+
+  o使用IOAM域中的探测分组的IOam主动测量：由IOAM封装节点生成并传输
+探针分组，并且预计将被解封装节点终止。与探测包相关的IOAM数据可以由沿其路径的
+一个或多个节点导出，该数据在该文档范围之外的导出协议（例如，[i-d.spieb
+iegel-ippm-ioam-grawexport]）。探测数据包包括具有其活
+动标志集的跟踪选项，指示解封装的节点必须终止它们。
+
+  o使用复制数据包的Ioam活动测量：通过选择部分或全部en路由数据包并复制它
+们，由封装节点创建探测包。复制的选定数据包以及其（可能被截断）的复制将使用一个或
+多个IOAM选项转发，而原始数据包正常转发，则没有IOAM选项。尽可能多，原始数
+据包及其副本通过相同的路径转发。副本包含一个具有其活动标志集的跟踪选项，指示解封
+装的节点应终止它。应当注意，当前文档定义了活动标志在允许解封装的节点终止数据包时
+的作用，但在此上下文中的复制功能超出了本文档的范围。
+
+  如果包含活动标志的流量较大，则可能会过载网络和处理活动测量数据包的IOAM节
+点。因此，包括主动标志速率的流量的速率不应超过任何IOAM节点接口的接口容量的1
+/ n。建议使用n> 100。根据IOAM节点的架构考虑，激活的IOAM分组的速
+率可以限制为较低的数量，以避免加载IOAM节点。
+
+
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 8]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+6. IANA考虑因素
+
+  请求IANA在“IOAM跟踪标志注册表”中分配以下位，如下所示：
+
+  第1位“环回”（L-BIT）
+
+  位2“活动”（a-bit）
+
+  请注意，位0是标志注册表中最重要的位。
+
+7.绩效考虑因素
+
+  本文档中定义的每个标志可能具有性能影响。当使用环回机制时，将数据包的副本发送
+回发件人，从而生成比端点发送的更多流量。使用活动标志使用主动测量需要使用合成（开
+销）流量。
+
+  使用上述标志的每个机制具有在网络带宽方面具有成本，并且可能可能加载分析数据的
+节点。因此，必须使用数据流量的子集上的每个机制;封装节点需要能够能够选择性地设置
+环回和活动标志，以考虑对网络性能的影响，如第4.1.1节和第5节中进一步讨论的方
+式。
+
+  支持环回的传输和解封节点需要能够限制循环的背包（第4.2节），以确保以不显着
+影响网络带宽的速率使用机制，并且不会过载源节点环回的情况。
+
+8.安全考虑因素
+
+  IOam的安全注意事项通常在[I-D.ITEF-IPPM-IOAM-
+DATA中]讨论。具体地，攻击者可以尝试使用本文档中定义的功能来攻击网络。
+
+  攻击者可以通过注入包括IOAM跟踪选项的合成分组来尝试过载网络设备，其中具有
+本文档中定义的一个或多个标志。类似地，在路径上攻击者可能恶意地设置一个或多个传输
+分组的标志。
+
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                 [Page 9]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  o Loopback flag : 将该标志设置为合成数据包或传输数据包的攻
+击者可能会导致放大，因为沿路径的每个设备创建数据分组的副本并将其发送回源。攻击者
+可以利用用于分布式拒绝服务（DDOS）攻击的Loopback标志，因为多个设备将
+数据包的循环副本发送到单个源。
+
+  o Active flag : 合成数据包与活动标志的影响是不比未设置活动标
+志的合成数据包的影响。通过在in路由报文中设置活动标志，攻击者可以防止这些数据包
+到达目的地，因为分组被解封装设备终止;然而，注意，路径攻击者可以通过改变分组的目
+的地地址来实现相同的目标。另一个潜在的威胁是扩增;如果攻击者导致转换交换机以通过
+设置活动标志或通过发送合成分组来复制的传输交换机以复制多个数据包，则会放大流量，
+导致带宽降解。如第5节所述，复制机制的规范不在本文档的范围内。定义复制功能的规范
+还应解决此机制的安全方面。
+
+  在本文档中讨论的一些安全威胁可能在广域网中更差，其中有嵌套IOAM域。例如，
+如果有两个嵌套的IOAM域使用环回，则可以通过另一个（内部）IOam域转发外部I
+Oam域中的循环副本，并且可以在该（内部）IOam域中进行环回，导致放大比传统案
+例更差。
+
+  为了减轻上述性能相关的攻击，如第7节所述，它应该可以选择性地将使用本文档中定
+义的标记的机制应用于流量的子集，并限制合成生成的数据包的性能到可配置的速率。具体
+地，IOAM节点应该能够：
+
+  o将Loopback标志（IOAM封装节点）限制了IOAM数据包的速率，如第
+4.1.1节所述。
+
+  o限制环路背包（IOam
+Transit和Depapsulate节点）的速率，如第4.2节所述。
+
+  o将IOAM分组的速率与活动标志（IOAM封装节点）限制为第5节中所讨论的。
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                [Page 10]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  如第4节中所定义的，处理具有环回标志的分组的传输节点仅添加单个数据字段，并截
+断遵循IOam选项的任何有效负载，从而显着限制放大攻击的可能影响。
+
+  假设IOam将部署在受限制的行政域中，从而限制了上述威胁的范围及其影响。这是
+关于IOAM的安全方面的基本假设，如[I-D.ietf-IPPM-IOAM-
+Data]中进一步讨论的。
+
+9.参考资料
+
+9.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC5475] Zseby，T.，Molina，M.，Duffield，
+N.，Niccolini，S。和F.
+Raspall，“IP包选择的采样和过滤技术”，RFC 5475，DOI
+10.17487 /
+RFC5475，2009年3月，<https://www.rfc-
+editor.org/info/rfc5475>。
+
+  [RFC7014] D'Antonio，S.，Zseby，T.，Henke，
+C.和L.Peluso，“流量选择技术”，RFC 7014，DOI
+10.17487 /
+RFC7014，2013年9月，<https：//www.rfc-
+Editor.org/info/rfc7014>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+9.2。信息参考资料
+
+  [ID.IETF-IPPM-IOAM-IPv6-选项]
+BHANDARI，S.和F. BROCKINNERS，“进步OAM
+IPv6选项”，草稿 -  IETF-IPPM-IOAM-
+IPv6-Options-06（正在进行的工作），7月2021年。
+
+  [ID.IETF-SFC-IOAM-NSH] BROCKINERS，F.和B
+HANDARI，“网络服务标题（NSH）封装的原位OAM（IOAM）数据”，草稿
+-  IETF-SFC-IOAM-
+NSH-06（正在进行的工作），7月2021年。
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                [Page 11]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  [id.spiegel-ippm-ioam-grawexport]
+Spiegel，M.，Brockners，F.，Bhandari，S.和R. S
+ivakolundu，“与IPFIX的原位OAM原始数据导出”，Spiegel-
+IPPM-Ioam-Rawexport-05（正在进行的工作），7月2021。
+
+  [RFC7799]
+Morton，A.，“主动和被动度量和方法（在与杂交类型之间）”，RFC
+7799，DOI 10.17487 /
+RFC7799，2016年5月，<https://www.rfc-
+editor.org/info/ rfc7799>。
+
+  作者的地址
+
+  ta老MI在RA Hi hu A为Israel
+
+  Email : 他俩.密宗RA Hi.平衡点@Gmail.com
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Ramesh Sivakolundu Cisco Systems，Inc
+.170 West Tasman博士San Jose博士，CA 95134
+U.S.A.
+
+  Email : SRAM E神@Cisco.com
+
+
+
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                [Page 12]
+
+Internet-Draft                 IOAM Flags                    August 2021
+
+  Carlos Pignataro Cisco
+Systems，Inc。7200-11 Kit Creek Road
+Research Triangle Park，NC 27709美国
+
+  Email : 擦屁股那她@Cisco.com
+
+  Aviv Kfir Nvidia.
+
+  Email : AVI VK@NVIDIA.com
+
+  Barak Gafni Nvidia 350 Oakmead
+Parkway，套房100 Sunnyvale，CA 94085 U.S.a.
+
+  Email : 个bar AK@NVIDIA.com
+
+  Mickey Spiegel赤脚网络4750 Patrick Henry
+Drive Santa Clara，CA 95054美国
+
+  Email : 没Spiegel@barefoot networks.com
+
+  Jennifer Lemon Broadcom 270 Innovation
+Drive San Jose，CA 95134 US
+
+  Email : Jennifer.lemon@broad com.com
+
+
+
+
+
+
+
+
+
+
+
+Mizrahi, et al.           Expires March 1, 2022                [Page 13]
+
+

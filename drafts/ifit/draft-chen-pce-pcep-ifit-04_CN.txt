@@ -1,0 +1,1076 @@
+
+
+
+
+  PCE H. Yuaninternet-
+SrimbayInGINTENDED：标准曲目T.
+ZhouExpires：1月10日，2022 W.LI G. Fioccola
+Y.王华北部7月9日，2021年7月9日
+
+  路径计算元素通信协议（PCEP）扩展为启用IFIT草案 -  Chen-
+PCE-PCEP-IFIT-04
+
+  抽象的
+
+  本文档定义了分配原位流信息遥测（IFIT）信息的PCEP扩展。因此，当实例化
+路径时，可以自动启用IFIT行为。原位流信息遥测（IFIT）是指网络OAM数据平
+面上路径遥测技术，特别是最受欢迎的是原位OAM（IOAM）和替代标记。这里描述的
+IFIT属性可以概括为所有路径类型，但在本文档中考虑了对段路由（SR）的应用程序
+。此文档扩展了PCEP在有状态PCE模型下携带IFIT属性。
+
+  要求语言
+
+  关键词“必须”，“必须不是”，“必填”，“应该”，“不得”，“应该”，“应该
+”，“应该”，“推荐”，“可以”，“可以”和“可选”在本文件中是如BCP 14
+[RFC2119]
+[RFC8174]中所描述的，当它们出现在所有首都时，如此，如此，如此。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 1]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  此互联网草案将于2022年1月10日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  PCEP Extensions for IFIT Attributes . . . . . . . . . . . . .   4
+     2.1.  IFIT for SR Policies  . . . . . . . . . . . . . . . . . .   5
+   3.  IFIT capability advertisement TLV . . . . . . . . . . . . . .   5
+   4.  IFIT Attributes TLV . . . . . . . . . . . . . . . . . . . . .   7
+     4.1.  IOAM Sub-TLVs . . . . . . . . . . . . . . . . . . . . . .   8
+       4.1.1.  IOAM Pre-allocated Trace Option Sub-TLV . . . . . . .   9
+       4.1.2.  IOAM Incremental Trace Option Sub-TLV . . . . . . . .  10
+       4.1.3.  IOAM Directly Export Option Sub-TLV . . . . . . . . .  10
+       4.1.4.  IOAM Edge-to-Edge Option Sub-TLV  . . . . . . . . . .  11
+     4.2.  Enhanced Alternate Marking Sub-TLV  . . . . . . . . . . .  12
+   5.  PCEP Messages . . . . . . . . . . . . . . . . . . . . . . . .  13
+     5.1.  The PCInitiate Message  . . . . . . . . . . . . . . . . .  13
+     5.2.  The PCUpd Message . . . . . . . . . . . . . . . . . . . .  14
+     5.3.  The PCRpt Message . . . . . . . . . . . . . . . . . . . .  14
+   6.  Example of application to SR Policy . . . . . . . . . . . . .  14
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  15
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
+   9.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .  18
+   10. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  18
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  18
+     11.1.  Normative References . . . . . . . . . . . . . . . . . .  18
+     11.2.  Informative References . . . . . . . . . . . . . . . . .  20
+   Appendix A. . . . . . . . . . . . . . . . . . . . . . . . . . . .  21
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  21
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 2]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+1.介绍
+
+  原位流信息遥测（IFIT）是指网络OAM（操作，管理和维护）数据平面上路径遥
+测技术，包括原位OAM（IOAM）[ID.IETF-IPPM-IOAM-DATA
+]和备用标记[RFC8321]。它可以实时地提供关于整个转发路径的流量信息。
+
+  自动网络需要在部署的服务上进行服务级别协议（SLA）监控。因此，系统可以快速
+检测SLA违规或性能下降，从而改变服务部署。
+
+  本文档将扩展名为PCEP定义为分发携带IFIT信息的路径。因此，当实例化路径
+时，可以自动启用IFIT行为。
+
+  RFC 5440 [RFC5440]将路径计算元素协议（PCEP）描述为路径
+计算客户端（PCC）和路径计算元素（PCE）之间或PCE和PCE之间的通信机制。
+
+  RFC 8231 [RFC8231]指定PCEP的扩展，以启用状态控制，并描
+述两种操作模式：被动状态PCE和活动状态PCE。此外，RFC 8281 [RFC
+8281]描述了PCE启动的LSP的设置，维护和拆除，用于有状态PCE模型。
+
+  当PCE用于使用PCEP启动路径时，该路径的头端也很重要也了解用于路径的IF
+IT行为。当PCEP用于路径启动时，使用要使用的IFIT属性的相同协议对所需的I
+FIT属性进行携带的IFIT属性来说是有道理的，该属性需要应用于流到这些路径的数
+据。
+
+  本文档中定义的PCEP扩展允许发出IFIT功能。以这种方式，ifit方法会自
+动激活和运行。IFIT应用程序的灵活性和动态性通过在控制器上和网络节点上使用其他
+功能给出，但这在此处不符。
+
+  IFIT是根据[RFC8799]关注网络域的解决方案，介绍了特定域解决方案的
+概念。网络域包括单个管理中的一组网络设备或实体。如[RFC8799]中提到的，由
+于许多原因，例如政策，支持的选项，网络管理和安全要求的风格，建议限制
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 3]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+包括对受控域的新兴IFIT技术的应用。因此，必须在这种受控域中部署IFIT方法。
+
+  还考虑讨论段路由（SR）的用例，考虑到IFIT方法正在变得成熟，用于通过MP
+LS数据平面（SR-MPLS）和IPv6数据平面上的段路由（SRV6）进行段路由
+。SR策略[I-D.IETF-Spring段 - 路由策略]是一组由一个或多个段
+列表和必要的路径属性组成的候选SR路径。它使得能够实例化一个有序的段列表，具有特
+定的交通转向的意图。本文档中定义的PCEP扩展还支持使用本机IFIT的SR策略，
+这可以促进闭环控制并启用SR服务的自动化。
+
+  应注意伴随文档[i-d.qin-idr-sr-policy-
+ifit]，它提出了BGP扩展，为SR策略启用IFIT方法。
+
+2. IFIT属性的PCEP扩展
+
+  本文档是将IFIT属性TLV添加为PCEP扩展。以下部分将描述不同IFIT模
+式的要求和使用情况，并在PCEP中定义相应的TLV编码。
+
+  这里描述的IFIT属性可以是概括的，并且包括在LSPA（LSP属性）对象内部
+携带的TLV，以便应用于所有路径类型，只要它们支持相关的数据平面遥测方法。IFI
+T属性TLV是可选的，可以在路径计算期间和PCC在路径设置期间被PCE考虑。通常
+，LSPA对象可以在PCinitiate消息，PCUPD消息或处于状态PCE模型
+中的PCRPT消息内携带。
+
+  在本文档中，它被认为是SR策略的情况，因为IOAM和替代标记更成熟，尤其是段
+路由（SR）和IPv6。
+
+  应注意，如果需要为每个段列表应用不同的IFIT方法，则根据[ID.KOLDY
+CHEV-PCE-MultiPath，可以将IFIT属性添加到路径 -
+attrib对象，而不是LSPA对象中]定义用于信令多径信息的PCEP扩展。
+
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 4]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+2.1。用于SR政策的IFIT
+
+  RFC 8664 [RFC8664]和[ID.IETF-PCE-
+SEGENT-IPv6]将扩展指定为路径计算元素通信协议（PCEP），其允许有状
+态PCE计算和启动流量工程（TE）路径作为路径计算客户端（PCC），以请求对SR
+-MPLS和SRV6两者的SR网络中的某些约束和优化标准的路径。
+
+  IFIT ATTIBUTES，这里定义为LSPA对象的TLV，补充RFC
+8664 [RFC8664]，[I-D.IETF-PCE-SECATION-
+IPv6]和[I-D.IETF-PCE-SECMATION-ROUNT-
+Policy-CP]。
+
+3. IFIT能力广告TLV
+
+  在PCEP初始化阶段，PCEP扬声器（PCE或PCC）应宣传其对IFIT方法
+的支持（例如，IOAM和备用标记）。
+
+  PCEP扬声器包括Open对象中的IFIT-Capability
+TLV，以宣传其支持PCEP IFIT扩展。Open Object中的IFIT-
+Capability TLV的存在表示支持IFIT方法。
+
+  RFC 8664 [RFC8664]和[I-D.IETF-PCE-
+SECMENT-RUTING-
+IPv6]定义了SR的新路径设置类型（PST），并定义了SR-PCE-
+能力子TLV。本文档定义了一个新的ifit-capability tlv，它是一
+个可选的tlv，用于通过pcep能力通告的Ifit属性的打开对象中使用。
+
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |           Type                |            Length=4           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                           Flags                     |P|I|D|E|M|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图1 IFIT-Capability TLV格式
+
+
+
+  Type : 由IANA分配。
+
+  Length : 4.
+
+  Flags : 本文档中定义了以下标志：
+
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 5]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  P : IOAM预先分配的跟踪选项类型最启用的标志[i-d.ietf-
+ippm-ioam-data]。如果通过PCC设置为1，则P标志表示PCC允许通
+过PCE实现IOAM预先分配的跟踪特征。如果通过PCE设置为1，则P标志表示PC
+E支持IOAM预先分配的跟踪功能实例化。必须由PCC和PCE设置P标志，以支持I
+OAM预先分配的跟踪实例化
+
+  I : IOAM增量跟踪选项类型启用标志[I-D.ITF-IPPM-
+IOAM-DATA]。如果通过PCC设置为1，则I标志表示PCC允许通过PCE实
+例化IOAM增量跟踪功能。如果通过PCE设置为1，则I标志表示PCE支持相对IO
+AM增量跟踪功能实例化。必须由PCC和PCE设置I标志，以支持IOAM增量跟踪功
+能实例化
+
+  D : IOAM DEX选项类型启用类型标志[I-D.ITF-IPPM-
+IOAM-DIRECT-EXPORT]。如果通过PCC设置为1，则D标志表示PC
+C允许通过PCE实例化相对IOAM
+DEX特征。如果通过PCE设置为1，则D标志表示PCE支持相对IOAM
+DEX功能实例化。必须由PCC和PCE设置D标志，以支持IOAM
+DEX功能实例化
+
+  E : IOAM E2E选项类型类型的标志[i-d.ietf-ippm-
+ioam-data]。如果通过PCC设置为1，则E标志表示PCC允许通过PCE实
+例化相对IOAM
+E2E特征。如果通过PCE设置为1，则E标志表示PCE支持相对IOAM
+E2E特征实例化。必须由PCC和PCE设置E标志，以支持IOAM
+E2E特征实例化
+
+  M : 备用标记启用标志RFC 8321 [RFC8321]。如果通过PCC
+设置为1，则M标志表示PCC允许通过PCE实现相对备用标记特征的实例化。如果通过
+PCE设置为1，则M标志表示PCE支持相对备用标记特征实例化。必须由PCC和PC
+E设置M标志，以支持备用标记特征实例化
+
+  未分配的位被认为是保留的。它们必须设置为0的传输，并且必须在收到时忽略。
+
+  IFIT-Capability TLV的广告意味着支持IFIT方法（IOAM
+和/或备用标记）以及本文档中定义的对象，TLV和程序。值得一提的是，IOam和替
+代标记可以一次或罐头激活一个
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 6]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+共存;因此，可以只有IOAM或仅启用备用标记，但它们通常被识别为IFIT功能。
+
+  IFIT能力广告可以暗示以下情况：
+
+  o如果一个或两个PCEP扬声器在其各自的打开消息中未包含IFIT-
+Capability TLV，则不得使用IFIT的PCEP协议扩展。
+
+  o不识别本文档中定义的扩展的PCEP扬声器将仅忽略根据RFC 5440
+[RFC5440]的TLV。
+
+  o如果PCEP扬声器支持本文档中定义的扩展，但未通告此功能，那么在LSP属性
+（LSPA）对象中接收到IFIT-属性TLV时，它应该生成带有错误类型19的PC
+ERR（无效操作）具有相对误差值“IFIT功能未通告”并忽略IFIT-
+Attributes TLV。
+
+4. IFIT属性TLV
+
+  IFIT-Attributes TLV提供IFIT功能的可配置旋钮，并且可以
+将其包含在LSPA对象中的可选TLV（如RFC 5440
+[RFC5440]中所述）。
+
+  对于PCE启动的LSP RFC 8281 [RFC8281]，该TLV包含在
+LSPA对象中，使用PCInitiate消息。对于PCC启动的委派LSP，此TL
+V在LSPA对象中的路径计算状态报告（PCRPT）消息中携带。此TLV还在LSP
+A对象中携带路径计算更新请求（PCUPD）消息，以指示PCC（LSP终端）以使更
+新为IFIT属性。
+
+  如果启用了IFIT功能，则TLV在LSP的所有PCEP消息中编码。没有TLV
+表示PCEP扬声器希望禁用该功能。此TLV包含多个IFIT属性子TLV。如果在P
+CEP消息中发送的最后一个信息存在变化，则包括IFIT属性子TLV。缺少子TLV
+的默认值适用于LSP的第一个PCEP消息。
+
+  IFIT-Attributes TLV的格式如下图所示：
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 7]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |             Type              |           Length              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   //                            sub-TLVs                          //
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图2 IFIT-ATTRUMUTE TLV格式
+
+
+
+  Type : 由IANA分配。
+
+  Length : 长度字段根据RFC 5440
+[RFC5440]定义值以字节为单位的长度。
+
+  Value : 这包括一个或多个子TLV。
+
+  以下子TLV在本文档中定义：
+
+     Type    Len   Name
+   -----------------------------------------------------
+     1       8     IOAM Pre-allocated Trace Option
+
+  2 8 IOAM增量跟踪选项
+
+  3 12 IOAM直接出口选项
+
+  4 4 IOAM边缘到边缘选项
+
+  5 4增强的替代标记
+
+  图3 SuiT-Attributes TLV的Sub-TLV类型
+
+4.1。IOAM子TLV
+
+  原位运营，管理和维护（IOAM）[I-D.IETF-IPPM-IOAM-DA
+TA]在数据包中记录在数据包中的操作和遥测信息，而数据包遍历网络中的两个点之间的
+路径。就RFC 7799 [RFC7799]中给出的分类而言，IOam可以被分类
+为混合型1.可以利用有源OAM不适用或不提供所需结果的IOam机制。
+
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 8]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  对于SR使用情况，当SR策略启用IOAM时，IOAM标题将被插入到用于SR路
+径中的流量的每个数据包中。由于该文档旨在定义控制平面，因此应注意，用于数据平面的
+相关文档是用于通过IPv6数据平面（SRV6）的段路由的段路由的[i-d.iet
+f-ippm-ioam-ioam-ipv6-选项]。
+
+4.1.1。IOAM预先分配的跟踪选项子TLV
+
+  预计IOAM跟踪数据将在数据包遍历的每个节点上收集，以确保在整个路径中的可见
+性，以在IOAM域中占用。预分配的跟踪选项将为每个节点创建预先分配的空间以填充其
+信息。
+
+  IOAM预先分配的跟踪选项子TLV的格式定义如下：
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-------------------------------+-------------------------------+
+   |          Type=1               |           Length=8            |
+   +---------------------------------------------------------------+
+   |       Namespace ID            |            Rsvd1              |
+   +-------------------------------+-----------------------+-------+
+   |         IOAM Trace Type                      | Flags  | Rsvd2 |
+   +----------------------------------------------+--------+-------+
+
+  图4 IOAM预先分配的跟踪选项子TLV
+
+
+
+  Type : 1（由IANA分配）。
+
+  Length : 8.值字段的总长度不包括类型和长度字段。
+
+  Namespace ID : 一个16位标识符的IOAM-
+命名空间。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.4节中所述。
+
+  IOAM Trace Type :
+一个24位标识符，它指定节点数据列表中使用的数据类型。定义与[I-D.ietf-
+IPPM-IOAM-DATA的第4.4节中所述。
+
+  Flags : 一个4位字段。该定义与[i-d.ietf-ippm-
+ioam-flags]和[i-d.ietf-ippm-ioam-
+data]的第4.4节中描述的相同。
+
+
+
+
+Yuan, et al.            Expires January 10, 2022                [Page 9]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  Rsvd1 : 用于进一步使用的16位字段。它必须在收据上零零。
+
+  Rsvd2 : 保留4位字段以进一步使用。它必须在收据上零零。
+
+4.1.2。IOAM增量跟踪选项子TLV
+
+  增量跟踪选项包含一个可变节点数据字段，其中每个节点在选项标题之后立即分配并按
+下其节点数据。
+
+  IOAM增量跟踪选项子TLV的格式定义如下：
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-------------------------------+-------------------------------+
+   |          Type=2               |           Length=8            |
+   +---------------------------------------------------------------+
+   |       Namespace ID            |            Rsvd1              |
+   +-------------------------------+-----------------------+-------+
+   |         IOAM Trace Type                      | Flags  | Rsvd2 |
+   +----------------------------------------------+--------+-------+
+
+  图5 IOAM增量跟踪选项子TLV
+
+
+
+  Type : 2（由IANA分配）。
+
+  Length : 8.值字段的总长度不包括类型和长度字段。
+
+  所有其他字段定义与上一节中的预先分配跟踪选项子TLV相同。
+
+4.1.3。IOAM直接导出选项子TLV
+
+  IOam直接导出选项用作要直接导出到收集器的IOAM数据的触发器，而不被推入
+飞行中数据包。
+
+  IOAM直接导出选项子TLV的格式定义如下：
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 10]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-------------------------------+-------------------------------+
+   |           Type=3              |         Length=12             |
+   +---------------------------------------------------------------+
+   |        Namespace ID           |            Flags              |
+   +-------------------------------+---------------+---------------+
+   |               IOAM Trace Type                 |      Rsvd     |
+   +-----------------------------------------------+---------------+
+   |                         Flow ID                               |
+   +---------------------------------------------------------------+
+
+  图6 IOam直接导出选项Sub-TLV
+
+
+
+  Type : 3（由IANA分配）。
+
+  Length : 12.它是值字段的总长度，不包括类型和长度字段。
+
+  Namespace ID : 一个16位标识符的IOAM-
+命名空间。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.4节中所述。
+
+  IOAM Trace Type :
+一个24位标识符，它指定节点数据列表中使用的数据类型。定义与[I-D.ietf-
+IPPM-IOAM-DATA的第4.4节中所述。
+
+  Flags : 一个16位字段。该定义与[I-D.ITEF-IPPM-
+IOAM-Intion-Export]第3.2节中所述相同。
+
+  Flow ID : 32位流标识符。该定义与[I-D.ITEF-IPPM-
+IOAM-Intion-Export]第3.2节中所述相同。
+
+  Rsvd : 保留4位字段以进一步使用。它必须在收据上零零。
+
+4.1.4。IOAM边缘到边缘选项Sub-TLV
+
+  “IOAM边沿到Edge”选项是携带IOAM封装节点添加的数据，并由IOAM
+解封节点解释。
+
+  IOAM边缘到边缘选项子TLV的格式定义如下：
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 11]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-------------------------------+-------------------------------+
+   |         Type=4                |          Length=4             |
+   +---------------------------------------------------------------+
+   |        Namespace ID           |         IOAM E2E Type         |
+   +-------------------------------+-------------------------------+
+
+  图7 IOAM边缘到边缘选项Sub-TLV
+
+
+
+  Type : 4（由IANA分配）。
+
+  Length : 4.值字段的总长度不包括类型和长度字段。
+
+  Namespace ID : 一个16位标识符的IOAM-
+命名空间。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.6节中所述。
+
+  IOAM E2E Type : 一个16位标识符，它指定E2E选项数据中使用
+的数据类型。定义与[I-D.ietf-IPPM-IOAM-
+DATA的第4.6节中所述。
+
+4.2。增强的替代标记子TLV
+
+  替代标记[RFC8321]技术是一种混合性能测量方法，每RFC 7799 [
+RFC7799]测量方法的分类。因为此方法基于标记连续批量的数据包。它可用于测量
+实时流量上的数据包丢失，延迟和抖动。
+
+  对于SR使用情况，由于该文档旨在定义控制平面，因此应注意，用于数据平面的相关
+文档是IPv6数据平面上的段路由的[id.ietf-6man-ipv6-alt-
+mark]（SRV6）。
+
+  增强型备用标记（EAM）子TLV的格式定义如下：
+
+
+
+
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 12]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-------------------------------+-------------------------------+
+   |            Type=5             |           Length=4            |
+   +-------------------------------+-------+---------------+-------+
+   |           FlowMonID                   |     Period    |H|E| R |
+   +---------------------------------------+---------------+-------+
+
+  图8增强了备用标记子TLV
+
+
+
+  Type : 5（由IANA分配）。
+
+  Length : 4.值字段的总长度不包括类型和长度字段。
+
+  FlowMonID : 一个20位标识符，用于唯一地标识测量域内的受监视流。
+定义与[I-D.ietf-6man-IPv6-Alt-Mark]第5.3节中所述
+相同。应注意，PCE还需要维持跨越跨越的唯一性，如[I-D.ietf-6man-
+IPv6-Alt-Mark]中所述。
+
+  Period : 两个替代标记周期之间的时间间隔。该单位是秒。
+
+  H : 一个标志，表示测量是逐跳的。
+
+  E : 一种标志，表示测量结束到底。
+
+  R : 保留2位字段以进一步使用。它必须在收据上零零。
+
+5. PCEP消息
+
+5.1。pacinitiate消息
+
+  PCinitiate消息是PCCE发送到PCC的PCEP消息，以触发LSP实
+例或删除RFC 8281 [RFC8281]。
+
+  对于启用IFIT功能的PCE启动的LSP，IFIT-
+属性TLV必须包含在LSPA对象中使用PCInitiate消息。
+
+  PCInitiate消息RFC 8281 [RFC8281]的路由背部 -
+Naur形式（RBNF）定义由本文档不变。
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 13]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+5.2。PCUPD消息
+
+  PCUPD消息是PCC向PCC发送的PCEP消息，以更新LSP参数RFC
+8231 [RFC8231]。
+
+  对于启用IFIT功能的PCE启动的LSP，IFIT-属性TLV必须包含在LS
+PA对象中使用PCUPD消息。PCE可以发送此TLV以指示PCC以更改IFIT参
+数。
+
+  PCUPD消息RFC 8231
+[RFC8231]的RBNF定义由本文档不变。
+
+5.3。pcrpt消息
+
+  PCRPT消息RFC 8231 [RFC8231]是PCC向PCE发送的PC
+EP消息，以报告一个或多个LSP的状态。
+
+  对于PCE启动的LSP RFC 8281 [RFC8281]，PCC使用PC
+E传达的属性和未指定参数的本地值创建LSP。在LSP的成功实例化之后，PCC会自
+动将LSP委托给PCE并生成PCRPT消息，以提供LSP的状态报告。
+
+  PCRPT消息RFC 8231
+[RFC8231]的RBNF定义由本文档不变。
+
+  对于PCE启动和PCC启动的LSP，当实例化LSP时，根据对应数据平面的指定
+应用IFIT方法。[i-d.ietf-ippm-ioam-
+ipv6-选项]和[i-d.ietf-6man-ipv6-alt-
+mark]是IPv6数据平面上的段路由（SRV6）的相关文件。
+
+6.适用于SR政策的申请示例
+
+  PCC或PCE在PCEP初始化阶段期间在打开消息中设置IFIT-
+功能TLV，以指示它支持IFIT过程。
+
+  [i-d.ietf-pce-segment-woutd-policy-cp]
+定义了支持段路由策略候选路径的PCEP扩展，并且在这方面介绍了SRPAG关联对象
+。
+
+  [i-d.ietf-pce-segment-tourt-policy-cp]
+中报告了具有单个或多个候选路径和pce启动的sr策略的PCC启动的SR策略和PC
+E启动的SR策略。
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 14]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  在PCC启动的SR策略的情况下，PCC通过LSPA对象向PCE发送PCREQ
+消息，编码SRPAG关联对象和IFIT属性TLV。这对单个候选路径和多个候选路径
+有效。最后，PCE返回PCREP消息中的路径，并回到计算中使用的SRPAG对象以
+及IFIT LSPA TLV。此外，PCC通过LSPA对象将PCRPT消息发送给
+PCE，包括LSP对象和SRPAG关联对象和IFIT属性TLV。然后，PCE计算
+路径，最后PCE使用PCUPD消息更新SR策略候选路径的ERO，考虑IFIT
+LSPA TLV。
+
+  在PCE启动的SR策略的情况下，PCE通过LSPA对象发送包含SRPAG关联
+对象和IFIT-Attributes TLV的PCInitiate消息。这对单个
+候选路径和多个候选路径有效。然后，PCC使用来自SRPAG对象的颜色，端点和首选
+项，以创建考虑IFIT LSPA TLV的新候选路径。最后PCC将PCRPT消息
+发送回PCE以报告新创建的候选路径。PCRPT消息包含SRPAG关联对象和IFI
+T属性信息。
+
+  启用/禁用IFIT的过程简单，实际上，PCE可以通过发送后续路径计算更新请求
+（PCUPD）消息来更新LSP的IFIT属性。PCE可以通过发送路径计算状态报告
+（PCRPT）消息来更新LSP的IFIT属性。
+
+7. IANA考虑因素
+
+  本文档定义了新的ifit-capability tlv和ifit-
+属性tlv。请求IANA从“PCEP
+TLV类型指示符”次述“路径计算元素协议（PCEP）编号”的“PCEP
+TLV类型指标”次述中，如下所示：
+
+   Value        Description                      Reference
+   -------------------------------------------------------------
+   TBD1         IFIT-CAPABILITY                  This document
+
+  TBD2 IFIT-属性本文档
+
+  此文档指定IFIT-Capability TLV Flags字段。请求IAN
+A创建注册表以管理“路径计算元素协议（PCEP）编号”注册表中的IFIT-
+功能TLV的标志字段的值。
+
+  标准操作RFC 8126
+[RFC8126]将分配新值。应以以下质量跟踪每个位：
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 15]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  *位数（计数从0到最高有效位）
+
+  *标志名称
+
+  * 参考
+
+  请求IANA在IFIT-Capability
+TLV标志字段注册表中设置5个新位，如下所示：
+
+   Bit no.   Flag Name                                   Reference
+   ---------------------------------------------------------------------
+   27        P: IOAM Pre-allocated Trace Option flag     This document
+
+  28 I : IOAM增量跟踪选项标记本文档
+
+  29 D : IOAM直接导出选项标记本文档
+
+  30 E : IOAM Edge-Edge选项本文档
+
+  31 M : 备用标记标志本文档
+
+  本文档还指定IFIT-Attributes子TLV。请求IANA在“路径计算
+元素协议（PCEP）编号”注册表中创建“IFIT-属性子TLV类型”子区域。
+
+  请求IANA将此注册表的注册程序设置为如下所示：
+
+     Range            Registration Procedure
+   ------------------------------------------
+     0-65503          IETF Review
+
+  65504-65535实验使用
+
+  本文档定义了以下类型：
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 16]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+
+   Type          Description                         Reference
+   ---------------------------------------------------------------
+   0             Reserved                            This document
+
+  1 ioam预先分配的跟踪选项本文档
+
+  2 IOAM增量跟踪选项本文档
+
+  3 IOAM直接导出选项本文档
+
+  4 IOAM Edge-Edge选项本文档
+
+  5增强的替代标记本文档
+
+  6-65503未分配本文件
+
+  65504-65535实验使用本文件
+
+  本文档为错误类型19的PCERR消息定义了新的错误值（无效操作）。请求IAN
+A在“PCEP-ERROR对象错误类型和值”子区域的“路径计算元素协议（PCEP
+）数字”注册表中分配新的错误值，如下所示：
+
+   Error-Type   Meaning     Error-value          Reference
+   ---------------------------------------------------------------
+   19           Invalid     TBD3: IFIT             This document
+                Operation   capability not
+                            advertised
+
+8.安全考虑因素
+
+  本文档定义了新的IFIT-Capability
+TLV和IFIT属性TLV，它不会为已在RFC 8231
+[RFC8231]和RFC 8281
+[RFC8281]中已讨论的任何大量新的安全问题进行状态PCE操作。根据RFC
+8231
+[RFC8231]，建议使用这些PCEP扩展在使用传输层安全（TLS）RFC
+8253 [RFC8253]的PCE和属于同一管理机构的PCE和PCCS上的经过
+身份验证和加密的会话上激活BCP 195 RFC 7525
+[RFC7525]中的建议和最佳现行实践（除非在RFC 8253
+[RFC8253]中明确留出）。
+
+  IFIT方法（IOAM和替代标记）的实现是安全和隐私问题的，如[I-D.IT
+TF-IPPM-IOAM-DATA]和RFC 8321 [RFC8321]中所述
+。无论如何IFIT属性中的IFIT参数不正确的IFIT参数不应有
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 17]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  对LSP以及网络的不利影响，因为它仅影响遥测方法的操作。
+
+  IFIT数据必须在有限域中传播，以避免恶意攻击和解决方案，以确保在[ID.I
+ETF-IPPM-IOAM-DATA和[ID.IETF-6MAN-
+IPv6-Alt-Mark]中分别讨论此要求。
+
+  IFIT方法（IOAM和备用标记）应用于在本地管理网络节点的受控域内。有限的
+管理域为网络管理员提供了选择，监视和控制对网络的访问的方法，使其成为该文档中定义
+的PCEP扩展的可信域。
+
+9.贡献者
+
+  以下人员向本文件提供了相关捐款：
+
+  hu暗暗Chen, independent, -
+
+  DH如VD OO对于, hu A为technologies, 等候入V.I
+ETF@Gmail.com
+
+10.致谢
+
+  本文档的作者您要感谢Huaimo Chen对本文件的意见和审查。
+
+11.参考文献
+
+11.1。规范参考文献
+
+  [ID.IETF-6MAN-IPv6-ALT-MARK] FIOCCOLA，
+G.，ZHOU，T.，Cociglio，M.，Qin，F.和R.
+Pang，“IPv6应用的替代标记方法”，草案 - IETF-6Man-
+IPv6-Alt-Mark-04（正在进行的工作），3月2021年。
+
+  [ID.IETF-IPPM-IOAM-
+DATA，S.，F.，Bhandari，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，草稿 -  IETF-IPPM-
+IOAM-Data-12（工作中进展），2月2021年。
+
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 18]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+03（正在进行的工作），2月2021年。
+
+  [id.ietf-ippm-ioam-flags] Mizrahi，T.，女
+郎，斯ivakolundu，R.，Pignataro，C.，Kfir，A.，Ga
+fni，B.，Spiegel，M。和J. Lemon，“In-Bialu
+Oam标志”，草案 -  IETF-IPPM-IOAM-
+FLAGS-04（正在进行的工作），2月2021年。
+
+  [ID.IETF-IPPM-IOAM-IPv6-选项] Bhandari，S
+.，Brockners，F.，Pignataro，C.，Greder，H.，Li
+eddy，J.，Youell，S.，Mizrahi，T.，Kfir，A.，Gaf
+ni，B.，Lapukhov，P.，Spiegel，M.，Krishnan，S.
+，S.，Asati，R.和M. Smith，“原位OAM IPv6选项”，草案-
+IETF-IPPM-IOam-
+IPv6-options-05（正在进行的工作），2月2021年。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC5440] Vasseur，JP。，ED。和JL。Le
+Roux，Ed。，“路径计算元素（PCE）通信协议（PCEP）”，RFC
+5440，DOI 10.17487 /
+RFC5440，2009年3月，<https://www.rfc-
+editor.org/info/rfc5440>。
+
+  [RFC7525] Sheffer，Y.，Holz，R.和P. Saint-
+Andre，“用于安全使用传输层安全性（TLS）和数据报传输层安全（DTL）”，
+BCP 195，RFC 7525，DOI 10.17487的建议/
+RFC7525，2015年5月，<https://www.rfc-
+editor.org/info/rfc7525>。
+
+  [RFC7799]
+Morton，A.，“主动和被动度量和方法（在与杂交类型之间）”，RFC
+7799，DOI 10.17487 /
+RFC7799，2016年5月，<https://www.rfc-
+editor.org/info/ rfc7799>。
+
+  [RFC8126]棉，M.，Leiba，B.和T.Narten，“用于在RF
+CS中编写IANA考虑因素”部分的准则“，BCP 26，RFC 8126，DOI
+10.17487 / RFC8126，2017年6月<https：//
+www.rfc-editor.org / info / rfc8126>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 19]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  [RFC8231]
+Crabbe，E.，Mini，I.，Medved，J。和R.
+Varga，“状态PCE的路径计算元件通信协议（PCEP）扩展”，RFC
+8231，DOI 10.17487 /
+RFC8231，2017年9月<https://www.rfc-
+editor.org/info/rfc8231>。
+
+  [RFC8253] LOPEZ，D.，GONZALEZ DE
+DIOS，O.，WU，Q.和D. DHODY“PCEPS：TLS的使用为路径计算
+元件通信协议（PCEP）提供安全传输”，RFC 8253，DOI
+10.17487 /
+RFC8253，2017年10月，<https://www.rfc-
+editor.org/info/rfc8253>。
+
+  [RFC8281]
+CRABBE，E.，MINEI，I.，Sivabalan，S.和R. Varga
+，“用于PCE启动的LSP设置中的”路径计算元件通信协议（PCEP）扩展在状态P
+CE模型中“，RFC 8281，DOI10.17487 /
+RFC8281，2017年12月，<https://www.rfc-
+editor.org/info/rfc8281>>。
+
+  [rfc8321] Fioccola，G.，Ed。，Capello，A.，C
+ociglio，M.，Castaldelli，L.，Chen，M.，Zheng，
+L.，Mirsky，G.和T.
+Mizrahi，“替代标记用于被动和混合性能监测的方法“，RFC
+8321，DOI 10.17487 /
+RFC8321，2018年1月，<https://www.rfc-
+editor.org/info/rfc8321>。
+
+  [RFC8664] Sivabalan，S.，Filsfils，C.，Tan
+tura，J.，HENDERICKX，W.和J.
+Hardwick，“段路由的路径计算元件通信协议（PCEP）扩展”，RFC
+8664，DOI 10.17487 /
+RFC8664，2019年12月，<https://www.rfc-
+editor.org/info/rfc8664>。
+
+  [RFC8799]木匠，B.和B.刘，“有限域名和互联网协议”，RFC
+8799，DOI 10.17487 /
+RFC8799，7月20日，<https://www.rfc-
+editor.org/info/rfc8799>。
+
+11.2。信息参考资料
+
+  [ID.IETF-PCE-SEMMENT-ROUTING-IPv6] LI，
+C.，Negi，M.，Sivabalan，S.，Koldychev，M.，Kal
+adharan，P.和Y.Zhu，“PCEP延伸”分部路由利用IPv6数据平面“
+，草稿 -  IETF-PCE-段路由-
+IPv6-09（正在进行的工作），5月2021年。
+
+  [id.ietf-pce-segment-tourting-policy-
+cp] KoldyChev，M.，Sivabalan，S.，Barth，C.，P
+eng，S.和H.
+Bidgoli，“PCEP延期支持分部路由政策候选路径“，草案 -  IETF-
+PCE-SEGENT-RONUTING-POLICY  -
+CP-04（正在进行的工作），3月2021年。
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 20]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  [id.ietf-spring-semment-trouding-
+policy] Filsfils，C.，Talaulikar，K.，Voyer，
+D.，Bogdanov，A.和P. Mattes，“段路由政策架构”，草稿 -
+IETF-Spring -  4月2021年4月， -  4月2021年 -
+4.Seyment-Routing-Policy-11（正在进行中）。
+
+  [id.koldychev-pce-multipath] KoldyChev
+，M.，Sivabalan，S.，Saad，T.，Beeram，VP，Bidgo
+li，H.，Yadav，B.和S.Peng，用于信令多径信息的PCEP扩展“，草
+案 -  Koldychev-PCE-
+MultiPath-05（正在进行的工作），2月2021年。
+
+  [id.qin-idr-sr-policy-ifit]
+qin，f.，元，h.，周，t。，fioccola，g。和王，“bgp
+sr政策扩展使得ifit”，草稿 - Qin-Idr- SR-Policy-
+Ifit-04（正在进行的工作），10月20日。
+
+  附录A.
+
+  作者的地址
+
+  hang yuan union pay 1899 GU-tang RD.,
+PU懂Shanghai China
+
+  Email : 远航@union pay.com
+
+  TI安然Zhou hu A为 156 be i青RD.,
+H矮点district Beijing China
+
+  Email : 周恬然@华为.com
+
+  Wei洞L IH UA为 156 be i青RD., H矮点district
+Beijing China
+
+  Email : poly.李@华为.com
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 21]
+
+Internet-Draft                  pcep-ifit                      July 2021
+
+  Giuseppe Fioccola华为Risstrasse，25慕尼黑德国
+
+  Email : Giuseppe.F IOC cola@华为.com
+
+  ya里Wang hu A为 156 be i青RD.,
+H矮点district Beijing China
+
+  Email : 王亚丽11@华为.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yuan, et al.            Expires January 10, 2022               [Page 22]
+
+

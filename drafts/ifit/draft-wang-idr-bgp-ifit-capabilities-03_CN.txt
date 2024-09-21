@@ -1,0 +1,483 @@
+
+
+
+
+  网络工作组Y.王立内特草案S. Zhuanginted地位：标准曲目Y.
+Guexpires：1月12日，2022年1月12日华为R.
+Pang中国联通7月11日，2021年7月11日
+
+  BGP扩展用于进一步的流程信息遥测（IFIT）功能jail-wang-
+idr-bgp-ifit-capabities-03
+
+  抽象的
+
+  本文档将扩展名为BGP定义，以宣传原位流信息遥测（IFIT）功能。在IFIT
+域中，从尾部节点到头节点的IFIT-能力广告有助于头节点确定特定IFIT选项类型
+是否可以封装在数据分组中。这种广告可用于减轻泄漏威胁并促进每次服务和按需进行IF
+IT测量的部署。
+
+  要求语言
+
+  关键词“必须”，“必须不是”，“必填”，“应该”，“不得”，“应该”，“应该
+”，“应该”，“推荐”，“可以”，“可以”和“可选”在本文件中是如RFC
+2119中所述解释[RFC2119]。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网汇票将于2022年1月12日到期。
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 1]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Definitions and Acronyms  . . . . . . . . . . . . . . . . . .   4
+   3.  IFIT Capabilities . . . . . . . . . . . . . . . . . . . . . .   4
+   4.  Option 1: Extension to BGP Extended Community for IFIT-
+       Capability Advertisement  . . . . . . . . . . . . . . . . . .   5
+     4.1.  IPv4-Address-Specific IFIT Tail Community . . . . . . . .   5
+     4.2.  IPv6-Address-Specific IFIT Tail Community . . . . . . . .   5
+   5.  Option 2: Extension to BGP Next-Hop Capability for IFIT-
+       Capability Advertisement  . . . . . . . . . . . . . . . . . .   6
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
+   7.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
+   8.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .   8
+   9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   8
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .   8
+     10.2.  Informative References . . . . . . . . . . . . . . . . .   9
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  10
+
+1.介绍
+
+  原位流信息遥测（IFIT）表示一系列流向的路径遥测技术，包括原位OAM（IO
+AM）[I-D.ietf-IPPM-IOAM-DATA]和备用标记[RFC832
+1]。它可以实时地提供关于整个转发路径的流量信息。
+
+  IFIT是根据[RFC8799]关注网络域的解决方案，介绍了特定域解决方案的
+概念。网络域包括单个管理中的一组网络设备或实体。如[RFC8799]中提到的，出
+于多种原因，例如政策，支持的选项，网络风格
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 2]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+  管理和安全要求，建议将应用程序包括新兴IFIT技术限制为受控域。
+
+  因此，必须在这种受控域中部署出现的路径流量遥测技术的家族。IFIT解决方案可
+以在不同的供应商设备中选择性地或部分地实现，作为应用意识网络操作的各种用例的新出
+现特征。此外，对于某些用例，IFIT在每次服务和按需基础上部署。
+
+  该图显示了用于VPN方案的IFIT的实现示例。
+
+                  +----+                          +----+
+      +----+      |    |          +----+          |    |      +----+
+      |CE1 |------|PE1 |==========|RR/P|==========|PE2 |------|CE2 |
+      +----+      |    |          +----+          |    |      +----+
+                  +----+                          +----+
+                   |<------------IFIT Domain--------->|
+                   |<---------------BGP-------------->|
+      |<----------------------------VPN--------------------------->|
+
+  如图所示，从客户边缘CE1发送到另一个CE2的流量流。为了使IFIT应用于此
+流程，IFIT标题必须封装在IFIT封装节点的入口节点PE1的分组中。然后，IF
+IT域中的传输节点必须能够支持IFIT功能，以检查IFIT命令并更新数据包中的I
+FIT数据字段。最后，必须将IFIT数据字段导出并在出口节点PE2中删除，该PE
+2被称为IFIT解封装节点，以AVOILD IFIT数据泄漏在受控域之外。因此，
+头节点需要知道IFIT解封装的节点是否能够支持IFIT功能。
+
+  本文档将边界网关协议（BGP）定义扩展，以在出口节点分发路由时向IFIT域中
+的IFIT域中的IFIT节点通告给支持的IFIT能力。然后，入口节点可以学习与在
+BGP对等体之间分布的路由信息相关联的IFIT节点能力，并确定特定IFIT选项类
+型是否可以封装在沿路径转发的业务分组中。这种广告对于避免从IFIT域泄露的IFI
+T数据，通过转向数据包到支持IFIT应用程序的路径中，从IFIT域中泄露了从IF
+IT域和测量性能度量。
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 3]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+2.定义和首字母缩略词
+
+  o IFIT : 原位流信息遥测
+
+  o OAM : 运营管理和维护
+
+  o NLRI : 网络层可到达信息，在[RFC4271]和[RFC4760]
+中定义的BGP更新中发布的NLRI。
+
+3. IFIT能力
+
+  本文档定义了由16位位图形成的IFIT功能。使用以下格式：
+
+                       0                   1
+                       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+                      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                      |P|I|D|E|M|    Reserved         |
+                      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图1. IFIT功能
+
+  o P-Flag : IOAM预先分配的跟踪选项类型标志。设置时，这表示路由
+器能够进行IOAM预先分配的迹线[i-d.ietf-ippm-ioam-
+data]。
+
+  o I-Flag : IOAM增量跟踪选项类型标志。设置时，这表示路由器能够
+具有IOAM增量跟踪[I-D.ITF-IPPM-IOAM-DATA]。
+
+  o D-Flag : IOAM
+DEX选项类型标志。设置时，这表示路由器能够提供IOAM DEX
+[I-D.IOAMTEAM-IPPM-IOAM-Direct-Export]。
+
+  o E-Flag : IOAM
+E2E选项类型标志。设置时，这表示路由器能够处理IOAM
+E2E处理[i-d.ietf-ippm-ioam-data]。
+
+  o M-Flag :
+替代标记标志。设置时，这表示路由器能够处理备用标记分组[RFC8321]。
+
+  o Reserved :
+保留未来使用。它们必须在传输时将其设置为零，并在收到后被忽略。
+
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 4]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+4. Option 1 : 扩展到IFIT-Capability
+Advertisement的BGP扩展社区
+
+4.1。IPv4-Address特定IFIT尾巴社区
+
+对于IPv4网络[RFC4360]，本节定义了一种名为IPv4-Address-
+Complient IFIT扩展社区的新型BGP扩展社区。IPv4-addres
+s特定的IFIT尾部社区可以由IFIT解封装节点使用，以将IFIT功能通知其PA
+RTERNER（作为IFIT封装节点）。它是一个具有0x01和子型TBA1的传递
+扩展社区。
+
+  该扩展社区的格式如图2所示。
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  Type (0x01)  |Sub-Type (TBA1)|   Originating IPv4 Address    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Originating IPv4 Address(cont.)|     IFIT Capabilities         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图2. IPv4-Address特定IFIT尾巴社区
+
+  o源自IPv4地址字段：4个八位字节字段。IFIT Depaped节点的IP
+v4地址。它是由其中一个Internet注册表分配的IPv4单播地址
+
+  o IFIT Capabilities :
+一个2个八位字段。如前一节所定义。
+
+4.2。IPv6地址特定的IFIT尾巴社区
+
+对于IPv6网络[RFC5701]，本节定义了一种名为IPv6-Address-
+Complient IFIT扩展社区的新型BGP扩展社区。IFIT Depape
+ulation节点可以使用IPv6-address特定的IFIT尾部社区，以将I
+FIT功能通知其PARTERNER（作为IFIT封装节点）。它是一个具有类型0x
+00和子类型TBA2的传递IPv6地址特定扩展社区。
+
+  该扩展社区的格式如图3所示。
+
+
+
+
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 5]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  Type (0x00)  |Sub-Type (TBA2)|   Originating IPv6 Address    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               Originating IPv6 Address (cont.)                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               Originating IPv6 Address (cont.)                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               Originating IPv6 Address (cont.)                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |Originating IPv6 Address(cont.)|     IFIT Capabilities         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图3. IPv6-address专用IFIT尾巴社区
+
+  o源IPv6地址字段：IFIT Depapsulation节点的IPv6地址
+。它是一个Internet注册表分配的IPv6单播地址。
+
+  o IFIT Capabilities : 如前一节所定义。
+
+在此选项中，扩展社区属性中的始发IP地址（包括IPv4和IPv6）用作IFIT
+DepapedOulation节点。
+
+5. Option 2 : IFIT-Capability
+Advertisement扩展到BGP的下一跳能力
+
+  BGP下一跳能力属性[id.ietf-idr-next-hop-capabi
+lity]是一个非传递的BGP属性，它在改变下一跳时修改或删除，以反映新的下一步
+的功能 - 跳。该属性由一组下一跳功能组成。
+
+  IFIT下跳功能是三重（能力代码，能力长度，能力值）AKA A TLV：
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |     Capability Code (TBA3)    |        Capability Length      |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |       IFIT Capabilities       | ORIG. IP Address(4/16 octets) |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  图4. BGP下一跳能力
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 6]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+  o Capability Code : 两个八位字节无符号二进制整数，它指示
+所宣传的“下一跳能力”的类型，并明确识别各个功能。本文档定义了新的下跳功能，该功
+能被称为IFIT下跳功能。能力代码是TBA3。
+
+  o Capability Length : 两个八位字节无符号二进制整数，其
+表示能力值字段的长度，八位字节中。长度为0表示没有存在能力值字段。
+
+  o IFIT Capabilities : 如前一节所定义。
+
+  o ORIG. IP Address : IFIT Depapsulatio
+n节点的IPv4或IPv6地址。它是由一个Internet注册表分配的IPv4或
+IPv6单播地址。
+
+  使用BGP的下一跳能力属性发送更新的BGP扬声器S可以包括IFIT下跳能力。
+包含在BGP更新中发布的NLRI的IFIT下一跳能力指示BGP下一跳可以充当IF
+IT解封节点，并且它可以处理每个能力值指示的特定IFIT封装格式。这适用于相同N
+RLI中指示的所有路由。
+
+6. IANA考虑因素
+
+  请求IANA为IPv4-address-
+特定IFIT尾部社区和IPv6-address专用IFIT尾部社区作业：
+
+   +-------+-------------------------------------------+---------------+
+   | Value | Description                               | Reference     |
+   +-------+-------------------------------------------+---------------+
+   | TBA1  | IPv4-Address-Specific IFIT Tail Community | This document |
+   | TBA2  | IPv6-Address-Specific IFIT Tail Community | This document |
+   +-------+-------------------------------------------+---------------+
+
+  请求IANA为IFIT进行下一跳能力进行分配：
+
+               +-------+-------------------+---------------+
+               | Value | Description       | Reference     |
+               +-------+-------------------+---------------+
+               | TBA3  | IFIT Capabilities | This document |
+               +-------+-------------------+---------------+
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 7]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+7.安全考虑因素
+
+  本文档将扩展名为BGP扩展社区和BGP的下一跳能力定义，以宣传IFIT功能。
+它不会向BGP引入任何新的安全风险。
+
+  确保在受控域中传播的IFIT数据和AVOILD恶意攻击，都分别为IOAM方法
+[ID.IETF-IPPM-IOAM-
+DATA和替代标记方法[ID.IETF-6MAN-IPv6-Alt-
+Mark]。讨论了两种方法的实现必须在受控域内。
+
+8.贡献者
+
+  以下人员对本文件作出了重大贡献：
+
+  Weidong Li Huawei Email :
+poly.李@华为.com
+
+  Haibo Wang Huawei Email : rains
+word.王@华为.com
+
+  Tianran Zhou Huawei Email : 周恬然@华为.com
+
+9.致谢
+
+  作者要感谢Giuseppe Fioccola的评论和建议
+
+10.参考文献
+
+10.1。规范参考文献
+
+  [ID.IETF-6MAN-IPv6-ALT-MARK] FIOCCOLA，
+G.，ZHOU，T.，Cociglio，M.，Qin，F.和R.
+Pang，“IPv6应用的替代标记方法”，草案 - IETF-6Man-
+IPv6-Alt-Mark-04（正在进行的工作），3月2021年。
+
+  [id.ietf-iDR-next-hop-capability] DeDr
+aene，B.，Kompella，K.和W.Henderickx，“BGP下一跳
+依赖能力”，草案-IETF-IDR-Next-Hop-
+Capbaly-06（正在进行中），10月20日。
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 8]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+  [ID.IETF-IPPM-IOAM-
+DATA，S.，F.，Bhandari，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，草稿 -  IETF-IPPM-
+IOAM-Data-12（工作中进展），2月2021年。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC4360] Sangli，S.，Tappan，D.和Y.Rekhte
+r，“BGP扩展社区属性”，RFC 4360，Doi 10.17487 /
+RFC4360，2006年2月，<https://www.rfc-
+editor.org/info/ rfc4360>。
+
+  [RFC5701]
+REKHTER，Y.，“IPv6地址特定BGP扩展社区属性”，RFC
+5701，DOI 10.17487 /
+RFC5701，2009年11月，<https://www.rfc-
+editor.org/info/rfc5701>。
+
+10.2。信息参考资料
+
+  [id.ioamteam-ippm-ioam-direct-export]歌
+，H.，Gafni，B.，Zhou，T.，Li，Z.，Brockners，F.，
+Bhandari，S.，Sivakolundu，R.和T。Mizrahi，“原位
+Oam直接出口”，2019年10月的草案-Ioamteam-IPPM-Ioam-
+Indut-出口 -  00（正在进行中）。
+
+  [RFC4271] REKHTER，Y.，ED。，LI，T.，ED。和S.
+HERES，ED。，“边界网关协议4（BGP-4）”，RFC 4271，DOI
+10.17487 /
+RFC4271，2006年1月，<https://www.rfc-
+editor.org/info/rfc4271>。
+
+  [RFC4760]贝茨，T.，Chandra，R.，Katz，D.和Y.Er
+ekhter，“BGP-4的多协议扩展”，RFC 4760，DOI
+10.17487 / RFC4760，1月，<HTTPS：// WWW。RFC-
+EDITETS.ORG/INFO/RFC4760>。
+
+  [rfc8321] Fioccola，G.，Ed。，Capello，A.，C
+ociglio，M.，Castaldelli，L.，Chen，M.，Zheng，
+L.，Mirsky，G.和T.
+Mizrahi，“替代标记用于被动和混合性能监测的方法“，RFC
+8321，DOI 10.17487 /
+RFC8321，2018年1月，<https://www.rfc-
+editor.org/info/rfc8321>。
+
+  [RFC8799]木匠，B.和B.刘，“有限域名和互联网协议”，RFC
+8799，DOI 10.17487 /
+RFC8799，7月20日，<https://www.rfc-
+editor.org/info/rfc8799>。
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022                [Page 9]
+
+Internet-Draft           BGP for IFIT Capability               July 2021
+
+  作者的地址
+
+  ya里Wang hu A为Beijing China
+
+  Email : 王亚丽11@华为.com
+
+  Shu N万Z黄H UA为Beijing China
+
+  Email : 庄顺丸@华为.com
+
+  Y U难GU hu A为Beijing China
+
+  Email : 故余男@华为.com
+
+  ran pang China u伱com Beijing China
+
+  Email : 庞然@China u伱com.才能
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wang, et al.            Expires January 12, 2022               [Page 10]
+
+

@@ -1,0 +1,565 @@
+
+
+
+
+  IPPM H. Songinternet-
+AffuelWeniptended状态：标准轨道B.
+Gafniexpires：2月9日，2022年NVIDIA T.周Z.李华平F.
+Brockners Cisco S.Bhandari，ED。Inslacepot
+R. Sivakolundu Cisco T.
+Mizrahi，Ed。华为8月8日，2021年8月8日
+
+  原位OAM直接导出草稿 -  IETF-IPPM-IOAM-Direct-
+Export-06
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）用于录制和收集运营和遥测信息。具体而言，IO
+AM允许遥测数据在遍历网络时被推入数据包中。本文档介绍了一个名为Direct E
+xport（DEX）选项的新IOAM选项类型，该选项用作可直接导出或本地聚合的I
+OAM数据的触发器，而不被推入飞行中数据包。导出方法和格式超出本文档的范围。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年2月9日到期。
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 1]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Requirement Language  . . . . . . . . . . . . . . . . . .   3
+     2.2.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  The Direct Exporting (DEX) IOAM Option Type . . . . . . . . .   3
+     3.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .   3
+       3.1.1.  DEX Packet Selection  . . . . . . . . . . . . . . . .   5
+       3.1.2.  Responding to the DEX Trigger . . . . . . . . . . . .   5
+     3.2.  The DEX Option Format . . . . . . . . . . . . . . . . . .   6
+   4.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
+     4.1.  IOAM Type . . . . . . . . . . . . . . . . . . . . . . . .   8
+     4.2.  IOAM DEX Flags  . . . . . . . . . . . . . . . . . . . . .   8
+     4.3.  IOAM DEX Extension-Flags  . . . . . . . . . . . . . . . .   8
+   5.  Performance Considerations  . . . . . . . . . . . . . . . . .   9
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .  10
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .  11
+   Appendix A.  Hop Limit in Direct Exporting  . . . . . . . . . . .  11
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
+
+1.介绍
+
+  IOAM [I-D.IETF-IPPM-IOAM-
+DATA]用于监控网络流量，并将IOAM数据字段合并到飞行中的数据包中。
+
+  IOam使用了四种可能的IOAM选项，在[i-d.ietf-ippm-
+ioam-data中定义]：预先分配的跟踪选项，增量跟踪选项，传输函数（pot）
+选项和边缘到边缘选项。
+
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 2]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  本文档定义了一个名为Direct Export（DEX）选项的新IOAM选项
+类型（也称为IOAM类型）。此选项用作IOAM节点的触发器到本地聚合和处理IOA
+M数据，和/或将其导出到接收实体（或实体）。在这种情况下，“接收实体”可以是例如
+IOAM节点之一中的外部收集器，分析器，控制器，解封口节点或软件模块。
+
+  请注意，即使IOAM选项类型称为“直接导出”，它取决于部署，无论是使用DEX
+选项类型的数据包都会导致另一个数据包的创建。有些部署可能只需使用DEX选项类型的
+数据包来触发OAM数据的本地处理。
+
+  此选项已从[i-d.ietf-ippm-ioam-
+flags的立即导出，从[i-d.ietf-ippm-ioam-
+flags]立即出口，从而逐渐结合了PBT-I的一些概念。
+
+2.惯例
+
+2.1。要求语言
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+2.2。术语
+
+  本文档中使用的缩写：
+
+  IOAM : 原位运营，管理和维护
+
+  OAM : 运营，管理和维护
+
+  DEX : 直接出口
+
+3.直接导出（DEX）IOAM选项类型
+
+3.1。概述
+
+  DEX选项用作用于在本地收集IOAM数据的触发器，或者将其导出到接收实体（或
+实体）。具体地，DEX选项可以用作通过IOAM节点收集IOAM数据的触发器，以及
+本地聚合它;因此，可以将该聚合数据周期性地被推到接收实体，或者由接收实体按需拉动
+。
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 3]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  此选项由IOAM封装节点并入数据包中，并由IOAM拆卸节点删除，如图1所示。
+可以通过传输节点读取但不能修改选项。注意：封装，解除封装和传输节点的术语如[I-
+D.ITF-IPPM-IOAM-Data]所定义。
+
+
+                                      ^
+                                      |Exported IOAM data
+                                      |
+                                      |
+                                      |
+                +--------------+------+-------+--------------+
+                |              |              |              |
+                |              |              |              |
+  User      +---+----+     +---+----+     +---+----+     +---+----+
+  packets   |Encapsu-|     | Transit|     | Transit|     |Decapsu-|
+  --------->|lating  |====>| Node   |====>| Node   |====>|lating  |---->
+            |Node    |     | A      |     | B      |     |Node    |
+            +--------+     +--------+     +--------+     +--------+
+            Insert DEX       Export         Export       Remove DEX
+            option and      IOAM data      IOAM data     option and
+            export data                                  export data
+
+  Figure 1 : DEX建筑
+
+  DEX选项用作收集和/或导出IOAM数据的触发器。触发器适用于传输节点，解封
+装节点和封装节点：
+
+  o配置为包含DEX选项的IOAM封装节点封装（可能是使用DEX选项转发的数据
+包的子集，并且可以立即导出和/或收集所请求的IOAM数据。只允许只有IOAM封装
+节点将DEX选项类型添加到数据包中。
+
+o处理具有DEX选项的数据包的传输节点可以导出和/或收集所请求的IOAM数据。
+
+  o处理具有DEX选项的数据包的IOAM解盖节点可以导出和/或收集所请求的IO
+AM数据，并且必须解封装IOAM标题。
+
+  与[I-D.ietf-IPPM-IOAM-DATA]一样，DEX选项可以被包
+含在封装节点的所有流量或流量的所有或子集中，如下面第3.1.1节中进一步讨论的。
+此外，IOAM节点通过导出和/或通过导出和/或响应DEX触发
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 4]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  收集IOAM数据，用于所有遍历DEX选项的所有遍历数据包，或者仅针对这些数据
+包的子集选择性，如下面第3.1.2节中进一步讨论的。
+
+3.1.1。DEX数据包选择
+
+  如果IOAM封装节点将DEX选项包含在所有流量中，它可能会导致过多的导出数据
+，这可能会过度网络和接收实体。因此，支持DEX选项的IOAM封装节点必须支持将D
+EX选项选择性结合到由其转发的数据包子集中。
+
+  先前已经定义了各种数据包选择和采样方法，例如[RFC7014]和[RFC54
+75]。可以通过IOAM封装节点应用类似的技术，以将DEX应用于转发流量的子集。
+
+使用DEX选项转发或传输的流量子集不应超过任何IOAM封装节点接口的接口容量的1
+/ n。注意，此要求适用于包含DEX选项的总流量，包括由IOAM封装节点生成的I
+OAM封装节点和探测包转发的流量。在此上下文中，n是网络运营商可以配置的参数。如
+果有一个上限，则在网络中的任何路径中的IOam传输节点的数量上，然后建议使用n，
+使得n >> m。基本原理是包括DEX选项的数据包沿着路径触发来自每个IOAM
+Transit节点的导出数据包，总共导出数据包。因此，如果n >> m，则导出的
+数据包的数量显着低于IOam封装节点转发的数据分组的数量。如果没有关于网络拓扑或
+大小的先验知识，建议使用n> 100。
+
+3.1.2。响应DEX触发器
+
+  DEX选项指定应导出和/或收集的数据字段，如第3.2节所述。如上所述，可以在
+本地收集数据，并且可选地可以聚合并导出到接收实体，主动或按需。如果导出IOAM数
+据，则包含导出数据的数据包的格式和封装不在当前文档的范围内。例如，导出格式可以基
+于[I-D.Spiegel-IPPM-IOAM-RAWEXPORT]。
+
+  执行DEX触发导出的IOAM节点必须支持限制导出数据包的速率的能力。以...
+的速率
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 5]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  导出的数据包应受到限制，因此导出数据包的数量显着低于设备转发的数据包数。导出
+的数据速率不应超过任何IOAM节点接口的接口容量的1 / n。建议使用n> 10
+0。根据IOAM节点的架构考虑，导出速率可能限于较低的数量，以避免加载IOAM节
+点。
+
+  不应在PATH或隧道上导出导出的数据包，该路径或隧道受IOAM直接导出。此外
+，IOAM封装的节点可以识别作为IOam导出的数据包的数据包不得将DEX选项推入
+这样的数据包中。此要求旨在防止嵌套导出和/或导出循环。
+
+  不支持DEX选项的Transit Ioam节点应该忽略它。不支持DEX选项的
+解封装节点必须删除它，以及如果存在数据包中携带的任何其他IOAM选项。
+
+3.2。DEX选项格式
+
+  DEX选项的格式如图2所示.DEX选项的长度是至少8个八位字节。DEX选项可
+以包括一个或多个可选字段。可选字段的存在由扩展标志字段中的相应标志表示。在本文档
+中定义了两个可选字段，流ID和序列号字段。每个可选字段必须完全是4个八位字节。因
+此，扩展标志字段明确表示DEX选项的长度。定义新的可选字段需要在第4.2节中指定
+的扩展标志字段中分配相应的标志。
+
+
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |        Namespace-ID           |     Flags     |Extension-Flags|
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               IOAM-Trace-Type                 |   Reserved    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                         Flow ID (optional)                    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                     Sequence Number  (Optional)               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 2 : dex选项格式
+
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 6]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  命名空间ID IOAM命名空间的16位标识符，如[I-D.ietf-
+IPPM-IOAM-Data]中所定义。
+
+标志为8位字段，由8个单位子字段组成。标志由IANA分配，如第4.2节所定义。
+
+  扩展标志一个8位字段，由8个单位子字段组成。Extension-Flags由
+IANA分配，如第4.3节所定义。设置为1的扩展标志字段中的每一位都表示存在相应
+的可选4八位字节字段。使用未知标志的DEX选项接收到1的IOAM节点必须忽略相应
+的可选字段。
+
+  IOam-Trace键入24位标识符，该标识符指定应导出哪些数据字段。此字段
+的格式如[i-d.ietf-ippm-ioam-data]中所定义。具体地，对应
+于校验和补码数据字段的比特应被IOAM封装节点分配为零，并通过传输和解封装的节点
+忽略。原因是校验和补充旨在用于飞行中的数据包修改，并且与直接出口不相关。
+
+  保留此字段应由接收器忽略。
+
+  可选字段可选字段（如果存在）驻留在保留字段之后。可选字段的顺序根据扩展标志字
+段中启用的相应位。每个可选字段长为4个八位字节。
+
+  流ID表示流量标识符的可选32位字段。如果实际的流ID短于32位，则其最高有
+效位为零。该字段设置在封装节点处。流ID可以由中央控制器统一分配或由封装节点算法
+生成。后一种方法无法保证流ID的唯一性，但由于大流量ID空间，冲突概率很小。流I
+D可用于将导出的数据与多个节点和多个分组相关联。
+
+
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 7]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  序列号从0个在封装节点处的相同流程中开始为0开始0的可选32位序列号，并且每
+个受监视的分组增加1。当与流ID组合时，序列号提供了一种方便的方法来将导出的数据
+与同一用户数据包相关联。
+
+4. IANA考虑因素
+
+4.1。IOam类型
+
+  “IOAM类型注册表”在[I-D.ITEF-IPPM-IOAM-DATA]的
+第7.2节中定义。请求IANA从“IOAM类型注册表”分配以下代码点，如下所示：
+
+  TBD型IOAM直接导出（DEX）选项类型
+
+  如果可能，请求IANA分配代码点4（TBD型）。
+
+4.2。Ioam Dex标志
+
+  请求IANA定义“IOAM DEX标志”注册表。此注册表包含8个标志位。分配
+基于[RFC8126]中所定义的“RFC所需”程序。
+
+  新的注册请求必须使用以下模板：
+
+  Bit : 要在DEX选项的8位标志字段中分配所需的位。
+
+  Description : 新挂号位的简要说明。
+
+  Reference : 引用定义新位的文档。
+
+4.3。IOAM DEX延伸标志
+
+  请求IANA定义“IOAM DEX Extension-Flags”注册表。
+此注册表包含8个标志位。注册表中的位0（最高有效位）和位1由此文档分配，并在第3
+.2节中描述。应基于[RFC8126]中所定义的“RFC所需”程序来执行其他位的
+分配。
+
+  位0“流ID [RFC XXXX]
+[RFC编辑器：请替换使用当前文档的RFC编号]”
+
+  位1“序列号[RFC XXXX]
+[RFC编辑器：请替换使用当前文档的RFC编号]”
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 8]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  新的注册请求必须使用以下模板：
+
+  Bit : 在DEX选项的8位扩展标志字段中分配所需的位。
+
+  Description : 新挂号位的简要说明。
+
+  Reference : 引用定义新位的文档。
+
+5.绩效考虑因素
+
+  DEX选项触发了要收集的IOAM数据和/或导出要导出到接收实体（或实体）的数
+据包。在某些情况下，这可能会影响接收实体的性能，或导致它的路径的性能。
+
+  因此，通过采取两种措施：在封装节点上，通过限制出口速率（第3.1.2节），在
+封装节点上进行两项措施：在封装节点上进行有限的措施：在封装节点上受到限制这两项措
+施确保以不显着影响网络带宽的速率使用直接导出，并且不会过载接收实体。此外，尽管导
+出方法不在本文档的范围内，但可以加载平衡输出的数据之间的输出数据。
+
+6.安全考虑因素
+
+  IOam的安全注意事项通常在[I-D.ITEF-IPPM-IOAM-
+DATA中]讨论。具体地，攻击者可以尝试使用本文档中定义的功能来攻击网络。
+
+  攻击者可以通过注入包括DEX选项的合成数据包来尝试过载网络设备。类似地，在路
+径上攻击者可能会恶意地将DEX选项纳入过境数据包，或者恶意将其从其结合的分组中删
+除。
+
+  迫使DEX，在合成数据包中或传输数据包中可能会过载接收实体（或实体）。由于该
+机制沿网络路径影响多个设备，因此它可能放大对网络带宽和接收实体负载的影响。
+
+  DEX的放大效果可能在宽区域网络中更差，其中有多个IOAM域。例如，如果DE
+X用于IOAM域1，则用于将IOAM数据导出到接收实体，然后
+
+
+
+Song, et al.            Expires February 9, 2022                [Page 9]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  域1的导出数据包可以通过IOAM域2转发，其中它们受到DEX。域2的导出数据
+包可能又通过另一个IOAM域（或通过域1）转发，并且理论上该递归放大器可以无限地
+持续。
+
+  为了缓解上述攻击，已定义以下要求（第3节）：
+
+  O选择性DEX（第3.1.1节）由IOAM密封节点应用，以限制DEX攻击对交
+通的一小部分的潜在影响。
+
+  o IOAM节点应用出口流量的速率限制（第3.1.2节），以防止过载攻击，并
+显着限制放大攻击的规模。
+
+  o IOAM封装节点需要避免将DEX选项推入IOAM导出的数据包（第3.1.
+2节），从而防止了一些放大和导出循环方案。
+
+  虽然导出方法不在本文档的范围内，但任何导出方法都必须将导出的数据从IOAM节
+点固定到接收实体。具体地，执行DEX导出的IOAM节点必须将导出的数据发送到预先
+配置的受信任接收实体。
+
+  假设IOam将部署在受限制的行政域中，从而限制了上述威胁的范围及其影响。这是
+关于IOAM的安全方面的基本假设，如[I-D.ietf-IPPM-IOAM-
+Data]中进一步讨论的。
+
+7.参考文献
+
+7.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+
+
+
+
+
+Song, et al.            Expires February 9, 2022               [Page 10]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  [RFC5475] Zseby，T.，Molina，M.，Duffield，
+N.，Niccolini，S。和F.
+Raspall，“IP包选择的采样和过滤技术”，RFC 5475，DOI
+10.17487 /
+RFC5475，2009年3月，<https://www.rfc-
+editor.org/info/rfc5475>。
+
+  [RFC7014] D'Antonio，S.，Zseby，T.，Henke，
+C.和L.Peluso，“流量选择技术”，RFC 7014，DOI
+10.17487 /
+RFC7014，2013年9月，<https：//www.rfc-
+Editor.org/info/rfc7014>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+7.2。信息参考资料
+
+  [id.ietf-ippm-ioam-flags] Mizrahi，T.，女
+郎，斯ivakolundu，R.，Pignataro，C.，Kfir，A.，Ga
+fni，B.，Spiegel，M。和J. Lemon，“In-Bialu
+Oam标志”，Jurid-Ietf-IPPM-Ioam-
+Flags-05（正在进行的工作），7月2021年。
+
+  [ID.Song-IPPM-POSTCARD-PERTEMETTRY]歌曲，
+H.，MIRSKY，G.，Filsfils，C.，Abdelsalam，A.，Z
+hou，T.，Li，Z.，Shin，J.和K。Lee，“基于明信片的路径流量数据
+遥测使用数据包标记”，草稿歌曲 -  IPPM-Postcard of
+Telemetry-10（正在进行的工作），7月2021年。
+
+  [id.spiegel-ippm-ioam-grawexport]
+Spiegel，M.，Brockners，F.，Bhandari，S.和R. S
+ivakolundu，“与IPFIX的原位OAM原始数据导出”，Spiegel-
+IPPM-Ioam-Rawexport-05（正在进行的工作），7月2021。
+
+  [RFC8126]棉，M.，Leiba，B.和T.Narten，“用于在RF
+CS中编写IANA考虑因素”部分的准则“，BCP 26，RFC 8126，DOI
+10.17487 / RFC8126，2017年6月<https：//
+www.rfc-editor.org / info / rfc8126>。
+
+  附录A.直接出口的跳跃限制
+
+  为了帮助关联和顺序导出的数据包，可以在导出的数据包中包含Hop_lim /
+node_id数据字段;如果IOAM-Trace-Type [ID.IETF-
+IPPM-IOAM-DATA]具有HOP_LIM /
+NODE_ID位设置，则导出的数据包包括HOP_LIM /
+NODE_ID数据字段，其包含来自较低层协议的TTL / HOP限制值。
+
+
+
+
+Song, et al.            Expires February 9, 2022               [Page 11]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  在该文件的设计期间考虑了一种替代方法，根据该文件，根据该文件将包括在DEX报
+头中的1  - 八位峰跳数字段（推测通过旗帜字段中的一些空间）包括在内。跳跃限制
+将从封装节点的0开始0开始，并由支持DEX选项的每个IOAM传输节点递增。在此方
+法中，跳数计算字段值也将包含在导出的数据包中。
+
+  作者的地址
+
+  ha O喻song future为 2330 central
+expressway Santa Clara 95050 USA
+
+  Email : 好于.送@future为.com
+
+  Barak Gafni Nvidia 350 Oakmead
+Parkway，套房100 Sunnyvale，CA 94085 U.S.a.
+
+  Email : 个bar AK@NVIDIA.com
+
+  TI安然Zhou hu A为 156 be i青RD. Beijing
+100095 China
+
+  Email : 周恬然@华为.com
+
+  Z很bin l IH UA为 156 be i青RD. Beijing
+100095 China
+
+  Email : 李振彬@华为.com
+
+
+
+
+
+
+
+Song, et al.            Expires February 9, 2022               [Page 12]
+
+Internet-Draft            IOAM Direct Exporting              August 2021
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Ramesh Sivakolundu Cisco Systems，Inc
+.170 West Tasman博士San Jose博士，CA 95134
+U.S.A.
+
+  Email : SRAM E神@Cisco.com
+
+  Talmy Misrahi（编辑）华为8-2 Matam Hafa
+3190501以色列
+
+  Email : 他俩.密宗RA Hi.平衡点@Gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song, et al.            Expires February 9, 2022               [Page 13]
+
+

@@ -1,0 +1,426 @@
+
+
+
+
+  SFC F. Brockners，Ed.Internet-Srime
+Ciscoineded状态：标准曲目S. Bhandari，Ed.Expires
+：2月1日，2022年6月31日，2021年7月31日
+
+  网络服务标题（NSH）封装在原位OAM（IOAM）数据草案-IETF-
+SFC-IOAM-NSH-06
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。本文档概述了IOAM数据字段如何封装在网络服
+务标题（NSH）中。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年2月1日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如第4.E节所述
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 1]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  信托法律规定，并在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   3.  IOAM data fields encapsulation in NSH . . . . . . . . . . . .   3
+   4.  Considerations  . . . . . . . . . . . . . . . . . . . . . . .   4
+     4.1.  Discussion of the encapsulation approach  . . . . . . . .   4
+     4.2.  IOAM and the use of the NSH O-bit . . . . . . . . . . . .   6
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   6
+   8.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .   6
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+
+1.介绍
+
+  原位OAM（IOAM）如[I-D.ITF-IPPM-IOAM-DATA]所定
+义，在数据包遍历特定网络域时记录数据包中的OAM信息。术语“原位”是指OAM数据
+被添加到数据分组而不是在专门专用于OAM的数据包内发送。本文档定义了如何作为网络
+服务标题（NSH）[RFC8300]的一部分传输IOAM数据字段的方式（NSH）
+[RFC8300]链接（SFC）[RFC7665]。IOAM-Data-
+Fields在[i-d.ietf-ippm-ioam-data中]定义。从FD.
+IO开源软件项目[FD.IO]提供了利用NSH携带IOAM数据的IOAM的实现。
+
+2.惯例
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+  本文档中使用的缩写：
+
+  IOAM : 原位运营，管理和维护
+
+  NSH : 网络服务标题
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 2]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  OAM : 运营，管理和维护
+
+  SFC : 服务功能链接
+
+  TLV : 类型，长度，值
+
+3. NSH中的IOAM数据字段封装
+
+  NSH在[RFC8300]中定义。使用NSH
+MD上下文标头遵循NSH的NSH携带IOAM-Data-
+entions。添加IOAM标题包含不同的IOAM数据字段。IOAM-Data-
+Fields必须遵循[I-D.ITF-IPPM-IOAM-Data中的定义]。如
+果“验证传输”与NSH结合使用，则运输证明的实施必须遵循[I-D.IETF-
+SFC  - 过境证明]。在使用IOAM的管理域中，在NSH隧道端点处启用了NS
+H中的IOAM标题的插入，该NSH隧道端点也通过配置作为IOAM封装/解封装的节
+点。
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |Ver|O|U|    TTL    |   Length  |U|U|U|U|MD Type| NP = TBD_IOAM |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  N
+   |          Service Path Identifier              | Service Index |  S
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  H
+   |                            ...                                |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |  IOAM-Type    | IOAM HDR len  |    Reserved   | Next Protocol |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  I
+   !                                                               |  O
+   !                                                               |  A
+   ~                 IOAM Option and Data Space                    ~  M
+   |                                                               |  |
+   |                                                               |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |                                                               |
+   |                                                               |
+   |                 Payload + Padding (L2/L3/ESP/...)             |
+   |                                                               |
+   |                                                               |
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  NSH标题和字段在[RFC8300]中定义。上图中的“NSH下一个协议”值（
+称为“NP”）是TBD_IOAM。
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 3]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  NSH中的IOAM相关字段定义如下：
+
+
+
+  IOAM-Type : 8位字段定义IOam-Option-
+Type，如IOam选项类型注册表所定义（请参阅[I-D.ietf-IPPM-
+IOAM-DATA]的第7.2节）。
+
+  IOAM HDR Len :
+8位长度字段包含4个八位字节单元中的IOAM头的长度。
+
+  Reserved bits :
+保留位为未来使用。在传输时必须将保留位设置为0x0，并在收到后忽略。
+
+  Next Protocol : 8位无符号整数，用于确定IOAM之后的标题类
+型。此字段的语义与[RFC8300]中的下一个协议字段相同。
+
+  IOAM Option and Data Space : 存在IOAM-
+Type字段指定的IOAM-Option-Type和Ioam-Data-
+exce（参见[I-D.ietf-IPPM-IOAM-DATA]的第4节）。
+
+  可以在NSH封装中包含多种IOAM-Option-
+inse。例如，如果NSH封装在数据有效负载之前包含两个IOAM-Option-
+Type，则第一个IOam选项的下一个协议字段将包含TBD_IOAM的值，而第二
+个IOAM-Option-
+Type的下一个协议字段将包含指示数据有效载荷类型的“NSH下一个协议”编号。
+
+4.考虑
+
+  本节总结了一组关于在NSH中为IOAM数据封装的整体方法的考虑，以及部署考虑
+因素。
+
+4.1。讨论封装方法
+
+  本节讨论了用于封装NSH中的IOAM数据字段的几种方法，并介绍了本文档中选择
+的方法的基本原理。
+
+  NSH中的IOAM数据字段的封装应该友好地与硬件以及软件转发器中的实现，并支
+持各种部署案例，包括希望同时利用多个IOAM-Data-Fields的大型网络。
+
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 4]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  硬件和软件友好实现：硬件转发器从封装中受益，可最大限度地降低数据包内的字段的
+迭代查找：根据需要进行另一个查找，从而消耗额外的闸门，从而最小化数据包内的字段值
+的任何操作，消耗额外的栅极在实现中的时间 -
+两者都希望保持到最小。这意味着扁平TLV结构是优选的嵌套TLV结构。IOam-
+Data-Fields被分组为几个类别，包括跟踪，传输验证和边缘到边。每个选项都
+定义了TLV结构。硬件友好的封装方法避免将这三个选项类别分组为另一个TLV结构，
+但宁可将选项作为串行序列。
+
+  IOam-Data-Fields的总长度：在使用多个不同的IOAM数据字段的
+情况下，IOAM数据字段的总长度可能会变得非常大，并且需要考虑大的路径长度。例如
+，如果操作符将考虑使用IOAM跟踪选项类型和捕获节点ID，APP_DATA，出口
+/入口接口ID，时间戳秒，每跳时的时间戳纳秒，那么将添加20个八位字节将添加到数
+据包中在每一堆。如果该特定部署在IOAM域中的最大路径长度为15次跳频，则在分组
+中将最多300个八位字节封装。
+
+  可以考虑封装NSH中的IOAM数据字段的不同方法：
+
+1.封装IOAM-DATA-FIETIONS作为“NSH
+MD类型2”（参见[RFC8300]，第2.5节）。每个IOam-Option-
+type（例如跟踪，传输验证和边缘到边缘）将由类型指定，其中不同的IOAM-
+Data-entions是TLV在此特定选项类型中。NSH
+MD类型2为可变长度元数据提供支持。长度字段为6位，导致最大256（2 ^
+6×4）八位字节。
+
+2.使用“下一协议”字段封装IOAM-Data-younds。每个IOam-
+Option-
+type（例如跟踪，传输和边缘到边缘）将由其自己的“下一个协议”指定。
+
+3.使用“下一个协议”字段封装IOAM-Data-younds。将为IOAM分配
+单个NSH协议类型代码点。然后，“子类型”字段将指定携带IOam选项类型（跟踪，
+传输验证，边缘）。
+
+  此处已选择第三种选项。此选项避免了使用NSH MD Type
+2的使用的附加TLV嵌套层。此外，此选项不会限制IOAM数据
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 5]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  最多256个八位字节，从而允许支持非常大的部署。
+
+4.2。ioam和使用nsh o-bit
+
+  [RFC8300]定义OAM数据包的“O位”。每个[RFC8300]必须为O
+AM数据包设置O位，并且不得为非OAM数据包设置。包含的数据包包含IOAM数据必
+须遵循此定义，即不得设置常规客户流量的O位，该常规客户流量也承载IOam数据，并
+且必须为OAM数据包设置OAM数据包，该数据包仅在没有任何常规数据有效载荷的情况
+下携带IAM数据包。
+
+5. IANA考虑因素
+
+  请求IANA为与IOAM相关的以下“NSH下一个协议”分配协议编号：
+
+                 +---------------+-------------+---------------+
+                 | Next Protocol | Description | Reference     |
+                 +---------------+-------------+---------------+
+                 | x             | TBD_IOAM    | This document |
+                 +---------------+-------------+---------------+
+
+6.安全考虑因素
+
+  IOAM被视为“每个域”功能，其中一个或多个运算符根据其需求决定利用和配置I
+OAM。仍然，运营商需要正确保护IOAM域以避免恶意配置和使用，这可能包括将恶意
+IOAM数据包注入域。有关其他IOAM相关的安全注意事项，请参阅[I-D.IET
+F-IPPM-IOAM-
+DATA中的第8节]。有关传输相关安全注意事项的证明，请参阅[I-D.IETF-
+SFC-SPIDIT-TRANIT]中的第7节。
+
+7.致谢
+
+  TH TH N N N N NCKE，纳尔尼伊利金斯，Srihari
+Raghavan，Ranganathan T S，Karthik Babu
+Harichhandra Babu，Akshaya
+Nadahalli，Stefano Previdi，Hemant
+Singh，Erik Nordmark，LJ Wob，以及Andrew
+Yourchenko的意见和建议。
+
+8.贡献者
+
+  除了标题页上列出的编辑，以下人员还为此文件做出了贡献：
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 6]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  Vengada Prasad Govindan Cisco
+Systems，Inc。电子邮件：Venggovi@cisco.com
+
+  Carlos Pignataro Cisco
+Systems，Inc。7200-11 Kit Creek Road
+Research Triangle Park，NC
+27709美国电子邮件：cpignata@cisco.com
+
+  Hannes Gredler Rtbrick
+Inc.电子邮件：hannes@rtbrick.com
+
+  John Leddy Email : John@LED单元.net
+
+  Stephen Youell JP Morgan Chase 25 Bank
+Street伦敦E14
+5JP英国电子邮件：Stephen.Youell@jpmorgan.com
+
+  ta老MI在RA Hi hu A为network.IO innovation
+lab Israel email: 他俩.密宗RA
+Hi.平衡点@Gmail.com
+
+  David Mozes Email : 墨色舒斯特尔@Gmail.com
+
+  Petr Lapukhov Facebook 1黑客方式Menlo
+Park，CA 94025美国电子邮件：Petr@fb.com
+
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 7]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  Remy Chang Salefoot网络2185 Park
+Boulevard Palo Alto，CA 94306美国
+
+9.参考资料
+
+9.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA，S.和T.
+Mizrahi，“易于oam的数据字段”，草稿 -  IETF-IPPM-
+IOAM-DATA-14（工作in进度），6月2021。
+
+  [ID.IETF-SFC证明 - 过境验证]促进诺斯人，F.，Bhandar
+i，S.，Mizrahi，T.，Dara，S.和S.和S.
+Youell，“横贯证明”，草案 -  IETF-SFC-验证 - 过境 -
+08（正在进行的工作），11月20日。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+  [RFC8300] Quinn，P.，Ed。，Elzur，U.，Ed。和C.
+Pignataro，ED。“网络服务标题（NSH）”，RFC 8300，Doi
+10.17487 /
+RFC8300，2018年1月，<HTTPS：//www.rfc-
+editor.org/info/rfc8300>。
+
+9.2。信息参考资料
+
+  [FD.io] "Fast Data Project : FD.IO",
+<HTTPS://反对.IO/>.
+
+  [RFC7665] Halpern，J.，Ed。和C.
+Pignataro，ED。，“服务函数链式（SFC）架构”，RFC
+7665，DOI 10.17487 /
+RFC7665，2015年10月，<https://www.rfc-
+editor.org/info/rfc7665>。
+
+
+
+
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 8]
+
+Internet-Draft      NSH encapsulation for In-situ OAM          July 2021
+
+  作者的地址
+
+  Frank Brockners（编辑）Cisco
+Systems，Inc。Hansaallee
+249,329,3楼Duesseldorf，Nordrhein-
+Westfalen 40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Brockners & Bhandari    Expires February 1, 2022                [Page 9]
+
+

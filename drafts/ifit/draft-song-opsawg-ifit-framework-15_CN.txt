@@ -1,0 +1,1288 @@
+
+
+
+
+  Opsawg H. Songinternet-
+AffuelWeniptented状态：信息F.
+Qinexpires：4月1日2022年中国移动H.陈华国电信J.Jin Lg
+U J. Shin Sk Telecom 28日9月28日
+
+  In-situ流信息遥测歌曲-op-opsawg-ifit-
+framework-15
+
+  抽象的
+
+  随着网络规模的增加和网络操作变得更复杂，传统的操作，管理和维护（OAM）方法
+，包括主动和无电动技术，在主动和无源模式下运行，不再足以满足监控和测量要求。提供
+高精度流动洞察力和实时发行通知的路径遥测技术正在出现支持适用于用户和应用的适合体
+验，以及在它们变得至关重要之前的故障或网络缺陷鉴定。
+
+  本文档符合新的数据平面上路径遥测技术，概述了高级框架，以提供利用这些技术来实
+现来自网络的性能测量信息的收集和相关性的操作环境。该框架识别协调现有协议工具和遥
+测机制所需的组件，并解决了用于导向的路径遥测技术的关键部署挑战，尤其是在运营商网
+络中。
+
+  该框架是信息性的，并旨在引导系统设计师试图应用参考技术，并激励进一步的工作以
+增强生态系统。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 1]
+
+Internet-Draft                    IFIT                    September 2021
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网汇票将于4月1日至4月1日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文档受到BCP 78和IETF Trust的法律规定，与IETF文件（ht
+tps://trustee.ietf.org/许可证 - 信息）有关本文件的出版
+日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档中提取的代
+码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中所述，并且
+在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.1.  Classification and Modes of On-path Telemetry . . . . . .   4
+     1.2.  Requirements and Challenges . . . . . . . . . . . . . . .   6
+     1.3.  Scope . . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     1.4.  Glossary  . . . . . . . . . . . . . . . . . . . . . . . .   8
+     1.5.  Requirements Language . . . . . . . . . . . . . . . . . .   9
+   2.  IFIT Overview . . . . . . . . . . . . . . . . . . . . . . . .   9
+     2.1.  Typical Deployment of IFIT  . . . . . . . . . . . . . . .  10
+     2.2.  IFIT Architecture . . . . . . . . . . . . . . . . . . . .  11
+     2.3.  Relationship with Network Telemetry Framework (NTF) . . .  12
+   3.  Key Components of IFIT  . . . . . . . . . . . . . . . . . . .  13
+     3.1.  Flexible Flow, Packet, and Data Selection . . . . . . . .  13
+       3.1.1.  Block Diagram . . . . . . . . . . . . . . . . . . . .  14
+       3.1.2.  Example: Sketch-guided Elephant Flow Selection  . . .  14
+       3.1.3.  Example: Adaptive Packet Sampling . . . . . . . . . .  14
+     3.2.  Flexible Data Export  . . . . . . . . . . . . . . . . . .  15
+       3.2.1.  Block Diagram . . . . . . . . . . . . . . . . . . . .  15
+       3.2.2.  Example: Event-based Anomaly Monitor  . . . . . . . .  16
+     3.3.  Dynamic Network Probe . . . . . . . . . . . . . . . . . .  17
+       3.3.1.  Block Diagram . . . . . . . . . . . . . . . . . . . .  17
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 2]
+
+Internet-Draft                    IFIT                    September 2021
+
+
+       3.3.2.  Examples  . . . . . . . . . . . . . . . . . . . . . .  18
+     3.4.  On-demand Technique Selection and Integration . . . . . .  18
+       3.4.1.  Block Diagram . . . . . . . . . . . . . . . . . . . .  19
+   4.  IFIT for Reflective Telemetry . . . . . . . . . . . . . . . .  19
+     4.1.  Example: Intelligent Multipoint Performance Monitoring  .  20
+     4.2.  Example: Intent-based Network Monitoring  . . . . . . . .  21
+   5.  Standard Status and Gaps  . . . . . . . . . . . . . . . . . .  22
+     5.1.  Encapsulation in Transport Protocols  . . . . . . . . . .  22
+     5.2.  Tunneling Support . . . . . . . . . . . . . . . . . . . .  22
+     5.3.  Deployment Automation . . . . . . . . . . . . . . . . . .  23
+   6.  Summary . . . . . . . . . . . . . . . . . . . . . . . . . . .  23
+   7.  Security Considerations . . . . . . . . . . . . . . . . . . .  24
+   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  24
+   9.  Contributors  . . . . . . . . . . . . . . . . . . . . . . . .  24
+   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  24
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  24
+     11.1.  Normative References . . . . . . . . . . . . . . . . . .  24
+     11.2.  Informative References . . . . . . . . . . . . . . . . .  25
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  28
+
+1.介绍
+
+  高效的网络运行越来越依赖于高质量数据平面遥测，以提供必要的可见性。传统的操作
+，管理和维护（OAM）方法包括积极的和无功模式，运行有源和无源模式，不再足以满足
+当网络变得越来越自主和应用程序感知的监视和测量要求。今天的网络和服务质量要求的复
+杂性需求新的高精度和实时技术。
+
+  加快网络故障检测，故障定位和恢复机制的能力，特别是在软故障或路径劣化的情况下
+，不会导致服务中断。应用程序意识需要网络的容量来维护有关用户和应用程序连接的当前
+信息，该信息可用于优化网络资源使用，提供差分服务，提高服务质量。
+
+  新兴的路径遥测技术可以提供高精度的流动洞察力和实时网络问题通知（例如，抖动，
+延迟，数据包丢失，显着的比特误差变化和不等负载平衡）。路径遥测是指通过将指令或元
+数据嵌入用户数据包来直接点击和测量网络流量的数据平面遥测技术。由路径遥测提供的数
+据对于SLA合规性，用户体验增强，服务路径强制尤其有用，
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 3]
+
+Internet-Draft                    IFIT                    September 2021
+
+  故障诊断和网络资源优化。必须认识到，本主题的现有工作包括各种开放的遥测技术，
+包括原位OAM（IOAM）[ID.IETF-IPPM-IOAM-
+DATA]，IOAM直接导出（DEX）[ID。 IETF-IPPM-IOAM-
+直接出口]，基于标记的基于明信片的遥测（PBT-M）[ID.Song-IPPM-
+PostCard-
+Telemetry]，增强的备用标记（EAM）[ID.Zhou-IPPM-
+已提出增强型 -
+备用标记]，并提出了混合两个步骤（HTS）[id.mirsky-ippm-
+hybrid-twe-
+step]，它可以在真实的基础上提供关于整个转发路径的流量信息-时间。上述路径遥
+测技术与前面讨论的主动和被动OAM方案不同，它们直接修改和监视网络中的用户数据包
+，以实现高测量精度。根据[RFC7799]，正式地，这些路径遥测技术可以被归类为
+I，因为它们涉及“利息流的增强或修改，或者改变流的处理的方法”，根据[RFC77
+99]。
+
+  路径遥测对于不仅在数据中心和企业网络中的应用程序感知网络操作是有用的，而且是
+在可能交叉多个域的运营商网络中。承运人网络运营商对利用这种技术进行了兴趣，以用于
+各种目的。例如，提供高带宽，延迟和损失敏感服务的运营商至关重要，例如视频流和在线
+游戏，以实时监控相关流量作为进一步优化的基础。
+
+  该框架文档旨在引导系统设计人员试图使用引用的技术以及激励进一步的工作以增强遥
+测生态系统。它强调了要求和挑战，概述了适用的重要技术，并提供了如何在关键用例中应
+用这些技术。
+
+  文档范围在第1.3节中讨论。
+
+1.1。路径上遥测的分类和模式
+
+  路径遥测的操作与[RFC7799]中定义的有源OAM和无源OAM的操作不同。
+它不会生成任何活动探测报文，或者被动地观察未修改的用户数据包。相反，它修改所选的
+用户数据包以便收集有关它们的有用信息。因此，操作被分类为每[RFC7799]的混
+合OAM类型I模式。
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 4]
+
+Internet-Draft                    IFIT                    September 2021
+
+  该混合型OAM可以进一步划分为两种模式。[Passport-Postcard
+]首先使用“Passport”和“明信片”的隐喻来描述如何收集和导出路径上的数据
+。在Passport模式下，路径上的每个节点将遥测数据添加到用户数据包（即，印刷
+护照）。累积的数据跟踪在配置的结束节点上导出。在明信片模式下，每个节点使用独立的
+数据包直接导出遥测数据（即，发送明信片），而用户数据包完整。可以在一个解决方案中
+将两种模式组合在一起。我们称之为混合模式。
+
+  图1显示了现有的路径上遥测技术的分类。
+
+
+    +-----------+--------------+--------------+---------------+
+    |  Mode     | Passport     | Postcard     | Hybrid        |
+    +-----------+--------------+--------------+---------------+
+    |           | IOAM Trace   | IOAM DEX     | Multicast Te- |
+    | Technique | IOAM E2E     | PBT-M        | lemetry       |
+    |           | EAM          |              | HTS           |
+    +-----------+--------------+--------------+---------------+
+
+  Figure 1 : 路径遥测技术分类
+
+  [i-d.ietf-ippm-ioam-
+data]描述了IOAM跟踪和E2E选项。EAM在[I-D.Uthou-
+IPPM-Endring-anderate标记]中描述。IOAM
+DEX选项在[I-D.IETF-IPPM-IOAM-DIRECTS] PBT-
+M中描述了[I-D.Song-IPPM-POSTCART-
+TELEMETTRY]中描述。[i-d.ietf-mbered-
+multicast-
+telemetry]描述了组播遥测。HTS在[i-d.mirsky-ippm-
+hybrid-twe-step]中描述。
+
+  护照模式的优势包括：
+
+  *它自动沿整个路径保留遥测数据相关性。自我描述特征可以简化数据消耗。
+
+  *数据包的路径数据仅导出一次，因此数据导出开销低。
+
+  *只需要配置路径的头部和终端节点，因此配置开销低。
+
+  护照模式的缺点包括：
+
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 5]
+
+Internet-Draft                    IFIT                    September 2021
+
+  *用户数据包携带的遥测数据会膨胀分组大小，这可能是不希望的或禁止的。
+
+  *需要标准化用于封装指令标题的方法和传输协议中的数据。
+
+  *沿着路径携带敏感数据易受安全和隐私违规的影响。
+
+  *如果在路径上删除数据包，则收集的数据也丢失。
+
+  明信片模式补充了护照模式。明信片模式的优点包括：
+
+*无论是没有数据包报头开销（例如，PBT-M）或开销都小而固定（例如，IOAM
+DEX）。
+
+  *可以避免封装要求（例如，PBT-M）。
+
+  *可以保护遥测数据。
+
+  *即使在路径上丢弃数据包，收集的部分数据仍然可用。
+
+  明信片模式的缺点包括：
+
+  *遥测数据在多个明信片中传播，因此需要额外的努力来关联数据。
+
+  *每个节点导出一个数据包的明信片，这增加了数据导出开销。
+
+  *在PBT-M的情况下，需要配置路径上的每个节点，因此配置开销很高。
+
+  *在IOAM DEX的情况下，封装要求仍然存在。
+
+混合模式为某些特定应用场景（例如，组播遥测）或提供一些替代方法（例如，HTS）。
+
+1.2。要求和挑战
+
+  虽然路径遥测是有益的，但成功地在运营商网络中应用了这种技术必须考虑性能，可部
+署性和灵活性。具体而言，我们需要解决以下实际部署挑战：
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 6]
+
+Internet-Draft                    IFIT                    September 2021
+
+  * C1 : 路径遥测扰动了额外的数据包处理，这可能导致网络数据平面上的压力
+。对转发性能的潜在影响会产生不利的“观察者效应”。这不仅会损害测量的保真度，还损
+害了测量的目的。例如，通过增加序列化延迟和标题解析延迟，每跳的越来越多的IOAM
+数据可以对服务水平产生负面影响。
+
+  * C2 : 在路径遥测可以生成相当数量的数据，该数据可以要求过多的传输带宽
+和淹没用于数据收集，存储和分析的服务器。增加数据处理能力在技术上可行但昂贵。例如
+，如果将IOAM应用于所有流量，则一个节点可以为每个数据包收集几十个字节作为遥测
+数据。整个转发路径可能会累积数据跟踪，其尺寸类似于或甚至超过原始数据包。单独运输
+遥测数据被预计消耗几乎一半的网络带宽，而且它创造了显着的后端数据处理和存储要求。
+
+  * C3 : 目前定义的可收集数据是必不可少的但有限的。随着网络运行的发展成
+为声明性（意图）和自动化，以及网络虚拟化的趋势，有线和无线收敛，以及分组光学集成
+继续，以点播和交互式方式需要更多数据。必须考虑对数据定义，聚合，采集和过滤的数据
+灵活性和可扩展性。
+
+  * C4 : 仅应用单个潜在的路径遥测技术可能导致结果有缺陷。例如，数据包丢
+弃可能导致流量遥测数据的丢失，并且如果仅使用原位OAM跟踪选项，则数据包丢弃位置
+和原因仍然未知。全面的解决方案需要灵活地在不同的底层技术之间切换，并在运行时调整
+配置和参数。因此，需要系统级编排。
+
+  * C5 : 如果我们要在当今的运营商网络中应用一些路径遥测技术，我们必须提
+供定制提供商的网络部署基础的解决方案并支持增量部署策略。也就是说，我们需要支持具
+有诸如以太网，IPv4，IPv6和MPL的各种主要协议的建立的封装方案，并正确处
+理各种传输隧道。
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 7]
+
+Internet-Draft                    IFIT                    September 2021
+
+  * C6 : 简化的路径遥测基元和用于配置和查询的模型是必不可少的。可以通过
+基于API的遥测服务进行遥测模型进行外部应用程序，用于端到端性能测量和应用性能监
+控。网络配置和编程和遥测数据处理和导出需要基于标准的协议和方法，以提供互操作性。
+
+1.3。范围
+
+  在[ID.IETF-OPSAWG-NTF]中讨论的网络遥测框架之后，本文档侧
+重于路径遥测，特定的数据平面遥测技术，并提供了一种高级框架，它解决了上述挑战部署
+，尤其是在运营商运营商网络中。
+
+  本文档旨在澄清问题空间，基本要求，总结最佳实践和一般系统设计考虑因素。该框架
+有助于分析当前的标准状态并识别间隙，并激励新标准工程来完成生态系统。本文档提供了
+一些示例，可以在框架下显示一些新颖的网络遥测应用程序。
+
+  作为一个信息文档，它描述了一个具有几个关键组件的开放框架。该框架不在每个组件
+上强制执行任何特定实现，也不是它在组件之间定义接口（例如，API，协议）。通过应
+用程序实施者确定基础路径遥测技术和其他实现细节的选择。因此，框架不是解决方案规范
+。它仅提供高级概述，并且不一定是对路径上遥测应用的强制性建议。该框架的实现是实现
+者特定的，并且可以利用本文档中概述的功能组件和技术。
+
+  本文件中提到的底层技术和接口的标准化由各种工作组进行。由于本文件的范围有限和
+预期状态，它与这些作品没有重叠或冲突。
+
+1.4。词汇表
+
+  本节定义并解释本文档中使用的首字母缩略词和术语。
+
+  On-path Telemetry : 远程获取性能和行为数据
+
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 8]
+
+Internet-Draft                    IFIT                    September 2021
+
+  关于网络流在数据包的转发路径上以每包的方式流动。该术语是指一类数据平面遥测技
+术，包括IOAM，PBT，EAM和HTS。这种技术可能需要将用户分组标记为向用户
+分组的标题插入指令或元数据。
+
+  IFIT : 原位流信息遥测，发音为“i-fit”。高级参考框架的名称，显示
+网络数据平面监视应用程序如何解决流向路径遥测技术的部署挑战。
+
+  IFIT Domain : 路径上遥测应用程序运行的网络域。网络域包含多个转
+发设备，例如路由器和交换机，其能够具有特定于IFIT的函数。它还包含一个逻辑上集
+中的控制器，其责任是将特定于IFIT-的配置和功能应用于IFIT的转发设备，并从
+这些设备中收集和分析路径的遥测数据。IFIT域包含多个可用于特定IFIT的网络节
+点。我们将所有条目节点命名为IFIT域头节点以及所有退出节点结束节点。IFIT域
+中的路径从头节点开始，并在结束节点处结束。通常，如果需要，则指令报头封装或数据包
+标记在头部节点处发生;如果需要，如果需要，则指令标题解封装或数据包在结束节点处发
+生。
+
+  Reflective Telemetry : 遥测以动态和交互式的方式函数。
+由于通过先前遥测行动获取的自我知识而提供新的遥测行动。
+
+1.5。要求语言
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+2. IFIT概述
+
+  为了解决上述挑战，我们提出了一种基于多个网络运营商的要求和共同行业实践的高级
+别框架，可以帮助建立一个可行和有效的路径遥测应用。我们将框架命名为“原位流信息遥
+测”（IFIT），以反映此框架专用于关于用户的路径遥测数据的事实
+
+
+
+Song, et al.              Expires 1 April 2022                  [Page 9]
+
+Internet-Draft                    IFIT                    September 2021
+
+  应用程序流程。作为参考框架，IFIT涵盖了一类ON-PATION遥测技术，并
+且工作高于任何特定底层技术的级别。该框架由某些关键功能组件（第3节）组成。通过组
+装这些组件，IFIT支持反思遥测，该遥测能够实现自主网络操作（第4节）。
+
+2.1。典型部署IFIT
+
+  图2显示了IFIT的典型部署方案。
+
+                                   Application
+                      +-------------------------------------+
+                      |             Controller              |
+                      | +------------+        +-----------+ |
+                      | | Configure  |        | Collector | |
+                      | |     &      |<-------|     &     | |
+                      | | Control    |        | Analyzer  | |
+                      | +-----:------+        +-----------+ |
+                      |       :                     ^       |
+                      +-------:---------------------|-------+
+                              :configuration        |telemetry data
+                              :& action             |
+               ...............:.....................|..........
+               :             :                 :    |         :
+               :   +---------:---+-------------:---++---------:---+
+               :   |         :   |             :   |          :   |
+               V   |         V   |             V   |          V   |
+            +------+-+     +-----+--+       +------+-+     +------+-+
+     packets| Head   |     | Path   |       | Path   |     | End    |
+         ==>| Node   |====>| Node   |==//==>| Node   |====>| Node   |==>
+            |        |     | A      |       | B      |     |        |
+            +--------+     +--------+       +--------+     +--------+
+
+  | <--- IFIT域名---> |
+
+  Figure 2 : ifit部署方案
+
+  路径遥测应用程序可以通过应用一个或多个底层技术来通过IFIT域进行一些网络数
+据平面监视和测量任务。应用程序需要包含多个元素，包括配置网络节点并处理遥测数据。
+该应用程序通常在逻辑上集中控制器中运行，该控制器负责配置IFIT域中的网络节点，
+以及收集和分析遥测数据。配置确定使用哪种底层技术，遥测数据是感兴趣的，流动
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 10]
+
+Internet-Draft                    IFIT                    September 2021
+
+  和数据包涉及，如何收集遥测数据等。该过程可以是动态和交互式：在遥测数据处理和
+分析之后，应用程序可以指示控制器修改IFIT域中的节点的配置，这影响未来的遥测数
+据收集。
+
+  从系统级视图中，不管底层技术如何，建议使用标准化配置和数据收集接口。但是，这
+些接口的规范和控制器的实现不包括本文档的范围。
+
+  IFIT域包含头部节点和结束节点。IFIT域可以跨越多个网络域。头部节点负责
+启用IFIT特定的函数，并且结束节点负责终止它们。IFIT域中的所有功能的节点都
+将能够执行指示的IFIT特定功能。值得注意的是，任何IFIT应用程序必须通过配置
+和策略保证具有IFIT的标题和元数据的任何数据包都不会泄漏出IFIT域。结束节点
+必须能够捕获具有IFIT-
+特定标题和元数据的所有数据包，并在将其转发到IFIT域之前恢复其格式。
+
+  IFIT覆盖的基础路径遥测技术可以是第1.1节中讨论的任何模式。
+
+2.2。IFIT架构
+
+  IFIT架构如图3所示，其中包含几个关键组件。这些组件旨在解决第1节中讨论的
+部署挑战。在第3节中给出了每个组件的详细框图和描述。在这里，我们只提供高级概述。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 11]
+
+Internet-Draft                    IFIT                    September 2021
+
+
+                   +------------------------------------+
+                   |       On-demand Technique          |
+                   |       Selection & Integration      |
+                   +------------------------------------+
+         Management Plane  |                   ^
+      ---------------------+-------------------+-------------
+         Forwarding Plane  V                   |
+                   +-----------------+------------------+
+                   | Flexible Flow,  | Flexible         |
+                   | Packet, & Data  | Data Export      |
+                   | Selection       |                  |
+                   +-----------------+------------------|
+                   |     Dynamic Network Probe          |
+                   +------------------------------------|
+
+  Figure 3 : IFIT架构
+
+  根据监视和测量要求，应用程序需要选择一个或多个潜在的路径遥测技术，并决定应用
+它们的策略。根据转发平面协议和隧道配置，还确定了指令标题和元数据封装方法，如果需
+要，也是确定的。封装发生在头部节点处，并且在结束节点处发生解敷。
+
+  基于网络条件和应用要求，头部节点还需要能够选择流量和数据包以启用特定的函数，
+并决定要收集的数据集。负责导出遥测数据的所有节点都配置了特殊功能来准备数据。IF
+IT-特定的函数可以作为动态网络探针部署到网络节点中。
+
+2.3。与网络遥测框架的关系（NTF）
+
+  [i-d.ietf-opsawg-ntf]描述了一个网络遥测框架（NTF）。
+NTF用于分区网络遥测技术和系统使用的一个维度基于网络中的三个平面加上外部数据源
+。IFIT适合转发平面遥测的类别，并处理转发平面遥测的特定路径技术分支。
+
+  根据NTF，一个路径遥测应用程序主要订阅事件触发或流数据。IFIT的关键功能
+组件也匹配NTF中的组件。“按需技术选择和集成”是应用层函数，匹配NTF中的“数
+据查询，分析和存储”组件;“灵活的流量，数据包和数据选择”匹配“数据配置和”
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 12]
+
+Internet-Draft                    IFIT                    September 2021
+
+  订阅“组件;”灵活数据导出“匹配”数据编码和导出“组件;”动态网络探测“匹配
+”数据生成和处理“组件。
+
+3. IFIT的关键组件
+
+  如IFIT架构所示，IFIT的关键组件如下：
+
+  *灵活的流量，数据包和数据选择策略，解决第1节中描述的挑战C1;
+
+  *灵活的数据导出，解决C2的挑战;
+
+  *动态网络探头，寻址C3;
+
+  *按需技术选择和集成，寻址C4。
+
+  请注意，挑战C5和C6主要是标准相关的，这对IFIT是基础。我们讨论第5节中
+的标准状态和差距。
+
+  在以下部分中，我们提供每个组件的详细描述。
+
+3.1。灵活的流量，数据包和数据选择
+
+  在大多数情况下，使所有流量的数据收集和由于潜在的性能和带宽影响为流量的所有数
+据包来说是不切实际的。因此，可行的解决方案通常需要仅选择流量和流量分组的子集以使
+数据收集能够实现数据收集，即使这意味着丢失一些信息和准确性。
+
+  在数据平面中，访问控制列表（ACL）提供了确定流程子集的理想手段。应用程序可
+以将样品速率或概率设置为允许监视的流分组的子集，收集不同分组的不同数据集，并在任
+何特定网络节点上禁用或启用数据收集。应用程序可以进一步允许任何节点全面或部分地接
+受或拒绝数据收集过程。
+
+  基于这些灵活的机制，IFIT允许应用程序应用灵活的流量和数据选择策略以满足要
+求。应用程序可以根据网络负载，处理能力，感兴趣的焦点和任何其他标准随时动态地改变
+策略。
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 13]
+
+Internet-Draft                    IFIT                    September 2021
+
+3.1.1。框图
+
+               +----------------------------+
+               | +----------+  +----------+ |
+               | |Flow      |  |Data      | |
+               | |Selection |  |Selection | |
+               | +----------+  +----------+ |
+               | +----------+               |
+               | |Packet    |               |
+               | |Selection |               |
+               | +----------+               |
+               +----------------------------+
+
+  Figure 4 : 灵活的流量，数据包和数据选择
+
+  图4显示了该组件的框图。流选择块定义为选择目标流进行监视的策略。流量有不同的
+粒度。基本流量由5元组IP标头字段定义。流程也可以在接口电平，隧道级，协议级别等
+中聚合。数据包选择块定义从目标流中选择数据包的策略。策略可以是采样间隔，采样概率
+或某些特定数据包签名。数据选择块定义要收集的数据集。这可以按数据包或每流程更改。
+
+3.1.2. Example : 草图引导的大象流选择
+
+  网络运营商通常对大象流程更感兴趣，这些流量消耗更多资源，对网络条件的变化很敏
+感。Countmin草图[CMSketch]可以在头部节点的数据路径上使用，其识
+别并报告大象周期性。控制器维护当前的大象流程，并动态地使得仅用于这些流的路径遥测
+。
+
+3.1.3. Example : 自适应数据包采样
+
+  在所有选定流量的所有数据包上应用路径遥测仍然可以遥不可及。应为这些流程设置采
+样率，只能在采样数据包上启用遥测。但是，头部节点没有针对适当的采样率的线索。过高
+的速率会耗尽网络资源，甚至导致数据包滴剂;相反，率过低会导致信息丢失和测量的不准
+确性。
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 14]
+
+Internet-Draft                    IFIT                    September 2021
+
+  可以基于网络条件使用自适应方法以动态调整采样率。每个节点都提供用户流量转发更
+高的优先级，而不是遥测数据导出。在网络拥塞的情况下，遥测可以从收集的数据中感测某
+些信号（例如，深缓冲区大小，长延迟，数据包丢弃和数据丢失）。控制器可以使用这些信
+号来调整分组采样率。在每个调整时段（即，反馈回路的RTT）中，采样率在信号的响应
+时减小或增加。可以使用类似于用于速率调整的TCP流量控制机制的AIMD策略。
+
+3.2。灵活的数据导出
+
+  流量遥测数据可以捕获网络的动态和用户流量和网络之间的交互。然而，数据不可避免
+地包含冗余。建议从数据中删除冗余，以减少数据传输带宽和服务器处理负载。
+
+  除了有效的导出数据编码（例如，IPFIX [RFC7011]或PROTOBU
+F（https://developers.google.com/protocol
+-buffers/），节点通过利用网络设备的优势，有几种其他方法可以减少导出数据
+能力和可编程性。节点可以缓存数据并在数据不对时敏感时批量发送累计数据。可以在批处
+理数据上应用各种重复数据删除和压缩技术。
+
+  从应用程序的角度来看，应用程序只能对一些可以从遥测数据派生的特殊事件感兴趣。
+例如，在分组的转发延迟超过阈值的情况下，或流量改变其转发路径是感兴趣的，不需要将
+原始原始数据发送到数据收集和处理服务器。相反，IFIT利用网络设备的网络设备的内
+网上计算能力来处理原始数据，并且仅将事件通知推向订阅应用程序。
+
+  此类事件可以表示为策略。策略只能在超时或阈值时请求仅根据更改的数据导出。
+
+3.2.1。框图
+
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 15]
+
+Internet-Draft                    IFIT                    September 2021
+
+
+               +-------------------------------------------+
+               | +-----------+ +-----------+ +-----------+ |
+               | |Data       | |Data       | |Export     | |
+               | |Encoding   | |Batching   | |Protocol   | |
+               | +-----------+ +-----------+ +-----------+ |
+               | +-----------+ +-----------+ +-----------+ |
+               | |Data       | |Data       | |Data       | |
+               | |Compression| |Dedup.     | |Filter     | |
+               | +-----------+ +-----------+ +-----------+ |
+               | +-----------+ +-----------+               |
+               | |Data       | |Data       |               |
+               | |Computing  | |Aggregation|               |
+               | +-----------+ +-----------+               |
+               +-------------------------------------------+
+
+  Figure 5 : 灵活的数据导出
+
+  图5显示了该组件的框图。数据编码块定义编码遥测数据的方法。数据批处理块定义导
+出之前在设备侧缓冲的批次数据的大小。“导出协议”块定义了用于遥测数据导出的协议。
+数据压缩块定义了压缩原始数据的算法。数据重复数据删除块定义算法以删除原始数据中的
+冗余。数据过滤器块定义过滤所需数据的策略。数据计算块定义了预设原始数据并生成一些
+新数据的策略。数据聚合块定义了组合和合成数据的过程。
+
+3.2.2. Example : 基于事件的异常监视器
+
+  网络运营商对道路变化，网络拥塞和数据包丢弃等异常感兴趣。这些异常隐藏在原始遥
+测数据中（例如，路径跟踪，时间戳）。这种异常可以被描述为事件并编程到设备数据平面
+中。只导出触发事件。例如，如果在任何节点处出现新流，则触发路径更改事件;如果数据
+包延迟超过节点中的预定义阈值，则触发拥塞事件;如果由于缓冲区溢出而删除数据包，则
+触发数据包丢弃事件。
+
+  由于这种优化导致的导出数据减少是很大的。例如，给定单个5跳10Gbps路径，
+监视每秒的中等数量的100万个数据包，遥测数据加上每跳的输出数据包开销消耗小于3
+0个字节。没有这种优化，遥测数据消耗的带宽可以容易超过1Gbps（超过10％的路
+径
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 16]
+
+Internet-Draft                    IFIT                    September 2021
+
+  带宽），当使用优化时，遥测数据消耗的带宽可以忽略不计。此外，预处理的遥测数据
+大大简化了数据分析仪的工作。
+
+3.3。动态网络探测
+
+  由于数据平面资源和网络带宽有限，它不太可能一直可以监控所有数据。另一方面，申
+请所需的数据可能是任意但短暂的。满足有限资源的动态数据要求至关重要。
+
+  幸运的是，数据平面可编程性允许IFIT动态加载新数据探针。这些按需探针称为动
+态网络探针（DNP）。DNP是在不同网络平面中启用定制数据收集探测的技术。使用I
+OAM或PBT时，DNP通过增量编程或配置加载到数据平面。DNP可以有效地进行数
+据生成，处理和聚合。
+
+  DNP对IFIT引入了足够的灵活性和可扩展性。它可以实现在上一节中监视的导出
+数据减少的优化。它还可以根据今天和明天的应用程序提供自定义数据。
+
+3.3.1。框图
+
+               +----------------------------+
+               | +----------+  +----------+ |
+               | |ACL       |  |YANG      | |
+               | |          |  |Model     | |
+               | +----------+  +----------+ |
+               | +----------+  +----------+ |
+               | |Hardware  |  |Software  | |
+               | |Function  |  |Function  | |
+               | +----------+  +----------+ |
+               +----------------------------+
+
+  Figure 6 : 动态网络探测器
+
+
+
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 17]
+
+Internet-Draft                    IFIT                    September 2021
+
+  图6显示了该组件的框图。访问控制列表（ACL）块可在大多数硬件中使用，并且它
+通过动态更新ACL策略（包括流过滤和操作）来定义DNPS。杨模型可以动态部署，以
+实现不同的数据处理和过滤功能。某些硬件允许在运行时将基于硬件的功能加载到转发路径
+中，通过诸如保留管道和功能存根等机制。动态可加载的软件功能可以在IFIT节点中的
+控制处理器中实现。
+
+3.3.2。例子
+
+  以下是一些可能的DNP，可以动态部署以支持应用程序。
+
+  On-demand Flow Sketch : 流草图是紧凑的在线数据结构（
+通常是多散列表的变型），用于近似对多个流量特性的估计。它可用于促进流量选择。上述
+Countmin草图[CMSKetch]是这样的示例。由于草图消耗了数据平面资源
+，因此只有在实际需要时才部署。
+
+  Smart Flow Filter :
+选择流量和数据包采样率的策略可以在应用程序的使用寿命期间更改。
+
+  Smart Statistics :
+应用可能需要基于不同的流量粒度或维护所选流表条目的命中计数器来计算流量。
+
+  Smart Data Reduction :
+DNP可用于编程有条件触发数据导出的事件。
+
+3.4。按需技术选择和集成
+
+  通过多个底层数据收集和出口技术，IFIT可以灵活地适应不同的网络条件和不同的
+应用要求。
+
+  例如，根据感兴趣的数据类型，IFIT可以选择IOAM或PBT来收集数据;如果
+应用程序需要追踪数据包丢失的位置，则应支持从IOam切换到PBT。
+
+  IFIT可以进一步将多个数据平面监视和测量技术进一步集成在一起，并提供全面的
+数据平面遥测解决方案。
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 18]
+
+Internet-Draft                    IFIT                    September 2021
+
+  根据应用要求和实时遥测数据分析结果，可以部署新配置和操作。
+
+3.4.1。框图
+
+               +----------------------------------------------+
+               | +------------+  +-------------+  +---------+ |
+               | |Application |  |Configuration|  |Telemetry| |
+               | |Requirements|->|& Action     |<-|Data     | |
+               | |            |  |             |  |Analysis | |
+               | +------------+  +-------------+  +---------+ |
+               +----------------------------------------------+
+               | Passport Mode:                               |
+               | +----------+   +----------+   +----------+   |
+               | |IOAM E2E  |   |IOAM Trace|   |EAM       |   |
+               | +----------+   +----------+   +----------+   |
+               | Postcard Mode:                               |
+               | +----------+   +----------+                  |
+               | |PBT-M     |   |IOAM DEX  |                  |
+               | +----------+   +----------+                  |
+               | Hybrid Mode:                                 |
+               | +----------+   +----------+                  |
+               | |HTS       |   |Multicast |                  |
+               | |          |   |Telemetry |                  |
+               | +----------+   +----------+                  |
+               +----------------------------------------------+
+
+  Figure 7 : 技术选择和集成
+
+  图7显示了该组件的框图，该组件列出了候选路径遥测技术。
+
+  位于IFIT域的逻辑上集中控制器中，此组件使所有控制和配置动态地到域中的能力
+节点，这将影响未来的遥测数据。配置和操作决策基于应用程序要求和实时遥测数据分析结
+果的输入。请注意，这里遥测数据源不限于数据平面。数据可以来形成[i-d.ietf
+-opsawg-ntf]中提到的所有源，包括外部数据源。
+
+4.反射遥测的IFIT
+
+  IFIT组件可以一起使用，以支持反射遥控器，如图8所示。
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 19]
+
+Internet-Draft                    IFIT                    September 2021
+
+
+                           +---------------------+
+                           |                     |
+                    +------+    Applications     |<------+
+                    |      |                     |       |
+                    |      +---------------------+       |
+                    |         Technique Selection        |
+                    |         and Integration            |
+                    |                                    |
+                    |Flexible                   Flexible |
+                    |Flow,     reflection-loop      Data |
+                    |Packet,                       Export|
+                    |and Data                            |
+                    |Selection                      +----+----+
+                    V                              +---------+|
+              +----------+ Encapsulation          +---------+||
+              |  Head    | and Tunneling          |  Path   |||
+              |  Node    |----------------------->|  Nodes  ||+
+              |          |                        |         |+
+              +----------+                        +---------+
+                  DNP                                DNP
+
+  Figure 8 : 基于IFIT的反射遥测
+
+  应用程序可以根据其要求选择一套遥测技术，并将初始技术应用于数据平面。然后，它
+配置头部节点以确定初始目标流/分组和遥测数据集，基于基础网络架构以及有能力的节点
+来决定初始遥测数据导出策略的封装和隧道方案。基于网络条件和遥测数据的分析结果，应
+用程序可以在实时改变遥测技术，流量/数据选择策略和数据导出方法，而不会破坏正常的
+网络操作。可以通过加载和卸载DNP来完成许多这样的动态变化。
+
+  IFIT启用的反光遥测允许许多适用于未来网络操作架构的新应用。
+
+4.1. Example : 智能多点性能监控
+
+  [I-D.IETF-IPPM-MultiPoint-Alt-Mark]描述了
+基于网络条件的智能性能管理。这个想法是将监控网络拆分为集群。可以应用于每种类型的
+网络图表的群集分区以及组合不同级别的群集的可能性使得所谓的网络缩放能够。它允许控
+制器校准网络遥测，以便在不考虑深度并整个监控网络的情况下开始。在必要的情况下（数
+据包
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 20]
+
+Internet-Draft                    IFIT                    September 2021
+
+  丢失或太高的延迟），可以重新配置立即详细分析。特别是，知道网络拓扑的控制器可
+以通过更改流量过滤器或激活新的测量点来设置最适合的群集分区，并且问题可以通过逐步
+处理本地化问题。
+
+  在控制器顶部的应用程序可以管理此类机制，IFIT的架构允许其动态和反射操作。
+
+4.2. Example : 基于Intent的网络监控
+
+                         User Intents
+                               |
+                               V          Per-packet
+                         +------------+   Telemetry
+                  ACL    |            |   Data
+                +--------+ Controller |<--------+
+                |        |            |         |
+                |        +--+---------+         |
+                |           |       ^           |
+                |           |DNPs   |Network    |
+                |           |       |Information|
+                |           V       |           |
+         +------+-------------------+-----------+---+
+         |      |                                   |
+         |      V                      +------+     |
+         | +-------+                  +------+|     |
+         | | Head  |    IFIT Domain  +------+||     |
+         | | Node  |                 |Path  ||+     |
+         | |       |                 |Nodes |+      |
+         | +-------+                 +------+       |
+         +------------------------------------------+
+
+  Figure 9 : intent的监控
+
+  在该示例中，用户可以表达用于网络监视的高级意图。控制器转换意图并在IFIT的
+节点中配置相应的DNP，该节点收集所需的网络信息。基于实时信息反馈，控制器运行本
+地算法以确定可疑流程。然后，它将ACL部署到头节点以启动这些流程的高精度每分组O
+N-PATION遥测。
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 21]
+
+Internet-Draft                    IFIT                    September 2021
+
+5.标准状态和空白
+
+  基于IFIT的解决方案需要标准接口进行配置和数据提取，以及各种传输协议上的标
+准封装。它还可能还需要标准API和基元进行应用程序编程和部署。草稿[i-d.br
+ockers-opsawg-ioam-deployment]总结了一些关于ioa
+m的封装和数据导出的一些提案。应扩展或修改这些工作以支持其他类型的路径遥测技术和
+其他传输协议。高级IFIT有助于开发连贯和通用的标准封装和数据导出方法。
+
+5.1。传输协议中的封装
+
+  自从引入IOAM以来，已经提出了各种网络协议中的IOAM选项标题封装方案。类
+似的封装方案需要扩展以覆盖另一个路径遥测技术。另一方面，对于一些流行协议（例如M
+PLS和IPv4）的封装方案显着丢失。为这些协议提供封装方案非常重要，因为它们仍
+然在运营商网络中普遍存在。
+IFIT需要提供在这些网络中应用路径上流遥测技术的解决方案。 PBT-M
+[I-D.Song-IPPM-PostCard-Telemetry]不会向数据包
+引入新标头，因此避免了封装的封装问题。虽然有一些提议允许MPLS报文中的新标头封
+装（例如，[id.song-mpls-extensight-
+header]）或IPv4数据包中（例如，[id.herbert-ipv4-eh
+]），它们仍然存在他们的婴儿期阶段，需要重要的未来工作。同时，在密闭的IFIT域
+中，可以应用预设的封装方法。
+
+5.2。隧道支持
+
+  在运营商网络中，用户流量是遍历QoS，流量工程或安全性的各种隧道。如[I-D
+.Song-IPPM-IOAM-Tunnel-Mode]中所述，IFIT支持统一
+模式和管道模式，用于隧道支持。通过这种灵活性，操作员可以获得真正的端到端可见性或
+应用分层方法，该方法隔离客户和提供商之间的监视域。
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 22]
+
+Internet-Draft                    IFIT                    September 2021
+
+5.3。部署自动化
+
+  此外，以集中式方式或分布式方式自动化功能配置和能力查询和广告的标准方法仍然是
+不成熟的。[i-d.zhou-ippm-ioam-yang]草案为ioam配置提
+供了阳模型。需要为其他技术定义类似的型号。在各种网络环境中提供基于标准的配置方法
+也有助于。例如，在段路由网络中，可以定义到BGP或PCEP的扩展以分配携带IFI
+T信息的SR策略，从而在应用SR策略时可以自动启用IFIT行为。[i-d.che
+n-pce-sr-policy-ifit]建议在段路由网络中扩展用于IFIT配置
+的PCEP策略。[i-d.qin-idr-sr-policy-ifit]建议在段
+路由网络中扩展BGP策略，而是用于IFIT配置。其他类型的网络将需要额外的能力发
+现和传播。
+
+  实现IFIT的潜力，编程和部署DNP很重要。力[RFC5810]是用于网络设
+备编程的标准协议，可用于DNP部署。目前有一些相关的作品，如[I-D.WWX-
+netmod-yang]和[i-d.bwd-netmod-eca-framewo
+rk]，已经提出使用阳模型来定义可用于实现DNP的智能策略。将来，可以开发基于硬
+件和基于软件的功能的其他方法，以增强可编程性和灵活性。
+
+6.摘要
+
+  IFIT是用于应用ON-PATIO遥测技术的高级框架，本文档概述了框架如何用
+于解决基本用例。IFIT基于两个基本的路径流量数据收集模式：Passport和明
+信片，启用实用数据平面遥测应用程序。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 23]
+
+Internet-Draft                    IFIT                    September 2021
+
+  IFIT满足运营商部署完整的路径遥测解决方案的关键挑战。但是，作为参考和开放
+框架，IFIT仅描述了每个已识别的组件的基本功能，并提出了可能的应用程序。它无意
+指定组件的实现和组件之间的接口。IFIT的符合性也不是强制性的。相反，此信息文件
+旨在澄清问题域，并总结了最佳实践和明智的系统设计考虑因素。IFIT可以指导当前标
+准状态和差距的分析，并激励新的作品来完成生态系统。IFIT使数据平面反射遥测应用
+程序能够进行高级网络操作。
+
+  具有涵盖一类相关技术的高级别框架还促进了标准开发的整体方法，并有助于避免只关
+注特定技术的重复努力和零碎的解决方案，同时省略对健康的兼容性和可扩展性问题网络遥
+测的生态系统。
+
+7.安全考虑因素
+
+  除了在路径上遥测上的每个单独文档中讨论的特定安全问题外，该文档还考虑了IFI
+T系统级别的整体安全问题。这应该是路径遥测应用程序开发人员和用户的指南。
+
+8. Iana考虑因素
+
+  本文档不包括对IANA的请求。
+
+9.贡献者
+
+  本文件的其他主要贡献者包括Giuseppe Fioccola，Daniel
+King，Zianran周和James Guichard。
+
+10.致谢
+
+  感谢Diego Lopez，Shwetha Bhandari，Joe
+Clarke，Adrian Farrel，Frank Brockners，Al
+Morton，Alex Clemm，Alan Dekok和Warren
+Kumari为改进本文件的建设建议。
+
+11.参考文献
+
+11.1。规范参考文献
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 24]
+
+Internet-Draft                    IFIT                    September 2021
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC7799]
+Morton，A.，“主动和被动度量和方法（在与杂交类型之间）”，RFC
+7799，DOI 10.17487 /
+RFC7799，2016年5月，<https://www.rfc-
+editor.org/info/ rfc7799>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+11.2。信息参考资料
+
+  [Cmsketch] Cormode，G.和S.
+Muthukrishnan，“改进的数据流摘要：Count-Min草图及其应用”
+，2005，<http://dx.doi.org/10.1016/j.jalgo
+r.2003.12。001>。
+
+  [id.brockers-Opsawg-Ioam-Deployment]
+Brockners，F.，Bhandari，S.，Bernier，D.和T.
+Mizrahi，“原位OAM部署”，正在进行中，互联网草案草案 - 仲裁者-
+opsawg-ioam-deployment-03,24 6月2021，<htt
+ps://www.ietf.org/archive/id/draft-
+brockners- opsawg-ioam-
+deployment-03.txt>。
+
+  [id.bwd-netmod-eca-cramework]
+Boucadair，M.，Wu，Q.，Wang，M.，King，D.和C. Xi
+e，网络自我中的ECA（事件条件行动）的框架管理层“，正在进行中，互联网草案，2
+019年11月3日的Braft-BWD-NetMod-ECA框架-00，<htt
+ps://www.ietf.org/archive/id/draft-bwd-
+netmod-eca-Framework-00.txt>。
+
+  [id.chen-pce-sr-policy-
+ifit]陈，H.，元，H.，周，T.，Li，W.，Fioccola，G.和Y.
+Wang，“PCEP
+SR政策延长”启用IFIT“，正在进行的工作，互联网汇票，陈氏PCE-SR-
+Policy-Ifit-02，7月10日，7月10日，<https://www.
+ietf.org/archive/id/draft-陈pce-sr-
+policy-ifit-02.txt>。
+
+  [id.Herbert-IPv4-eh]赫伯特，T.，“IPv4延长标题和流
+量标签”，正在进行中，互联网草案，2019年5月2日，<HTTPS：//的互联网
+草案 - 赫伯特-IPv4-eh-01，<https：//www.ietf.or
+g/archive/id/draft-herbert-
+ipv4-eh-01.txt>。
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 25]
+
+Internet-Draft                    IFIT                    September 2021
+
+  [ID.IETF-IPPM-IOAM-DATA]
+BROCKINERS，F.，BHANDARI，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，正在进行中，互联网草案，草稿 -
+IETF-IPPM-Ioam-data-14,24六月六月二十一，<https:
+//www.ietf.org/archive/id/draft-ietf
+-ipm-ioam-data-14.txt>。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“进出奥姆直接出口”，工作正在进行中，
+互联网草案，草案 -  IETF-IPPM-IOAM-Direct-Export
+-06,888，8月2021，<https://www.ietf.org/Arc
+hive/ id / braft-ietf-ippm-ioam- direct-
+export-06.txt>。
+
+  [ID.IETF-IPPM-MULTIPOINT-ALT-MARK]
+FIOCCORA，G.，COCIGLIO，M.，SAPIO，A.和R. SIST
+O，“用于被动和混合性能监测的多点替代标记方法”，正在进行中，Internet-
+Fraft，草案-Ietf-IPPM-MultiPoint-Alt-Mark-0
+9,3月20日，<https://www.ietf.org/archive/id
+/draft  -  ippm-multipoint-Alt-
+Mark-09.txt>。
+
+  [id.ietf-mbered-multicast-tetemetry]歌曲
+，H.，McBride，M.，Mirsky，G.，Mishra，G.，Asaed
+a，H.和T.周，“组播遥遥解决方案”，正在进行的工作，互联网草案，草案 -
+IETF-MBEND-Multicast-etemetry-01,6 7月202
+1，<https://www.ietf.org/archive/id/draft
+-  01  - 多播 - 遥测 -  01.txt>。
+
+  [id.ietf-opsawg-
+ntf]歌曲，H.，Qin，F.，Martinez-
+Julia，P.，Ciavaglia，L.和A.
+Wang，“网络遥测框架”，正在进行中，互联网草案，草稿 -  IETF-
+OPSAWG-NTF-07，2月20日2021，<https://www.iet
+f.org/archive/id/draft  -  topsawg-
+ntf-07.txt>。
+
+  [id.mirsky-ippm-hybrid-twe-two-step] M
+irsky，G.，Lingqiang，W.，zhui，G.和H.歌曲，“混合两步
+性能测量方法”，正在进行中，互联网汇票，草案 -  Mirsky-IPPM-
+Hybrid-Two-Step-11,8
+7月20日，<https://www.ietf.org/archive/id/
+braft-mirsky-ippm-hybrid-twe-
+step-11.txt>。
+
+  [I-D.Qin-IDR-SR-Policy-Ifit]
+Qin，F.，元，H.，周，T.，Fioccola，G.和Y.Wang，“BGP
+SR政策扩展，使IFIT”，工作
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 26]
+
+Internet-Draft                    IFIT                    September 2021
+
+  进度，互联网汇票，Qin-Idr-SR-Policy-IfIt-04,202
+0，<https://www.ietf.org/archive/id/draft
+- qin-idr-sr-policy-ifit-04.txt>。
+
+  [id.song-ippm-ioam-tunnel-mode]歌曲，H.，L
+i，Z.，Zhou，T.和Z.Wang，“隧道原位OAM处理”，正在进行中，互联
+网汇票，歌曲-IPPM-IOAM-Tunnel-Mode-00，2018年6月2
+7日，<https://www.ietf.org/archive/id/draf
+t-song -ippm-ioam- tunnel-mode-00.txt>。
+
+  [ID.Song-IPPM-POSTCARD-PERTEMETTRY]歌曲，
+H.，MIRSKY，G.，Filsfils，C.，Abdelsalam，A.，Z
+hou，T.，Li，Z.，Shin，J.和K。Lee，“基于明信片的路径流量数据
+遥测使用数据包标记”，工作正在进行中，互联网汇票，歌曲-IPPM-
+PostCard-10,9,9021，<https：//
+www.ietf.org / archive / id / rid-song-
+ippm-postcard-基于遥测-10txt>。
+
+  [id.song-mpls-extension-
+heather]歌曲，H.，Li，Z.，周，T.，Andersson，L.和Z.
+Zhang，“MPLS延期标题”，正在进行中，互联网草案，草稿 -
+歌曲MPLS-Extension-Header-05,10七月七月十一日，<ht
+tps://www.ietf.org/archive/id/draft-
+song-mpls- extension-header-05.txt>。
+
+  [id.wwx-netmod-event-yang]吴，q.，bryskin
+，i.，birkholz，h.，liu，x，x和b.克莱斯，“杨数据模型为eca
+政策管理”，正在进行中，互联网汇票，草案-WWX-NetMod-event-ya
+ng-10,1220，<https://www.ietf.org/archive
+/id/draft-wwx-netmod-event-yang-10.txt>。
+
+  [ID.UIPPM-Enhance-Excerlated-
+alylate标记] Zhou，T.，Fioccola，G.，Liu，Y.，Le
+e，S.，Cociglio，M。和W.LI，“增强的交替标记方法”，正在进行的工
+作，互联网草案，草案 -  Zhou-IPPM-增强 - 备用 - 标记-07，
+7月11日2021，<https://www.ietf.org/archive/
+id/draft-zhou-ippm-enhanced--
+Marking-07.txt>。
+
+  [ID.U-IPPM-IOAM-
+YANG]周，T.，Guichard，J.，Brockners，F。和S. Ra
+ghavan，“yang数据模型为位于奥地姆”，正在进行中，互联网草案，Zhou
+-IPPM-IOAM-YANG-08，7月30日的草案 -  2020年7月30
+日，<https://www.ietf.org/archive/id/draft
+-zhou -ippm-ioam-yang-08.txt>。
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 27]
+
+Internet-Draft                    IFIT                    September 2021
+
+  [Passport-Postcard] Handigol，N.，Heller
+，B.，Jeyakumar，V.，Mazieres，D.和N. McKeown，
+“我的软件定义网络的调试器在哪里？”，2012，<https：//doi.org
+/10.1145/2342441.2342453>。
+
+  [rfc5810] Doria，A.，Ed。，哈斯Salim，J.，J.，E
+d。，Haas，R.，Ed。，Khosravi，H.，Ed。，Wang，W.，E
+d。，Dong，L.，Gopal，R.和J.
+Halpern，“转发和控制元素分离（力）协议规范”，RFC 5810，DOI
+10.17487 /
+RFC5810，2010年3月，<https://www.rfc-
+editor.org/info/rfc5810>。
+
+  [RFC7011]克莱斯，B.，ED。，Trammell，B.，ED。和P.
+Aitken，“IP流信息导出（IPFIX）协议的规范，用于交换流信息”，STD
+77，RFC 7011，DOI 10.17487 /
+RFC7011，2013年9月，<https://www.rfc-
+editor.org/info/rfc7011>。
+
+  作者的地址
+
+  ha O喻song future为 2330 central
+expressway Santa Clara, United States of
+America
+
+  Email : 好于.送@future为.com
+
+  Fe ng为q in China Mobile no. 32 X
+u按五门吸ave., ξ成district Beijing, 100032
+P.R. China
+
+  Email : 琴凤尾@China Mobile.com
+
+  hu暗暗Chen China telecom
+
+  Email : 陈欢6@China telecom.才能
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 28]
+
+Internet-Draft                    IFIT                    September 2021
+
+  Jaehwan Jin LG uouth韩国
+
+  Email : 大恩阿姆1@龙骨普鲁士.co.客人
+
+  Jongyoon Shin SK Telecom韩国
+
+  Email : Jon关于OO年.是你@上课.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song, et al.              Expires 1 April 2022                 [Page 29]
+
+

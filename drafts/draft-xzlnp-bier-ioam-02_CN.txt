@@ -1,0 +1,430 @@
+
+
+
+
+  Bier工作组X. Mininternet-Srift
+Z.ZhangIpted状态：标准轨道ZTE
+CORP.EXPIRE：2022年1月12日Y.刘中国移动N.Nainar C.
+Pignataro Cisco
+Systems，Inc。7月11日，2021年7月11日
+
+  位索引显式复制（BIER）封装原位OAM（IOAM）数据草案-XZLNP-
+BIER-IOAM-02
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包遍历特定网络域时收集操作和遥测信息。
+位索引显式复制（BIER）是一种架构，它提供通过“组播域”的最佳组播转发，而无需
+中间路由器来维护任何流状态或参与明确的树构建协议。BIER标头包含一个位字符串，
+其中每个位代表一个出口路由器以将数据包转发到。本文档概述了在BIER标题中携带I
+OAM数据的要求，并指定IOAM数据字段如何封装在BIER标题中。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网汇票将于2022年1月12日到期。
+
+
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 1]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中
+所述，并且在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions Used in This Document . . . . . . . . . . . . . .   3
+     2.1.  Requirements Language . . . . . . . . . . . . . . . . . .   3
+     2.2.  Abbreviations . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Requirements to carry IOAM data in BIER header  . . . . . . .   3
+   4.  IOAM data fields encapsulation in BIER header . . . . . . . .   4
+   5.  Considerations  . . . . . . . . . . . . . . . . . . . . . . .   6
+     5.1.  Discussion of the encapsulation approach  . . . . . . . .   6
+     5.2.  IOAM and the use of the BIER OAM bits . . . . . . . . . .   6
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   7
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
+
+1.介绍
+
+  原位运营，管理和维护（IOAM）在数据包遍历特定网络域时收集操作和遥测信息。
+[I-D.IETF-IPPM-IOAM-DATA]定义具有用于从传输节点记录各种
+遥测数据的不同IOAM数据字段的多个IOAM选项。[I-D.ITEF-IPPM-
+IOAM-Direct-Export]将Ioam Direct Export选项
+与IOAM数据字段定义，指示要收集的遥测数据而不被嵌入在数据包中。术语“原位”是
+指IOam数据字段被添加到数据包中，而不是在专门专用于OAM的数据包内发送。
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 2]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+  如[RFC8279]中所定义的位索引显式复制（BIER）是通过“多播域”提供
+最佳组播转发的架构，而无需中间路由器以维护任何流状态或从事显式树建筑物协议。如[
+RFC8296]中所定义的BIER标头包含一个位字符串，其中每个位代表一个出口路
+由器以将数据包转发到。
+
+  本文档概述了在BIER标题中携带IOAM数据的要求，并指定IOAM数据字段如
+何封装在BIER标题中。
+
+2.本文件中使用的约定
+
+2.1。要求语言
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+2.2。缩写
+
+  本文档中使用的缩写：
+
+  BFER : 位转发出口路由器
+
+  BFIR : 位转发入口路由器
+
+  BIER : 位索引显式复制
+
+  GRE : 通用路由封装
+
+  IOAM : 原位运营，管理和维护
+
+  OAM : 运营，管理和维护
+
+3.在Bier标题中携带IOAM数据的要求
+
+  [I-D.IETF-BIER-USIC-CUSIC]列出了彼得利的许多用例。
+通常在一个网络域中有许多组播流，并且一些多播流（例如实时视频和实时会议）对数据包
+丢失，延迟和其他因素很敏感。网络运营商想要了解这些流的实时统计，例如延迟，序列，
+入口/出口接口和缓冲区的使用。
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 3]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+  因此，需要测量BIER数据包的实时运输保证所需的方法。[i-d.ietf-
+bier-pmmm-oam]中定义的性能测量功能可用于测量数据包丢失和延迟。本文
+档尝试通过原位OAM提供一种方法来收集路径上的操作和遥测信息。
+
+4. IOAM数据字段封装BIER标头
+
+  BIER标题在[RFC8279]中定义。偏置Bier标头的Bier
+OAM标题在[I-D.ITF-BIER-PING]中定义。IOam-Data-
+字段可以使用新类型的OAM消息携带，该oam消息遵循Bier OAM报头（称为选
+项1），或者使用新的下一个协议标题携带，该标题立即跟随Bier标头（被称为选项2
+）。在本文档中，选择选项2，并在第5.1节中讨论了原因。添加了一个IOam标题，
+其中包含[i-d.ietf-ippm-ioam-data-
+data和[i-d.ietf-ippm-ioam-direct-
+export]中定义的不同的IOAM-Data-entions。
+
+  在使用IOam的管理域中，在BFIR中启用了IOAM标题的插入，该BFIR也
+充当了通过配置的IOAM封装节点，在BFERS中启用了BIER中的IOAM标题的
+删除作为IOam通过配置解封装节点。
+
+  IOAM over Bier的封装格式定义如下：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 4]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |              BIFT-id                  | TC  |S|     TTL       |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+   |Nibble |  Ver  |  BSL  |              Entropy                  |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  B
+   |OAM|Rsv|    DSCP   |Proto = TBD|            BFIR-id            |  I
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  E
+   |                BitString  (first 32 bits)                     ~  R
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+   ~                                                               ~  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+   ~                BitString  (last 32 bits)                      |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |  IOAM-Type    | IOAM HDR Len  |      Reserved     | Next Proto|  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  I
+   |                                                               |  O
+   |                                                               |  A
+   ~                 IOAM Option and Data Space                    ~  M
+   |                                                               |  |
+   |                                                               |  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+<-+
+   |                                                               |
+   |                                                               |
+   |                 Payload + Padding (L2/L3/...)                 |
+   |                                                               |
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 1 : 棺材内的IOAM封装格式
+
+  BIER标题和字段在[RFC8296]中定义。在BIER标题中，6位字段为“
+PROTO”（下一个协议）用于识别彼得头后立即有效载荷的类型，当存在IOAM报头
+时，“PROTO”值设置为TBD。
+
+  BIER中的IOAM相关字段定义如下：
+
+  IOAM-Type : 8位字段定义IOAM选项类型，如[I-D.ITF-
+IPPM-IOAM-DATA-IOAM-DATA-IOAM-IPPM-Ioam-
+Iop-Indut-Export的第4.1节中的第8.1节中所定义。
+
+  IOAM HDR Len :
+8位无符号整数。4八位字节单位的IOAM标头的长度。
+
+  Reserved : 在传输时必须将10位保留字段设置为零，并在收到后忽略。
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 5]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+  Next Proto : 6位无符号整数，它标识此IOAM选项后立即的有效载
+荷类型。该字段的语义与[RFC8296]中的“PROLO”字段相同。
+
+  IOAM Option and Data Space :
+IOAM选项标题和数据作为IOam型字段指定存在，并且在[ID.ITF-
+IPPM-IOAM-DATA-DATAM-IOAM-IOAM-INELID-
+EXPORT中的第3节中定义]。
+
+  可以包含多种IOAM-Option-inse，包括在BIER封装中。例如，如
+果Bier封装包含在数据有效载荷之前的两个IOAM-Option-Type，则第
+一个IOam选项的下一个Propo字段将包含TBD的值，而第二个IOam选项的下
+一个PropO字段将包含“Bier”下一个协议“编号，指示数据有效载荷的类型。每
+个IOAM选项类型必须最多发生一次在同一Bier封装标题中。
+
+5.考虑
+
+本节总结了一套关于彼得IOAM数据封装所采取的整体方法的考虑，以及部署考虑因素。
+
+5.1。讨论封装方法
+
+  第4节中描述的选项都应该是可行的，但是本文档需要选择一个作为Bier上的Io
+am的标准化封装。考虑到使用新的下一个协议报头的封装格式选项2的事实比使用新类型
+的OAM消息更简洁，以及许多其他传输协议，例如，其他传输协议。GRE，使用新的下
+一个协议标题来封装IOAM数据，选择封装格式选项2作为标准化的。
+
+5.2。IOam和使用Bier Oam位
+
+  [RFC8296]定义了一个双比特字段，称为OAM。[I-D.IETF-
+BIER-PMMM-OAM]介绍如何使用双位OAM字段进行备用标记性能测量方法，
+而本文档不会更改双位OAM字段的语义。BIER IOAM标题和BIER两位OAM
+字段是正交的，可以在同一数据包标题中共存，即使用IOAM数据的BIER数据包可以
+设置OAM字段，以及带OAM字段集的BIER数据包也可以携带IOAM数据。
+
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 6]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+6.安全考虑因素
+
+  本文档不会提出任何其他安全问题，超出规范参考列表中所提到的规范的任何额外安全
+问题。
+
+7. IANA考虑因素
+
+  在[RFC8296]中定义的“Bier下一个协议标识符”注册表中，IANA请
+求IANAM的新的下一个协议值，如下所示：
+
+   +--------------------+---------------+-----------------+------------+
+   | BIER Next Protocol | Description   | Semantics       | Reference  |
+   | Identifier         |               | Definition      |            |
+   +--------------------+---------------+-----------------+------------+
+   | TBD                | In-situ OAM   | Section 4       | This       |
+   |                    | (IOAM)        |                 | Document   |
+   +--------------------+---------------+-----------------+------------+
+
+  Table 1 : 新BIER IOAM的下一个协议标识符
+
+8.致谢
+
+  作者愿意承认Greg Mirsky以获得彻底的评论和非常有用的评论。
+
+9.参考资料
+
+9.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-
+DATA，S.，F.，Bhandari，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，草稿 -  IETF-IPPM-
+IOAM-Data-12（工作中进展），2月2021年。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+03（正在进行的工作），2月2021年。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 7]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+  [RFC8279] Wijnands，IJ。，red。，Rosen，E.，E
+d。，Dolgomow，A.，Przygienda，T.和S.
+Aldrin，“使用位索引显式复制（Bier）”，RFC
+8279，DOI2017年11月10.17487 /
+RFC8279，<https://www.rfc-
+editor.org/info/rfc8279>。
+
+  [RFC8296] Wijnands，IJ。，Ed。，Rosen，E.，Ed
+。，DolgomoW，A.，Tanturea，J.，Aldrin，S.和I. M
+eilik，“位索引显式复制（Bier）封装”MPLS和非MPLS网络“，RFC
+8296，DOI 10.17487 /
+RFC8296，2018年1月，<https://www.rfc-
+editor.org/info/rfc8296>。
+
+9.2。信息参考资料
+
+  [id.ietf-bier-ping] Kumar，N.，Pignataro
+，C.，Akiya，N.，郑，L.，Chen，M.和G.
+Mirsky，“Bier Ping和Trace”，草案 -  Ietf-
+Bier-Ping-07（正在进行的工作），5月2020年。
+
+  [ID.IETF-BIER-PMMM-OAM]
+MIRSKY，G.，ZHENG，L.，CHEN，M.和G. FIOCCOLA，“
+性能测量（PM）具有位索引显式复制（BIER）层的标记方法”，草案 -
+IETF-Bier-PMMM-OAM-10（正在进行的工作），3月2021年。
+
+  [ID.IETF-BIER-USIC-CUSER] Kumar，N.，Asa
+ti，R.，Chen，M.，Xu，X.，Dolganow，A.，Przygien
+da，T.，Gulko，A.，Robinson，D。，Arya，V.和C.
+Bestler，“Bier用例”，草案 -  IETF-Bier-Usific-
+case-12（正在进行的工作），9月20日。
+
+  作者的地址
+
+  ξ AO min ZT Eco RP. NaN京China
+
+  Email : 小.民2@中特.com.才能
+
+
+
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 8]
+
+Internet-Draft          BIER Encap for IOAM Data               July 2021
+
+  Z恒(Sandy) Zhang ZT Eco RP. NaN京China
+
+  Email : 张.正@中特.com.才能
+
+  Y i送L IU China Mobile Beijing China
+
+  Email : 刘一松@China Mobile.com
+
+  Nagendra Kumar Nainar Cisco
+Systems，Inc。7200-11 Kit Creek Road Roary
+Triangle Park，NC 27709美国
+
+  Email : 乃Kumar@Cisco.com
+
+  Carlos Pignataro Cisco
+Systems，Inc。7200-11 Kit Creek Road
+Research Triangle Park，NC 27709美利坚合众国
+
+  Email : 擦屁股那她@Cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Min, et al.             Expires January 12, 2022                [Page 9]
+
+

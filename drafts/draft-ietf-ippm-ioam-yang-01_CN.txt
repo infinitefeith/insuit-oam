@@ -1,0 +1,964 @@
+
+
+
+
+  IPPM T. Zhou，Ed.Internet-草案华为所在地：标准曲目J
+.Guichardexpires：2022年1月13日Futurewei F.
+Brockners S. Raghavan Cisco Systems
+7月12日，2021年7月12日
+
+  yang数据模型的原位OAM绘制稿 -  IETF-IPPM-IOAM-
+YANG-01
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录用户数据包中的操作和遥测信息，
+而数据包在网络中的两个点之间遍历。本文档为IOAM功能定义了一个阳模块。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2022年1月13日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-info）有关本
+文件的出版日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档
+中提取的代码组件必须
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 1]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  包括简化的BSD许可证文本，如信托法律规定第4.E中所述，并在没有简化的BS
+D许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions used in this document . . . . . . . . . . . . . .   2
+     2.1.  Tree Diagrams . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Design of the IOAM YANG Data Model  . . . . . . . . . . . . .   3
+     3.1.  Profiles  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     3.2.  Preallocated Tracing Profile  . . . . . . . . . . . . . .   5
+     3.3.  Incremental Tracing Profile . . . . . . . . . . . . . . .   5
+     3.4.  Direct Export Profile . . . . . . . . . . . . . . . . . .   6
+     3.5.  Proof of Transit Profile  . . . . . . . . . . . . . . . .   6
+     3.6.  Edge to Edge Profile  . . . . . . . . . . . . . . . . . .   7
+   4.  IOAM YANG Module  . . . . . . . . . . . . . . . . . . . . . .   7
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  21
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  22
+   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  23
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  23
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  23
+     8.2.  Informative References  . . . . . . . . . . . . . . . . .  24
+   Appendix A.  Examples . . . . . . . . . . . . . . . . . . . . . .  24
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  25
+
+1.介绍
+
+  原位操作，管理和维护（IOAM）[I-D.IETF-IPPM-IOAM-DA
+TA]在数据包遍历网络时记录用户数据包内的OAM信息。已在[i-d.ietf-
+ippm-ioam-data中定义了IOAM数据记录的数据类型和数据格式。IOA
+M数据可以嵌入许多协议封装，例如网络服务标题（NSH）和IPv6。
+
+  本文档使用yang数据建模语言[RFC7950]定义了一种用于IOAM功能的
+数据模型。这个阳模型支持所有五种IOAM选项，它是增量跟踪选项，预先分配的跟踪选
+项，直接出口选项[ID.IETF-IPPM-IOAM-DIRECT-
+EXPORT]，运输证明（POT）选项和边缘 - 到边缘选项。
+
+2.本文件中使用的约定
+
+  关键字“必须”，“必须不是”，“必填”，“应该”，“不得”，“应该”，“不应
+该”，“推荐”，“不推荐”，“五月”，“可选”和“可选”在本文档中应被解释如下
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 2]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  BCP14，[RFC2119]，[RFC8174]何时，并且仅当它们出现在所
+有资本中时，如此所示。
+
+  以下术语在[RFC7950]中定义，并在本说明书中使用：
+
+  或增加
+
+  一旦模特
+
+  因为
+
+  描述yang数据模型的术语是在[RFC7950]中的。
+
+2.1。树图
+
+  本文档中使用的树图遵循[RFC8340]中定义的符号。
+
+3. IOAM阳数据模型的设计
+
+3.1。概要文件
+
+  IOAM模型组织为配置文件列表，如下图所示。每个配置文件都与一个流和相应的I
+OAM信息相关联。
+
+  “IOAM-INFO”是所有读取辅助信息的容器，如单位或时间戳格式。因此，监
+控系统可以解释IOAM数据。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 3]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  module : IETF-IOAM  -  RW IOAM  -  ro
+IOAM-INFO  -  RW IOAM-Profiles  -  RW
+Admin-Config | - 启用了吗？boolean --rw ioam-
+profile * [profile-name] --rw profile-
+name string -rw filter | - 滤波器类型？IOAM-
+FILTER-型| -  ace-name？ - > / ACL：ACLS /
+ACL / ACES / ACE / NAME --RW协议类型？IOAM-
+Protocol-type --rw incremental-tracing-
+profile {increntmental-trace}？|...  -
+rw prelocated-tracing-profile
+{preallocated-trace}？|...  -  rw direct-
+export-profile {direct-export}？|...  -
+Rw Pot-itcher {验证 - 过境}？|...  -
+e2e-profile {边缘到边缘}？......
+
+  “已启用”是管理配置。当它设置为TRUE时，为系统启用IOAM配置。同时，启
+用IOAM数据平面功能。
+
+  “过滤器”用于识别流程，其中IOAM配置文件可以应用。可能有多种过滤器类型。
+ACL [RFC8519]是指定流程的常用方法。每个IOAM配置文件都可以与AC
+E相关联（访问控制条目）。当匹配的ACE“转发”操作“接受”时，IOAM操作必须
+由已接受的数据包驱动。
+
+  可以将IOAM数据封装到多个协议中，例如IPv6 [I-D.ietf-
+IPPM-IOAM-IPv6-选项]和NSH [I-D.ietf-SFC-
+IOAM-NSH]。“协议类型”用于指示应用IOAM的位置。例如，如果“协议类型
+”是IPv6，则IOAM入口节点将使用IPv6-IOAM [i-d.ietf-
+ippm-ioam-ipv6-operse]格式封装关联的流。
+
+  IOAM数据包括五种封装类型，即增量跟踪数据，预分配跟踪数据，直接导出数据，
+转运数据证明和结束到最终数据。在实践中，可以将多种IOAM数据类型封装到同一IO
+AM头中。“IOAM-配置文件”包含一组子配置文件，每个子配置文件都涉及一种封装
+类型。配置的对象可能不支持所有子配置文件。支持的子配置文件由5定义表示
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 4]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  功能，即“增量跟踪”，“prelocated-
+trace”，“直接导出”，“传输验证”，“边缘到边缘”。
+
+3.2。预曝追踪档案
+
+  预计IOAM跟踪数据将在数据包遍历的每个节点上收集，以确保在整个路径中的可见
+性，以在IOAM域中占用。预分配的跟踪选项将为每个节点创建预先分配的空间以填充其
+信息。“prelocated-tracing-
+profile”包含预曝种跟踪数据的详细信息。信息包括：
+
+  o enabled : 指示是否启用了预先分配的跟踪配置文件。
+
+  o node-action : 表示操作（例如，封装IOAM报头，将IOAM
+数据或拆卸IOAM报头运输）应用于专用流程。
+
+  o use-namespace : 表示用于跟踪类型的命名空间。
+
+  o trace-type :
+表示通过IOAM启用的节点捕获的每跳数据，并包括在节点数据列表中。
+
+  O环回模式用于将数据包的副本发送回源。
+
+  o活动模式表示数据包用于活动测量。
+
+   -  rw preallocated-tracing-profile
+{preallocated-trace}？ - 启用了吗？Boolean
+--RW节点操作？IOAM-node-action --rw trace-
+types | - 使用-命名空间吗？IOAM-namespace |--rw
+trace-type * ioam-trace-type --rw
+enable-loopback-mode？Boolean --RW启用 -
+主动模式？布尔基
+
+3.3。增量跟踪档案
+
+  增量跟踪选项包含一个可变节点数据字段，其中每个节点在选项标题之后立即分配并按
+下其节点数据。“incrental-tracing-
+profile”包含增量跟踪数据的详细信息。详细信息与预期跟踪相同
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 5]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  配置文件，但具有一个变量“max-length”，它限制了IOAM头的长度。
+
+   -  increntmental-tracing-profile
+{increntmental-trace}？ - 启用了吗？Boolean
+--RW节点操作？IOAM-node-action --rw trace-
+types | - 使用-命名空间吗？IOAM-namespace |--rw
+trace-type * ioam-trace-type --rw
+enable-loopback-mode？Boolean --RW启用 -
+主动模式？布尔 -  rw max-length？UINT32
+
+3.4。直接出口档案
+
+  直接导出选项用作IOAM节点的触发器，以将IOAM数据导出到接收实体（或实体
+）。“Direct-export-inforper”包含直接导出数据的详细信息。
+详细信息与预曝种的跟踪配置文件相同，但是使用一个更可选的变量“flow-
+id”，其用于将导出的数据与多个节点和多个数据包相关联。
+
+  -rw direct-export-profile {direct-
+export}？ - 启用了吗？Boolean --RW节点操作？IOAM-
+node-action --rw trace-types | - 使用-
+命名空间吗？IOAM-namespace |--rw trace-type *
+ioam-trace-type --rw enable-loopback-
+mode？Boolean --RW启用 - 主动模式？布尔--rw flow-
+id？UINT32
+
+3.5。过境轮廓证明
+
+  IOAM的传输数据证明是支持路径或服务功能链验证用例。“pot-
+inchance”包含过境数据证明的详细信息。详细信息在[i-d.ietf-
+sfc-specid-transit]中描述。
+
+
+
+
+
+
+
+
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 6]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  -rw pot-profile {验证 - 过境}？ -
+启用了吗？Boolean --rw Active-Profile-
+Index？锅：档案 - 索引范围 -  Rw pot-profile-list
+* [pot-profile-index]  -  oder-profile-
+index profile-index-range --rw prime-
+number uint64  - 秘密分享uint64 -  rw
+public-polynomial uint64 -rw lpc uint64
+- 验证器吗？Boolean --RW验证器键？uint64  -  rw
+bitmask？UINT64  - 仪式 - 蒙面 - 蒙面 - 掩模 -
+掩码* uint64  -  ulw上游掩码* uint64
+
+3.6。边缘轮廓
+
+  “IOAM边沿到Edge”选项是携带IOAM封装节点添加的数据，并由IOAM
+解封节点解释。“e2e-profile”包含边缘数据的边缘的详细信息。详细信息包
+括：
+
+  o enabled : 指示是否启用了边沿配置文件。
+
+  o节点动作与2.2节中的语义相同。
+
+  o use-namespace : 指示用于边缘类型的边缘的命名空间。
+
+  o E2E类型指示要从入口IOAM节点携带到EORG IOAM节点的数据。
+
+   -  e2e-profile {边缘到边缘}？ -
+启用了吗？Boolean --RW节点操作？ioam-node-action
+--rw e2e-types --rw使用-命名空间？Ioam-
+namespace  -  rw e2e-type * ioam-e2e型
+
+4. IO AM yang module
+
+  <代码开始>文件“ietf-
+ioam@2021-01-12.yang”模块ietf-ioam {yang-
+version 1.1;命名空间“urn：ietf：params：xml：ns：
+yang：ietf-ioam”;前缀“ioam”;
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 7]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  导入IETF-POT-配置文件{前缀“锅”;参考“草案 -  IETF-
+SFC证明 - 过境”;}
+
+  导入IETF-Access-Control-List
+{Prefix“ACL”;参考“RFC
+8519：网络访问控制列表（ACL）的阳数据模型”;}
+
+  组织“IETF IPPM（IP性能指标）工作组”;
+
+  contact "WG Web :
+<http://tools.ietf.org/wg/ippm> wg list：
+<ippm@ietf.org>编辑：zhoutianran@huawei.com
+编辑器：james.n.guichard@futurewei.com编辑器：fb
+rockne@cisco.com编辑：srihari@cisco.com“;
+
+  描述“此阳模块指定原位OAM（IOAM）的供应商无关数据模型。
+
+  版权所有（c）2020 IETF信任和被确定为代码的作者。版权所有。
+
+  根据IETF信托信托信托信托信托证明书第4.C条规定的简化BSD许可，允许重
+新分配和二进制表格，有或没有修改的源和二进制表格，有或没有修改，并遵守有关IET
+F文件的法律规定的简化BSD许可证（http://trustee.ietf.or
+g/license-info）。
+
+  这个版本的这个阳模块是RFC
+XXXX的一部分;查看RFC本身以获得完整的法律通知。“;
+
+  修订2021-01-12 {描述“初始版本”。;参考“草案 -  IETF-
+IPPM-IOAM-yang”;}
+
+  /* * 特征 */
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 8]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  功能upprental-trace
+{描述“此功能表示支持增量跟踪选项”;参考“草案 -  IETF-IPPM-
+IOAM-DATA”;}
+
+  特征prelocated-trace
+{description“此功能表明支持预先曝气的跟踪选项”;参考“草案 -
+IETF-IPPM-IOAM-DATA”;}
+
+  功能直接导出{描述“此功能表示支持直接导出选项”;参考“IETF-IPPM-
+IOAM-DIRECT-EXPORT”;}
+
+  功能验证{描述“此功能表明，支持过境选项证明”;参考“草案 -  IETF-
+IPPM-IOAM-DATA”;}
+
+  特征边缘到边缘{描述“此功能表示支持边沿选项”;参考“草案 -  IETF-
+IPPM-IOAM-DATA”;}
+
+  / * *标识* /身份基本过滤器{描述“基本标识来表示过滤器。过滤器用于指
+定应用IOAM配置文件的流程。”;}
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022                [Page 9]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  Identity ACL-
+滤波器{基础基础过滤器;说明“应用ACL规则以指定流程。”;}
+
+  Identity基本协议{描述“基本标识表示运营商协议。它用于指示IOAM数
+据嵌入的层和协议。”;}
+
+  IPV6协议{基础协议;描述“所描述的IOAM数据嵌入IPv6协议中。”;参
+考“IETF-IPPM-IOAM-IPv6-选项”;}
+
+  Identity NSH协议{基础基础协议;描述“所描述的IOAM数据嵌入N
+SH中。”;参考“IETF-SFC-IOAM-NSH”;}
+
+  Identity基本节点动作{描述“基本标识表示节点操作。它用于指示节点所需
+的操作。”;}
+
+  Identity Action-encapsulate
+{基础基础节点动作;说明“表示节点是封装IOAM数据包”;}
+
+  Identity Action-Duatapate
+{基础基础节点动作;说明“表示节点是解除IOAM数据包”;}
+
+  标识基础 - 跟踪类型{描述“基本标识表示跟踪类型”;}
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 10]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  Identity Trace-Hop-Lim-node-ID {基础基础跟踪
+类型;说明“表示节点数据中Hop_lim和node_id的存在。”;}
+
+  Identity Trace-If-ID {基础基础跟踪类型;说明“表示节点
+数据中的Ingress_IF_ID和EIGRE_IF_ID的存在。”;}
+
+  标识跟踪时间戳 -
+秒{基础基础跟踪类型;说明“表示节点数据中的时间戳秒数。”;}
+
+  标识跟踪时间戳 -
+纳秒{基础基础跟踪类型;说明“表示节点数据中的时间戳纳秒的存在。”;}
+
+  标识跟踪 -
+传输延迟{基础基础轨迹型;说明“表示节点数据中的传输延迟的存在。”;}
+
+  Identity Trace-Namespace-Data
+{基础基础跟踪类型;说明“表示节点数据中的命名空间特定数据（短格式）。”;}
+
+标识跟踪队列深度{基础基础跟踪类型;描述“表示节点数据中的队列深度存在。”;}
+
+  Identity Trace-Opaque-State-Snapshot
+{基础基础跟踪类型;描述
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 11]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  “表示存在可变长度不透明状态快照字段。”;}
+
+  标识跟踪 - 跳-lim-node-id-id {base base-tra
+ce键入;说明“表示节点数据中的hop_lim和node_id的存在。”;}
+
+  标识跟踪 -  IF-ID范围{基础基础跟踪类型;描述“表示在节点数据中存在
+Ingress_IF_ID和EIGRE_IF_ID宽。”;}
+
+  Identity Trace-命名空间 - 数据范围{基础基础跟踪类型;描述
+“表示节点数据中的广泛格式的命名空间特定数据。”;}
+
+  身份跟踪缓冲区占用{基础基础跟踪类型;描述“表示节点数据中缓冲区占用的存在。
+”;}
+
+  Identity Trace-Checksum-Complence
+{基础基础跟踪类型;描述“表示校验和补码节点数据的存在。”;}
+
+  身份基本壶型{描述“基本标识表示过境证明（POT）类型”;}
+
+  Identity pot-bytes-16
+{基础底座型;描述“POT数据是16个八位字节字段。”;}
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 12]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  Identity base-e2e-type
+{描述“基本标识来表示E2E类型”;}
+
+  IDENTITY E2E-SEQ-NUM-64
+{基础基础-E2E型;说明“表示64位序列号的存在”;}
+
+  Identity E2E-SEQ-NUM-32
+{基础基础-E2E型;描述“表示32位序列号的存在”;}
+
+  Identity E2E-Timestamp-秒{基础基础-E2E型;说明“
+表示框架传输的时间戳秒数”;}
+
+  身份E2E-TIMESTAMP  -
+亚级{基础基础-E2E型;描述“表示用于传输帧的时间戳寄存器”;}
+
+  Identity Base-Namespace
+{描述“基本标识表示命名空间”;}
+
+  Identity namespace-ietf {base base-
+namespace;描述“IETF中指定的命名空间”。}
+
+  / * *类型定义* /
+
+  typedef ioam-filter-type {type
+identityref {
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 13]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  基础基础滤波器;描述“指定已知类型的过滤器。”;}
+
+  typedef ioam-protocol-type {type
+identityref
+{base基本协议;描述“指定IOAM数据的已知类型的载波协议。”;}
+
+  typedef ioam-node-action {type
+identityref {base base-node-
+action;}描述“指定已知类型的节点操作。”;}
+
+  typedef ioam-trace y {type identityref
+{base base-trace-type;}描述“指定已知的跟踪类型。”;}
+
+  TypeDef Ioam-pot型{型号idityref
+{基础底盆型;}描述“指定已知的罐式。”;}
+
+  typedef ioam-e2e-type {type
+identityref {base
+base-e2e-type;说明“指定已知的E2E类型。”;}
+
+  typedef ioam-namespace {type
+identityref {
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 14]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  基础基础 - 命名空间;}描述“指定支持的命名空间。”;}
+
+  / * *组定义* /
+
+  分组ioam-filter
+{description“”IOAM过滤器定义的分组“;
+
+  叶片滤波器型{型IOam-滤波器类型;描述“过滤器类型”;}
+
+  叶子ace-name {何时“../filter-type
+='IOam：ACL-Filter'”;键入Leafref {path“/
+ACL：ACL / ACL：ACL / ACL：ACES / ACL：ACE /
+ACL：NAME”;}描述“访问控制条目名称”。}}
+
+  分组ENCAP跟踪{描述“用于跟踪配置文件的通用配置的分组。”;
+
+  容器跟踪类型{描述“封装的跟踪类型列表”;
+
+  叶use-namespace {type ioam-
+namespace;描述“用于封装的命名空间”;}
+
+  叶列表跟踪型{类型IOam-
+Trace型;说明“跟踪类型仅在封装节点上定义。”;}}
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 15]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  叶enable-loopback-mode {type boolean;默认
+为false;描述“环回模式用于将数据包的副本发送回源。环回模式仅在封装节点上定
+义。”;}
+
+  叶enable-active-mode {type boolean;默认为f
+alse;说明“活动模式指示数据包用于活动测量。IOAM解封装节点，其在其跟踪选
+项之一中包含活动标志设置的分组必须终止该数据包。”;}}
+
+  分组ioam-incremental-tracing-profile
+{description“增量跟踪配置文件的分组。”;
+
+  叶节点动作{键入ioam-node-action;描述“节点操作”;}
+
+  使用Encap跟踪{“Node-Action =”IOam：Action-
+encapsulate'“;}
+
+  叶最大长度{何时“../nodeaction ='IOam：Action-e
+ncapsulate'”;键入UINT32;单位字节;描述“此字段指定八位字节中
+节点数据列表的最大长度。最大长度仅在封装节点处定义。它仅用于增量跟踪模式。”;}
+}
+
+  分组ioam-prelocated-tracing-profile
+{description“增量跟踪配置文件的分组。”;
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 16]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  叶节点动作{键入ioam-node-action;描述“节点操作”;}
+
+  使用Encap跟踪{“Node-Action =”IOam：Action-
+encapsulate'“;}}
+
+  分组ioam-direct-export-profile
+{description“用于直接出口配置文件的分组。”;
+
+  叶节点动作{键入ioam-node-action;描述“节点操作”;}
+
+  使用Encap跟踪{“Node-Action =”IOam：Action-
+encapsulate'“;}
+
+  叶流id {当“../nodeactaction
+='IOam：Action-encapsulate'”;键入UINT32;描述“
+一个32位流标识符。该字段在封装节点处设置。可以由中央控制器均匀地分配或由封装节
+点生成的流量ID。后一种方法不能保证流ID的唯一性，但是冲突概率很小，由于大的流
+量ID空间.Flow-id用于将导出的数据与多个节点和多个数据包相关联。“;}}
+
+  分组ioam-e2e-profile
+{description“结束到结束配置文件的分组。”;
+
+  叶节点动作{键入ioam-node-
+action;说明“表示节点如何为此配置文件”;}
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 17]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  容器e2e-types {何时“../nodeaction
+='IOam：Action-
+encapsulate'”;描述“封装的E2E类型列表”;
+
+  叶use-namespace {type ioam-
+namespace;描述“用于封装的命名空间”;}
+
+  叶列表E2E型{型IOAM-E2E型;描述“E2E类型仅在封装节点上定义。”
+;}}}
+
+  分组ioam-admin-config
+{description“ioam顶级管理配置。”;
+
+  叶子启用{键入boolean;默认为false;描述“当True时，为系统启
+用IOAM配置。同时，启用IOAM数据平面功能。”;}}
+
+  / * *数据节点* /
+
+  容器IOam {描述“IOAM顶级容器”;
+
+  Container Ioam-Info {CONFIG FALSE;描述“描
+述了诸如单位或时间戳格式的助理信息。因此，监控系统可以解释IOAM数据。”;
+
+  }
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 18]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  Container IOAM-CAPLILES
+{描述“包含IOAM配置文件列表。”;
+
+  container admin-config {description“包含
+与IOAM功能相关的所有管理配置以及所有IOAM配置文件。”;
+
+  使用ioam-admin-config;}
+
+  列表IOAM-Profile {Key“Profile-
+name”;订购的用户;说明“节点上配置的IOAM配置文件列表。”;
+
+  叶子配置文件名称{键入字符串;强制性的;描述“每个IOAM配置文件的唯一标识
+符”;}
+
+集装箱滤波器{使用IOAM过滤器;描述“用于指示流量的过滤器应用IOam。”;}
+
+  叶协议型{型IOAM-Protocol-
+type;描述“此项目用于指示应用IOam的运营商协议。”;}
+
+  Container Incremental-Tracing-Profile
+{if-feature incremental-
+trace;描述“描述增量跟踪选项的配置文件”;
+
+  叶子启用{键入boolean;默认为false;描述
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 19]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  “当为true时，将增量跟踪选项应用于过滤器标识的指定流程。”;}
+
+  使用IOAM-Incremental-Tracing-Profile;}
+
+  容器preallocated-tracing-profile {if-
+feature prelocated-
+trace;说明“描述预释的跟踪选项的配置文件”;
+
+  叶子启用{键入boolean;默认为false;说明“当为true时，将pr
+elocated tracing选项应用于由以下筛选器标识的指定流程。”;}
+
+  使用ioam-prelocated-tracing-profile;}
+
+  Container Direct-Export-inffice {if-
+feature directue-
+export;描述“描述直接导出选项的配置文件”;
+
+  叶子启用{键入boolean;默认为false;描述“当为true时，将直接
+导出选项应用于以下筛选器标识的指定流程。”;}
+
+  使用ioam-direct-export-inforp;}
+
+  集装箱壶型{if-feature
+offrit;说明“描述了POT选项的配置文件”;
+
+  叶子启用{键入boolean;默认为false;描述
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 20]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  “当为true时，将传输选项的证明应用于以下过滤器标识的指定流程。”;}
+
+  叶子活性剖面索引{型壶：轮廓索引范围;描述“当前处于活动状态的传输配置文件索
+引的证明。将设置在路径或链条的第一跳中。其他节点将不会使用此字段。”;}
+
+  uses pot : 盆景;}
+
+  Container E2E-Profile {if-
+feature边缘到边缘;描述“描述E2E选项的配置文件”;
+
+  叶子启用{键入boolean;默认为false;说明“当为true时，将结束
+应用于以下筛选器标识的指定流程。”;}
+
+  使用ioam-e2e-profile;<代码结束>
+
+5.安全考虑因素
+
+  本文档中指定的阳模块定义了用于数据的模式，该模式是通过网络管理协议（如Net
+conf [RFC6241]或RESTCONF [RFC8040]）访问的数据。
+最低的NetConf层是安全传输层，强制性的安全传输是安全的shell（SSH）
+[RFC6242]。最低的RESTCONF层是HTTPS，强制性的安全传输是TL
+S [RFC5246]。
+
+  NetConf访问控制模型[RFC6536]提供了限制特定NETCONF或R
+ESTCONF用户的访问权限的方法
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 21]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  所有可用的netconf或restconf协议操作和内容的预配置子集。
+
+  这个阳阳模块中有许多数据节点是可写/可创建/删除的（即config true
+，这是默认值）。这些数据节点可以在某些网络环境中被认为是敏感的或易受攻击。没有正
+确保护的这些数据节点的写操作（例如，编辑 -
+配置）可以对网络操作产生负面影响。这些是子树和数据节点及其敏感性/漏洞：
+
+  O / IOAM / IOAM-Profiles / Admin-
+Config
+
+  容器中的项目包括与IOAM功能和所有IOAM配置文件相关的顶级管理配置。对这
+些项目的意外更改可能导致所有IOAM配置文件的IOAM功能中断和/或不端行为。
+
+  O / IOAM / IOAM-Profiles / IOAM-
+Profile
+
+  上面列表中的条目包括整个IOAM配置文件配置，它间接创建或修改设备配置。对这
+些条目的意外更改可能导致相应流动的IOAM行为的错误。
+
+6. IANA考虑因素
+
+  RFC Ed. :
+在本节中，用实际的RFC号码替换所有出现的“XXXX”（并删除此注释）。
+
+  请求IANA从IETF XML注册表中分配新的URI
+[RFC3688]。建议以下URI：
+
+  URI :
+URN：IETF：Params：XML：NS：yang：IETF-
+IOAM注册人联系：IESG。XML：n / a;请求的URI是XML命名空间。
+
+  本文档还请在yang模块名称注册表[RFC7950]中请求新的阳模块名称：
+
+  name : IETF-IOAM命名空间：URN：IETF：PARAMS：X
+ML：NS：yang：IETF-IOAM前缀：IOAM参考：RFC XXXX
+
+
+
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 22]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+7.致谢
+
+  对于他们有价值的评论，讨论和反馈，我们希望承认Greg
+Mirsky，Reshad Rahman和Tom Petch。
+
+8.参考资料
+
+8.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-
+DATA，S.，F.，Bhandari，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，草稿 -  IETF-IPPM-
+IOAM-Data-12（工作中进展），2月2021年。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+03（正在进行的工作），2月2021年。
+
+  [ID.IETF-SFC证明 - 过境验证]促进诺斯人，F.，Bhandar
+i，S.，Mizrahi，T.，Dara，S.和S.和S.
+Youell，“横贯证明”，草案 -  IETF-SFC-验证 - 过境 -
+08（正在进行的工作），11月20日。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [RFC3688]取餐，M.，“IETF XML注册表”，BCP
+81，RFC 3688，DOI 10.17487 /
+RFC3688，2004年1月，<https://www.rfc-
+editor.org/info/rfc3688>。
+
+  [RFC5246] Dierks，T.和E.
+Rescorla，“传输层安全（TLS）协议版本1.2”，RFC
+5246，DOI 10.17487 /
+RFC5246，2008年8月，<https://www.rfc-
+editor.org/info/ rfc5246>。
+
+  [RFC6241] ENNS，R.，ED。，Bjorklund，M.，ED。
+，Schoenwaelder，J.，Ed。和A.
+Bierman，Ed。，“网络配置协议（Netconf）”，RFC
+6241，DOI 10.17487
+/RFC6241，2011年6月，<https://www.rfc-
+editor.org/info/rfc6241>。
+
+  [RFC6242]
+WASSERMAN，M，“使用NETCONF协议”在Secure
+Shell（SSH）上“，RFC 6242，DOI 10.17487 /
+RFC6242，2011年6月，<https://www.rfc-
+editor.org/info/rfc6242>。
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 23]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  [RFC6536] Bieroman，A.和M.
+Bjorklund，“网络配置协议（Netconf）访问控制模型”，RFC
+6536，DOI 10.17487 /
+RFC6536，2012年3月，<https://www.rfc-
+editor.org/info/RFC6536>。
+
+  [rfc7950]
+Bjorklund，M.，Ed。，“杨1.1数据建模语言”，RFC
+7950，DOI 10.17487 /
+RFC7950，2016年8月，<https://www.rfc-
+editor.org/info/rfc7950>。
+
+  [RFC8040] Bierman，A.，Bjorglund，M.和K.Wa
+tsen，“RESTCONF协议”，RFC 8040，DOI 10.17487
+/ RFC8040，2017年1月，<https://www.rfc-
+editor.org/info/rfc8040 >。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+  [RFC8340] Bjorklund，M.和L.
+Berger，Ed。，“阳树图”，BCP 215，RFC 8340，DOI
+10.17487 /
+RFC8340，2018年3月，<https://www.rfc-
+editor.org/info/RFC8340>。
+
+  [RFC8519]
+Jethanandani，M.，Agarwal，S.，Huang，L.和D.
+Blair，“网络访问控制列表（ACL）”，RFC 8519，DOI
+10.17487 /
+RFC8519，2019年3月，<HTTPS：//www.rfc-
+editor.org/info/rfc8519>。
+
+8.2。信息参考资料
+
+  [ID.IETF-IPPM-IOAM-IPv6-选项] Bhandari，S
+.，Brockners，F.，Pignataro，C.，Greder，H.，Li
+eddy，J.，Youell，S.，Mizrahi，T.，Kfir，A.，Gaf
+ni，B.，Lapukhov，P.，Spiegel，M.，Krishnan，S.
+，S.，Asati，R.和M. Smith，“原位OAM IPv6选项”，草案-
+IETF-IPPM-IOam-
+IPv6-options-05（正在进行的工作），2月2021年。
+
+  [ID.IETF-SFC-IOAM-NSH] Brockners，F.和S.
+Bhandari，“网络服务标题（NSH）封装的原位OAM（IOAM）数据”，草
+稿 -  IETF-SFC-IOAM-
+NSH-05（正在进行的工作），12月20日。
+
+  附录A.示例
+
+  本附录是非规范性的。
+
+  TBD.
+
+
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 24]
+
+Internet-Draft             YANG Model for IOAM                 July 2021
+
+  作者的地址
+
+  TI安然Zhou hu A为 156 be i青RD. Beijing
+100095 China
+
+  Email : 周恬然@华为.com
+
+  Jim Guichard Futurewei美利坚合众国
+
+  Email : James.你.鬼差人的@future为.com
+
+  Frank Brockners Cisco Systems
+Hansaallee 249,3楼Duesseldorf，Nordrhein-
+Westfalen 40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Srihiri raghavan思科系统捕鼠infopark
+sase，ramanujan it city neville
+bolt，2d楼，古老的Mahabalipuram Road
+Chennai，泰米尔纳德邦600113印度
+
+  Email : 生日哈日@Cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhou, Ed., et al.       Expires January 13, 2022               [Page 25]
+

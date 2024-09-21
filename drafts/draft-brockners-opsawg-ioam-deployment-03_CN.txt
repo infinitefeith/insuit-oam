@@ -1,0 +1,1050 @@
+
+
+
+
+  Opsawg F. Brocknersternet-Somet
+Ciscoineed状态：最佳现行实践S. Bhandari，Ed.Expire
+s：12月26日，2021年12月26日思想家D. Bernier Bell
+Canada T. Mizrahi，Ed。华为6月24日，2021年
+
+  原位OAM部署草案-Crockners-Opsawg-Ioam-
+Deployment-03
+
+  抽象的
+
+  原位运营，管理和维护（IOAM）在数据包中记录在数据包中的操作和遥测信息，而
+数据包遍历网络中的两个点之间的路径。本文档为IOAM部署提供了一个框架，并提供最
+佳现行实践。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于2021年12月26日到期。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+  本文件须遵守BCP 78和IETF Trust的法律规定，与IETF文件（H
+TTPS://trustee.ietf.org/license-
+info）有关本文件的出版日期。请审核这些文件
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 1]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  仔细，他们描述了对本文件的权利和限制。从本文档中提取的代码组件必须包括简化的
+BSD许可证文本，如信托法律规定第4.在第41条中所述，并且在没有简化的BSD许
+可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  IOAM Deployment: Domains And Nodes  . . . . . . . . . . . . .   4
+   4.  Types of IOAM . . . . . . . . . . . . . . . . . . . . . . . .   5
+     4.1.  Per-hop Tracing IOAM  . . . . . . . . . . . . . . . . . .   6
+     4.2.  Proof of Transit IOAM . . . . . . . . . . . . . . . . . .   8
+     4.3.  Edge to Edge IOAM . . . . . . . . . . . . . . . . . . . .   8
+     4.4.  Direct Export IOAM  . . . . . . . . . . . . . . . . . . .   8
+   5.  IOAM Encapsulations . . . . . . . . . . . . . . . . . . . . .   8
+     5.1.  IPv6  . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     5.2.  NSH . . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     5.3.  GRE . . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     5.4.  Geneve  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     5.5.  Segment Routing . . . . . . . . . . . . . . . . . . . . .  10
+     5.6.  Segment Routing for IPv6  . . . . . . . . . . . . . . . .  10
+     5.7.  VXLAN-GPE . . . . . . . . . . . . . . . . . . . . . . . .  10
+   6.  IOAM Data Export  . . . . . . . . . . . . . . . . . . . . . .  10
+   7.  IOAM Deployment Considerations  . . . . . . . . . . . . . . .  11
+     7.1.  IOAM Namespaces . . . . . . . . . . . . . . . . . . . . .  12
+     7.2.  IOAM Layering . . . . . . . . . . . . . . . . . . . . . .  13
+     7.3.  IOAM Trace Option Types . . . . . . . . . . . . . . . . .  14
+     7.4.  Traffic-sets That IOAM Is Applied To  . . . . . . . . . .  16
+     7.5.  IOAM Loopback Mode  . . . . . . . . . . . . . . . . . . .  16
+     7.6.  IOAM Active Mode  . . . . . . . . . . . . . . . . . . . .  16
+     7.7.  Brown Field Deployments: IOAM Unaware Nodes . . . . . . .  17
+   8.  IOAM Manageability  . . . . . . . . . . . . . . . . . . . . .  17
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  18
+   10. Security Considerations . . . . . . . . . . . . . . . . . . .  18
+   11. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  19
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  19
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .  19
+     12.2.  Informative References . . . . . . . . . . . . . . . . .  20
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  23
+
+1.介绍
+
+  “原位”操作，管理和维护（IOAM）在数据包遍历特定网络域时记录数据包内的O
+AM信息。术语“原位”是指OAM数据被添加到数据包而不是是存在的事实
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 2]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  在专门专用于OAM的数据包中发送。IOam是补充机制，如Ping，Trace
+route或其他主动探测机制。就“主动”或“被动”Oam而言，“原位”OAM可以
+被认为是混合OAM类型。“原位”机制不需要发送额外的数据包。IOAM将信息添加到
+已有的数据包中，因此不能被视为被动。就[RFC7799]中给出的分类，IOam可
+以被描绘为混合型1.可以利用IOam机制，其中机制使用时。ICMP不适用或不提供
+所需的结果，例如证明某个流量采用预定义的路径，实时数据流量的SLA验证，在网络中
+分发流量的网络中的交通分布路径的详细统计信息，或者，探测流量可能与网络设备的常规
+数据流量不同的探测流量。
+
+2.惯例
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+  本文档中使用的缩写：
+
+  E2E边缘到边缘
+
+  Geneve : 通用网络虚拟化封装[i-d.ietf-
+nvo3-geneve]
+
+  GRE通用路由封装
+
+  IOAM : 原位运营，管理和维护
+
+  MTU : 最大传输单元
+
+  NSH : 网络服务标题[RFC8300]
+
+  OAM : 运营，管理和维护
+
+  POT : 过境证明
+
+  SFC : 服务功能链
+
+  SID : 段识别
+
+  SR : 段路由
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 3]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  VXLAN-GPE : 虚拟可扩展局域网，通用协议扩展[i-d.ietf-
+nvo3-vxlan-gpe]
+
+3. IOAM Deployment : 域和节点
+
+IOAM是一个网络域的特定功能，具有“网络域”是单个管理中的一组网络设备或实体。
+IOAM没有针对全球互联网的部署。使用IOAM的网络的一部分被称为“IOAM-域
+”。例如，IOam-域可以包括使用虚拟连接/隧道之间的设备或叠加网络之间的物理连
+接，以便在所述设备之间连接。 IOam域由其周边或边缘定义。一个IOAM域的运营
+商，预计到位的规定，以确保其包含IOAM数据字段的数据包不漏超出IOAM域，例如
+边缘使用例如数据包过滤方法。操作员应考虑IOam对诸如ECMP处理的机制的潜在操
+作影响（例如，基于数据包长度的负载平衡方案可能受到IOAM引起的增加的数据包大小
+影响），路径MTU（即确保所有链路的MTU在域中足够大以支持由于IOAM的增加的
+数据包大小）和ICMP消息处理。
+
+  IOam-Domain由“IOAM封装节点”，“IOAM
+Depapsulate节点”和“IOam
+Transit节点”组成。节点（即封装，传输，解除）的角色在IOam-
+命名空间中定义（见下文）。一个节点可以在不同的IOAM-
+命名空间中具有不同的角色。
+
+  “IOAM封装节点”将一个或多个IOAM-Option-Type包含到已启用
+IOAM的数据包中。如果为流量的所选子集启用IOAM，则IOAM封装节点负责将I
+OAM功能应用于所选子集。
+
+  “IOam Transit节点”更新一个或多个IOAM数据字段。如果报文中的
+预先分配和增量跟踪选项类型都存在，则每个IOAM Transit节点将以大多数选
+项类型更新。Transit节点不会向数据包添加新的IOAM-Option-
+Type，也不会更改IOAM边缘到边缘选项类型的IOAM-Data-
+yourse。
+
+  “IOAM Decaped节点”从数据包中删除IOAM-Option-
+Type。
+
+  封装，IOAM-Transit或Ioam解封节点的角色始终在特定的IOAM-
+命名空间中执行。这意味着一种IOAM节点是例如一个IOam解封节点
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 4]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  IOam-命名空间“a”但不是ioam-
+namespace“b”只会从数据包中删除IOAM-
+Namespace“A”的IOAM-Option-Type。位于IOAM域边缘位
+于IOAM域边缘的IOAM解封装节点会为来自数据包的所有IOAM-
+NameSpace删除所有IOAM-选项类型和关联的封装头。
+
+  IOAM-命名空间允许IOAM-Data-Fields的命名空间定义和解释。
+接口ID可以例如指向物理接口（例如，要理解在接收或发送分组时使用哪个聚合链路的物
+理接口），而在另一个情况下它可以参考逻辑接口（例如，隧道）。有关IOAM-
+命名空间的讨论，请参阅第7.1节。
+
+            Export of      Export of      Export of     Export of
+            IOAM data      IOAM data      IOAM data     IOAM data
+            (optional)     (optional)     (optional)     (optional)
+                ^              ^              ^              ^
+                |              |              |              |
+                |              |              |              |
+   User     +---+----+     +---+----+     +---+----+     +---+----+
+   packets  |Encapsu-|     | Transit|     | Transit|     |Decapsu-|
+   -------->|lating  |====>| Node   |====>| Node   |====>|lating  |-->
+            |Node    |     | A      |     | B      |     |Node    |
+            +--------+     +--------+     +--------+     +--------+
+
+  Figure 1 : IOAM节点的角色
+
+  添加或删除IOAM-Data-
+Fields的IOAM节点也可以同时更新IOAM-Data-excess。或者换
+句话说，IOAM封装或解封装的节点也可以同时用作IOAM传输节点。请注意，IOA
+M域中的每个节点都不需要是IOAM Transit节点。例如，部署可能要求数据包
+遍历一组支持IOAM的防火墙。在这种情况下，只有该组防火墙节点将是IOAM传输节
+点而不是所有节点。
+
+4. IOam的类型
+
+  IOAM支持不同的操作模式，这些操作模式由数据包中携带的IOAM数据字段的类
+型分化，收集的数据，收集或更新数据的节点的类型以及节点是否以及如何导出IOAM信
+息。
+
+  o Per-hop tracing :
+关于每个IOAM节点的OAM信息被收集并存储在用户数据包中的数据包遍历
+
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 5]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  数据包通过IOAM域进行。IOAM每跳跟踪的潜在用途包括：
+
+  * Optimization : 理解使用负载平衡（例如相等的成本负载平衡（
+ECMP）的网络中遍历源和接收器之间的不同数据包的不同分组。该信息可用于调整EC
+MP算法，以获得优化的网络资源使用情况。
+
+  *操作/故障排除：了解特定数据包或一组数据包的路径以及以及当路径中的抖动量和
+延迟不同节点有助于整体端到端延迟和抖动。
+
+  o Proof-of-transit : 验证者节点可以用于验证数据包是否已
+经遍历假设遍历的所有节点存储在用户数据包中的信息。例如，可以用于验证传输验证，以
+验证数据包是否通过服务功能链的所有服务（例如，验证数据包是否确实遍历它预期遍历的
+防火墙集），或者是否确实是数据包采取了预期的道路。
+
+  o Edge-to-edge : 收集对IOAM域的边缘特定的OAM信息并存
+储在用户数据包中。边缘到边缘OAM可用于收集有关特定网络域的操作信息，例如由该网
+络域或网络域的流量矩阵产生的延迟和抖动。
+
+  o Direct export : OAM信息有关每个IOAM节点的数据包遍
+历并立即将其导出到收集器。直接导出可以在需要每个跳闸跟踪信息的情况下使用，而是收
+集数据包内的信息 - 与每跳跟踪一样 - 是不可行的。与使用每跳闸跟踪完成一样，
+直接导出需要收集器与各个节点相关联的信息，而不是自动关联每个跳闸跟踪信息。此外，
+启用直接导出的所有节点都需要能够将IOAM信息导出到收集器。
+
+4.1。每跳跟踪IOam
+
+  “IOAM跟踪数据”预计将在每个IOAM传输节点上收集数据包遍历以确保在IO
+AM域中的数据包中的整个路径中的可见性。即，在典型的部署中，IOAM域中的所有节
+点都将参与IOAM，因此是IOAM转运节点，IOAM封装或IOAM解封装
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 6]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  节点。如果域内的所有节点都是能够的IOAM，IOAM跟踪信息（即，节点数据，
+见下文）将只会收集在那些是IOam的节点上。NOT
+IOAM的节点能够将数据包转发，而不会对IOAM-DATA-
+Fields进行任何更改。假设已知IOAM域的最大跳数和最小路径MTU。
+
+  IOam提供了两种不同的跟踪选项类型，“增量”选项类型以及“预先分配”选项类
+型。有关两个选项类型中的哪一个是最适合实现和/或部署的类型，请参见第7.3节。
+
+  每个节点数据条目都保存由数据包遍历的特定IOam传输节点的信息。IOAM
+Decapeulate节点删除IOam-Option-
+Type（s）和进程和/或导出相关数据。所有IOAM数据字段都在IOAM-
+命名空间的上下文中定义。
+
+  IOAM跟踪可以收集以下类型的信息：
+
+  o识别IOAM节点。IOAM节点标识符可以匹配到设备内的设备标识符或特定控制
+点或子系统。
+
+  o识别接口接口的界面，即入口接口。
+
+  o识别包已发送的界面，即出口接口。
+
+  o节点处理数据包以及传输延迟时的时间。处理时间的不同定义是可行和预期的，但重
+要的是，原位OAM域的所有设备都遵循相同的定义。
+
+  o Generic data :
+无格式信息，其中信息的语法和语义由操作员在特定部署中定义。对于特定的IOAM-命
+名空间，所有IOAM节点都应以相同的方式解释通用数据。通用IOAM数据的示例包括
+地理位置信息（在处理数据包时节点的位置），缓冲区队列填充水平或缓存填充水平在处理
+数据包时，甚至电池充电水平。
+
+  o检测是否在每个跳转中添加IOAM跟踪数据的信息，或者域中的某些跳数是否没有
+ioam传输节点。
+
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 7]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  o与数据包如何运行的节点（传输延迟，缓冲区占用，如果数据包被缓冲，则在数据包
+排队的情况下队列深度）
+
+  增量跟踪和预先分配跟踪的选项类型在[i-d.ietf-ippm-ioam-
+data]中定义。
+
+4.2。过境证明ioam
+
+  IOam Transit Option-Type的证明是支持路径或服务功能链
+[RFC7665]验证用例。传输验证使用像嵌套散列或嵌套加密的IOAM数据或机制
+等方法，例如Shamir的秘密共享模式（SSSS）。
+
+  IOAM的Transit Option-Type类型由固定大小的“Ioam
+Offer Option Reader”和“Ioam Offerit
+Option Data Data
+Fields的Ioam证明”组成。有关详细信息，请参阅[I-D.ITF-
+IPPM-IOAM-DATA]。
+
+4.3。边缘ioam
+
+  IOAM边缘到边缘选项类型是携带IOAM封装节点添加的数据，并由IOAM解封
+节点解释。IOAM传输节点可以处理数据但不得修改它。
+
+  IOAM边缘到边缘选项类型由固定大小的“IOAM边缘到边缘选项类型标题”组成
+，“IOAM边缘到边缘选项类型数据字段”。有关详细信息，请参阅[I-D.ITF-
+IPPM-IOAM-DATA]。
+
+4.4。直接出口IOAM.
+
+  直接导出是一种IOAM操作模式，在该IOAM数据中要直接导出到收集器，而不是
+在数据包中收集。IOAM直接导出选项类型由固定大小的“IOAM直接导出选项标题”
+组成。IOAM的直接导出在[i-d.ietf-ippm-ioam-direct-
+export中]定义。
+
+5. Ioam封装
+
+  IOAM数据字段和位于原位OAM的相关数据类型在[I-D.ITF-IPPM-
+IOAM-DATA中]定义。原位OAM数据字段可以由各种传输协议传输，包括NSH
+，段路由，Geneve，IPv6等。
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 8]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+5.1。IPv6.
+
+  IOam封装IPv6在[I-D.ITF-IPPM-IOAM-IPv6-选项中
+]定义。IOam用于IPv6网络的部署注意事项在[i-d.ioametal-
+ippm-6man-ioam-ipv6-deployment]中找到。
+
+5.2。NSH.
+
+  NSH的IOAM封装在[i-d.ietf-sfc-ioam-nsh]中定义。
+
+5.3。这是
+
+  IOAM封装GRE封装是[I-D.WEIS-IPPM-IOAM-EOAM-
+EOM-ECH]中“位于OUAM数据”的“EtherType协议标识”的一部分，
+但文档中没有提供示例协议标头堆栈。与GRE一起使用时，IOam-option-
+inse（下图使用“使用”IOam“作为IOam-option-types的简写
+）在遵循”外部“IP标题的GRE标题后面。图2显示了使用GRE以及IOAM的两个
+示例协议标题堆栈。
+
+  示例1示例2
+
+      |      ...       |            |       ...      |
+      +----------------+            +----------------+
+      | TCP/UDP header |            |    IP, ...     |
+      +----------------+            +----------------+
+      |    IP header   |            |   Eth. header  |
+      +----------------+            +----------------+
+      |      IOAM      |            |      IOAM      |
+      +----------------+            +----------------+
+      |    GRE header  |            |    GRE header  |
+      +----------------+            +----------------+
+      |    IP header   |            |    IP header   |
+      +----------------+            +----------------+
+      |     Layer 2    |            |     Layer 2    |
+      +----------------+            +----------------+
+      |     Layer 1    |            |     Layer 1    |
+      +----------------+            +----------------+
+
+  Figure 2 : 用IOam的胶水
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021               [Page 9]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+5.4。日内瓦
+
+  IOam封装Geneve在[I-D.Brockers-IPPM-IOAM-
+Geneve]中定义。
+
+5.5。段路由
+
+  IOAM封装用于段路由的封装在[I-D.Gandhi-Spring-
+Ioam-MPLS中]定义。
+
+5.6。IPv6的段路由
+
+  IOAM封装用于IPv6上的段路由在[i-d.ali-spring-
+ioam-srv6]中定义。
+
+5.7。vxlan-gpe.
+
+  vxlan-gpe的Ioam封装在[i-d.brockers-ippm-
+ioam-vxlan-gpe中]定义。
+
+6. IOAM数据导出
+
+  IOAM节点收集遍历支持IOAM的域的数据包的信息。IOAM解封装的节点以及
+IOam传输节点可以选择从数据包中检索IOAM信息，进一步处理信息并使用例如使用
+例如ipfix导出信息。
+
+  在[i-d.spiegel-IPPM-IOAM-
+RAWEXPORT]中讨论了使用IPFIX的原始数据导出IOAM数据。 “IOA
+M数据的原始导出”是指节点在数据包中收到的IOAM数据导出IOAM数据的操作模式
+。导出节点既不是解释，聚合也不重新格式化IOAM数据。 IOAM数据的原始导出是
+支持一个操作模型，其中IOAM数据的处理和解释是从封装/更新/解除的IOAM数据
+的操作分离的，这也被称为IOAM数据平面操作。下图显示了IOAM导出的关注的分离
+：导出IOAM数据由执行IOAM数据平面操作的“IOam节点”执行，而IOAM数
+据的解释由一个或多个IOAM数据处理系统执行。关注的分离是从执行数据平面操作的节
+点的非负载解释，聚合和格式化IOAM数据。换句话说，专注于数据平面操作的节点，即
+分组转发和处理IOAM数据的转发也不会被任务解释IOAM数据，而是可以将此任务留
+给另一个系统或一组系统。出于可扩展性原因，单个IOAM节点可以选择将IOAM数据
+导出到多个IOAM数据处理
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 10]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  系统。类似地，可以使用若干监控系统或分析系统来进一步处理从IOAM预处理系统
+接收的数据。图3显示了IOAM导出的概述，包括IOAM数据处理系统和监控/分析系
+统。
+
+                                 +--------------+
+                                +-------------+ |
+                                | Monitoring/ | |
+                                | Analytics   | |
+                                | system(s)   |-+
+                                +-------------+
+                                       ^
+                                       |  Processed/interpreted/
+                                       |  aggregated IOAM data
+                                       |
+                                 +--------------+
+                                +-------------+ |
+                                | IOAM data   | |
+                                | processing  | |
+                                | system(s)   |-+
+                                +-------------+
+                                       ^
+                                       |  Raw export of
+                                       |  IOAM data
+                                       |
+                +--------------+-------+------+--------------+
+                |              |              |              |
+                |              |              |              |
+   User     +---+----+     +---+----+     +---+----+     +---+----+
+   packets  |Encapsu-|     | Transit|     | Transit|     |Decapsu-|
+   -------->|lating  |====>| Node   |====>| Node   |====>|lating  |-->
+            |Node    |     | A      |     | B      |     |Node    |
+            +--------+     +--------+     +--------+     +--------+
+
+  Figure 3 : IOam框架与数据导出
+
+7. IOAM部署考虑因素
+
+  本节讨论IOAM部署的几个方面，包括IOAM命名空间，IOAM分层，IOAM
+应用于IOAM和IOAM环回模式的流量集。
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 11]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+7.1。IOAM命名空间
+
+  IOAM-命名空间为IOAM-Option-Types和关联的IOAM-
+Data-Fields添加了进一步的上下文。Ioam-
+namespaces支持几种不同的用途：
+
+  操作员可以使用IOam-命名空间来区分不同的操作域。域边的设备可以在命名空间
+ID上过滤，以提供适当的IOAM域隔离。
+
+  o Ioam-namespaces为ioam-data-
+fields提供了其他上下文，从而确保Ioam-Data-Fields是唯一的，
+可以通过管理站或网络控制器正确解释。虽然例如，节点标识符字段在部署中不需要是唯一
+的（例如，运营商可能希望为不同的IOAM层使用不同的节点标识符，即使在同一设备内
+）也是如此;或节点标识符对于其他组织可能不是唯一的原因，例如在两个以前分隔的组织
+合并之后），Node_ID和命名空间ID的组合应始终是唯一的。同样，IOam-
+命名空间可用于定义某些IOAM-Data-Fields如何解释：IOAM提供三种
+不同的时间戳格式选项。命名空间ID可用于确定时间戳格式。在IOam-
+命名空间的上下文中，不具有关联的单元的IOAM-Data-
+Fields（例如缓冲区占用）。
+
+  o Ioam-命名空间可用于在部署中识别不同的设备集（例如，不同类型的设备）
+：如果操作员希望基于设备插入不同的IOAM数据字段，则设备可以将设备分组为多个I
+OAM - 符号空间。这可能是由于IOAM功能集不同集合在不同的设备之间，或者由
+于数据包标题中的优化空间使用的原因可能是可能的。它还可以源于可以添加和处理的跟踪
+数据大小的硬件或操作限制，防止为流程收集完整迹线。
+
+  *将不同的IOAM命名空间ID分配给不同的节点或网络分区集，并使用命名空间I
+D作为IOAM封装节点的选择器，可以通过不同分组中的部分跟踪来收集和构造流的完整
+跟踪流动。示例：操作员可以选择将域的设备组分为两个IOam-命名空间，以平均值，
+只有每个设备都会记录每个第二跳。要检索部署的完整视图，需要关联两个IOam-
+命名空间的捕获的IOAM-Data-excess。
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 12]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+*将不同的IOAM命名空间ID分配给不同的节点或网络分区集，并使用每个命名空间-
+id的IOAM-Option-
+Type的单独实例，可以通过来自每个IOam的部分迹线来收集和构造流的完整跟踪-
+Option-type在流程中的每个数据包中。示例：操作员可以选择将域的设备分组
+为两个IOAM-命名空间，以某种方式由数据包中的两个IOAM-Option-
+Type之一表示。每个节点将仅记录它所属的IOAM-
+命名空间的数据，以其忽略它不属于的IOam-命名空间的其他IOAM-
+Option-type。要检索部署的完整视图，需要关联两个IOAM-
+命名空间的捕获的IOAM-Data-excess。
+
+7.2。IOam分层
+
+  如果若干封装协议（例如，在隧道的情况下）彼此顶部堆叠，则可以在不同层的不同协
+议字段中存在IOAM-DATA-Fields。分层允许操作员仪器仪器仪表他们想要
+测量的协议层。该行为遵循夜间模型，即一层中的IOam-Data-excess，独
+立于另一层中的IOAM数据字段。或者换句话说：即使术语“分层”通常意味着某种形式
+的层次结构和关系，在IOAM中，层数彼此独立，并且不承担它们之间的任何关系。不同
+的层可以，但不必共享相同的IOAM封装机制。类似地，IOAM数据字段的语义可以不
+必与不同层关联。例如，将节点ID信息插入两个不同层的节点可以为第二层使用“节点I
+d = 10”，并且第二层的“节点Id = 1000”。
+
+  图4显示了IOam分层的示例。该图示出了通过IPv6承载的Geneve隧道，
+其在节点A处开始，在节点D处的结束。IOam信息被封装在IPv6中以及在Gene
+ve中。在IPv6层，节点A是IOAM封装节点（进入IPv6），节点D是IOAM
+解封节点，节点B和节点C是IOam传输节点。在Geneve层，节点A是IOAM封
+装节点（进入Geneve），节点D是IOAM解封节点（来自Geneve）。这里示
+例中所示的两层中的使用IOam可用于揭示衬垫的衬垫（此处的底层（此处IPv6网络
+）遍历（这里是Geneve网络）的隧道分组 -
+这假设IOAM信息通过节点A和D封装到Geneve和IPv6彼此相关联。
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 13]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+
+            +---+----+                                   +---+----+
+   User     |Geneve  |                                   |Geneve  |
+   packets  |Encapsu-|                                   |Decapsu-|
+   -------->|lating  |==================================>|lating  |-->
+            |  Node  |                                   |  Node  |
+            |   A    |                                   |   D    |
+            +--------+                                   +--------+
+                ^                                            ^
+                |                                            |
+                v                                            v
+            +--------+     +--------+     +--------+     +--------+
+            |IPv6    |     | IPv6   |     | IPv6   |     |IPv6    |
+            |Encapsu-|     | Transit|     | Transit|     |Decapsu-|
+            |lating  |====>|  Node  |====>|  Node  |====>|lating  |
+            |  Node  |     |        |     |        |     |  Node  |
+            |   A    |     |   B    |     |   C    |     |   D    |
+            +--------+     +--------+     +--------+     +--------+
+
+  Figure 4 : IOam分层示例
+
+7.3。IOAM跟踪选项类型
+
+  IOAM为跟踪提供了两个不同的IOAM选项类型：“增量”跟踪 -
+选项类型和“预先分配”跟踪选项类型。“增量”是指在添加IOAM-Data-Fie
+lds的每个IOAM节点上扩展数据包的操作模式。“预配”描述了一种操作模式，其中
+IOAM封装节点为整个IOAM域中的所有IOAM数据字段分配了房间。进一步来说：
+
+  预先分配的跟踪 - 选项：此跟踪选项被定义为具有预先分配空间的节点数据字段的
+容器以填充其信息。此选项对实现在运输过程中分配一次和索引以填充数据以填充数据（例
+如，软件转发器经常属于此类的数据）。
+
+  Incremental Trace-Option : 此跟踪选项被定义为节点
+数据字段的容器，其中每个节点在选项标题之后立即配置并按下其节点数据。
+
+  部署可以选择配置和支持一个或两个IOAM跟踪选项类型。操作员通过配置追踪 -
+option-type（s）用于特定域的配置来决定。部署可以混合包括增量跟踪选项
+类型或预先分配的跟踪选项类型的设备，例如，在不同类型的数据包转发器和
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 14]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  部署中存在相关的不同类型的IOAM实现。结果，两个选项类型可以在数据包中存在
+。IOAM Decapeulate节点从数据包中删除两种类型的跟踪选项类型。
+
+两个不同的选项类型迎合不同的数据包转发基础架构，并允许优化的IOAM跟踪实现：
+
+  预先分配的跟踪 - 选项：对于数据包转发器的一些实现，它有效地分配了用于从软
+件开发的软件数据包中收集IOAM跟踪数据字段的最大节点数量的空间和在灵活位置的数
+据包中插入/更新信息。从分组中的字段中检索的指针。IOAM封装节点分配了从中收集
+IOAM跟踪数据字段的最大节点数的大小的数组。IOam将节点索引索引到数组中以在
+运输过程中填充数据。软件转发器通常落入这类数据包转发器实现。可以由IOAM信息收
+集的最大节点数由IOAM封装节点上的操作员配置。操作员必须确保具有携带IOAM数
+据字段的预先分配数组的数据包不超过IOAM域中的任何链路的MTU。
+
+  Incremental Trace-Option : 查找包含在数据包中的指
+针，并由于指针查找而在数据包中的灵活位置处插入/更新信息对于某些转发基础架构而言
+，昂贵。基于硬件的数据包转发基础架构通常属于此类别。因此，基于硬件的数据包转发器
+可以选择支持增量IOAM-Trace-Option-type。增量IOam-
+Trace-选项类型无需IOam传输节点以读取跟踪选项类型中的完整数组，并允许数
+据包增长到IOAM域MTU的大小。只要数据包中有可用的空间，IOam
+Transit节点将展开数据包并插入IOam-Data-entions，即，只要
+数据包的大小保持在IOam中的任何链接的MTU的界限内领域。操作员不需要将IOA
+M封装节点配置为可以从中收集IOAM信息的最大节点数。操作员必须确保所有IOAM
+传输节点都知道IOAM域中的任何链路的最小MTU。
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 15]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+7.4。ioam应用于的流量集
+
+  可以在Live User流量的所有子集中部署IOAM，例如，在所有或仅在Si
+ve用户流量上部署。每个接口，基于访问控制列表或流程规范，定义特定的流量等。
+
+7.5。IOAM环回模式
+
+  IOAM环回用于沿数据包的路径触发每个传输设备，以将数据包的副本发送回源。环
+回允许IOAM封装节点跟踪给定目的地的路径，并接收关于前进和返回路径的每跳数据。
+环回由设置环回标志的封装节点启用。循环数据包使用原始数据包的源地址作为目标地址以
+及将环回操作的节点的地址作为源地址。在将复制回到源之前，循环回报数据包的节点清除
+环回标志。Loopack适用于IOAM部署，其中封装节点是主机或隧道的开始：有关
+IOAM环回的详细信息，请参阅[I-D.ITF-IPPM-IOAM-
+FLAGS]。
+
+7.6。IOAM活动模式
+
+  IOAM活动模式标志表示数据包是活动的OAM数据包，而不是常规用户数据流量。
+有效模式预计使用IOAM用于主动测量。示例使用案例包括：
+
+  o端点详细的主动测量：在源和目标之间发送合成探针包，遍历IOAM域。这些探测
+包包括跟踪选项类型（即增量或预先分配）。由于探测数据包在端点之间发送，因此这些数
+据包被IOam域视为数据包，并且不需要在IOAM层处进行特殊处理。封装节点可以选
+择设置活动标志，提供显式指示这些探针数据包是遥测集合。
+
+  o使用探测数据包的Ioam主动测量：由IOam封装节点生成并传输探测分组，并
+且预计将被解封装的节点终止。探测数据包包括具有其活动标志集的跟踪选项类型（即增量
+或预先分配），指示解封装的节点必须终止它们。
+
+  o使用复制数据包的Ioam活动测量：通过选择某些或或者，由封装节点创建探测包
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 16]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  所有en路由数据报文并复制它们。复制的选定数据包以及其（可能被截断）的复制将
+使用一个或多个IOAM选项转发，而原始数据包正常转发，则没有IOAM选项。尽可能
+多，原始数据包及其副本通过相同的路径转发。副本包括具有其活动标志集的跟踪选项类型
+，指示解封装的节点应该终止它。
+
+  有关IOAM活动模式的详细信息，请参阅[i-d.ietf-ippm-
+ioam-flags]。
+
+7.7。布朗现场部署：IOAM不知道节点
+
+  网络可以包括一个混合IOam Invela和Ioam不知节点。将IOAM数据
+字段的封装定义为不同协议（另见第5节），使得包含IOam-Data-ention
+s的数据包不会被Ioam不知节点丢弃。例如，包含跳跃扩展头的IPv6跳中中包含I
+Oam-Trace-Option-Type的数据包使用位指示“00  - 跳过此
+选项并继续处理标题”。这将确保当IOAM未知的节点接收包含的数据包时，不会删除数
+据包。
+
+  利用IOam-Trace-Option-Type的部署可以从检测到IOAM不
+知节点的存在的能力中受益，即转发数据包的节点，但不会更新/添加IOAM-
+Data-Dields中的IOAM-Trace-选项类型。定义为IOam-
+Trace-Option-option-type（s）的一部分的节点数据包括与节
+点标识符相关联的Hop_lim字段，以检测迹线中的“孔”的错过节点。监控/分析系
+统可以利用此信息来解释网络中的IOAM未知节点。
+
+8. IOAM可管理性
+
+  用于在支持IOAM的网络节点中配置IOAM的阳模型在[i-d.zhou-
+ippm-ioam-yang]中定义。
+
+  部署可以利用IOAM配置文件是限制IOAM功能的范围，允许在特定用例的上下文
+中更简单的实现，验证和互操作性测试，这些情况不需要IOam的完整功能。IOAM配
+置文件定义了用于IOAM的用例或一组用例，以及限制IOAM规范的范围和特征的关联
+规则集，从而将其限制到完整功能的子集。IOAM配置文件在[i-d.mizrahi
+-ippm-ioam-profile]中定义。
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 17]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+9. IANA考虑因素
+
+  本文档未请求任何IANA行动。
+
+10.安全考虑因素
+
+  如[RFC7276]中所讨论的，一般攻击OAM协议，特别是在IOAM上，可以
+防止检测失败或异常，或者创建不存在的错误错觉。
+
+传输选项类型（部分第4.2节）的证明用于验证数据包的路径。[I-D.IETF-
+SFC证明 - 过境罐的安全考虑因素进一步讨论。
+
+与使用IOAM标志的安全注意事项，特别是Loopback标志在[I-D.ITF-
+IPPM-IOAM-FLAP中]。
+
+  IOAM数据可能会受到窃听。尽管在此上下文中，用户数据的机密性并不存在风险，
+但是IOAM数据元素可用于网络侦察，允许攻击者收集有关网络路径，性能，队列状态，
+缓冲占用率和其他信息的信息。 RECH是IOAM部署中的不可能的安全威胁，该威胁
+在狭窄的物理域中。但是，在不限于单个LAN的部署中，但跨越多个连接站点（例如，使
+用叠加网络），可以保护站点间链路（例如，由IPsec）避免外部窃听。另一种可能的
+缓解方法是使用“直接导出”模式[i-d.ietf-ippm-ioam-
+direct-export]。在这种情况下，客户数据包中不可用IOAM相关的跟踪
+信息，但会触发每个节点的（安全）分组相关的IOAM信息的导出。
+IOAM数据导出和安全IOAM数据导出超出了本文档的范围。
+
+  IOam可以用作实现拒绝服务（DOS）攻击的手段，或者用于放大它们。例如，恶
+意攻击者可以将IOAM头部添加到数据包或修改EN路由数据包中的IOAM标题，以便
+使用分析IOAM数据的IOAM或收集器的网络设备的资源。另一个例子是分组长度攻击
+，其中攻击者将与ioam选项类型相关联的标头推送到数据包中，导致这些分组增加超出
+MTU大小，导致碎片或分组丢失。这些DOS攻击可以通过在限制的管理域中部署IOA
+M来缓解，并通过定义IOAM封装和IOAM导出的性能限制。通过限制数据包的速率和
+/或百分比
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 18]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  受到Ioam进行的影响和出口流量的速度，可以通过这种攻击造成这种攻击的影响。
+
+  由于IOAM选项可以包括时间戳，如果网络设备使用同步协议，则对时间协议的任何
+攻击都可以危及与时间戳相关的数据字段的完整性。通过组合安全的时间分布方案，例如[
+RFC8915]，以及使用冗余时钟源[RFC5905]和/或时间分布协议的冗余网
+络路径，可以减轻同步攻击[RFC8039]。
+
+  在管理平面，可以通过错误配置或通过恶意配置启用IOAM的节点以实现其他攻击的
+方式来实现攻击。因此，应该以对授权用户进行身份验证并验证配置过程的完整性的方式保
+护IOAM配置。
+
+  值得注意的是，预计IOam将部署在特定的网络域中，从而将潜在的攻击向量限制在
+网络域中。实际上，为了限制当前网络域内的威胁范围，网络运营商预计将强制执行阻止I
+Oam流量泄露在IOam域外的策略，并防止来自域外的IOAM数据以便在域外处理和
+使用域名。请注意，即时导出模式（在未来修订中添加的引用）可以减轻通过数据包泄露的
+IOAM数据的潜在威胁。
+
+11.致谢
+
+  作者谨此感谢Mizrahi，Eric Vyncke，Nalini
+Elkins，Srihari Raghavan，Ranganath
+Ts，Barak Gafni，Karthik Babu Harichandra
+Babu，Akshaya Nadahalli，LJ Wobker，Erik
+Nordmark，Vengada Prasad Govindan，Andrew
+Yourchenko，Aviv Kfir，天兰周，镇斌（Robin），Joe
+Clarke，Al Morton，Tom Herbet，Haoyu
+Song和Mickey Spiegel关于IOam的评论和建议。
+
+12.参考文献
+
+12.1。规范参考文献
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 19]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+12.2。信息参考资料
+
+  [id.ali-spring-ioam-srv6] Ali，Z.，Gandh
+i，R.，Filsfils，C.，Brockners，F.，Nainar，N.，
+Pignataro，C.，Li，C.，Chen，C。G.
+Dawra，“段路由标题封装的原位OAM数据”，草案 -  Ali-
+Spring-Ioam-SRV6-03（正在进行的工作），11月20日。
+
+  [id.brockers-ippm-ioam-geneve]牛皮舞者，F.，
+Bhandari，S.，Govindan，VP，Pignataro，C.，Nai
+nar，NK，Gredler，H.，Lieddy，J.，Youell，S.，Mi
+zrahi，T.，Lapukhov，P.，Gafni，B.，Kfir，A.和M.
+Spiegel，“原位OAM数据的Geneve封装”，Jraft-
+Brockners-IPPM-IOAM-
+Geneve-05（正在进行中），11月20日。
+
+  [id.brockers-IPPM-IOAM-VXLAN-GPE]女士气，F
+.，Bhandari，S.，Govindan，VP，Pignataro，C.，G
+reder，H.，Lieddy，J.，Youell，S.，Mizrahi，T。，
+kfir，A.，Gafni，B.，Lapukhov，P.和M.Spiegel，“
+vxlan-gpe封装出于原位Oam数据”，Brift-Brockners-
+IPPM-VXLAN-GPE-03（工作在2019年11月的进度中。
+
+  [ID.Gandhi-Spring-Ioam-SR-MPLS] Gandhi
+，R.，Ali，Z.，Filsfils，C.，Brockners，F.，Wen，
+B.和V. Kozak，“与MPLS数据平面的段路由封装原位OAM数据“，草案
+-  Gandhi-Spring-Ioam-SR-
+MPLS-02（正在进行的工作），2019年8月。
+
+  [ID.IETF-IPPM-IOAM-
+DATA，S.，F.，Bhandari，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，草稿 -  IETF-IPPM-
+IOAM-Data-12（工作中进展），2月2021年。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“原位OAM直接出口”，草案 -
+IETF-IPPM-IOAM-直接出口 -
+03（正在进行的工作），2月2021年。
+
+  [id.ietf-ippm-ioam-flags] Mizrahi，T.，女
+郎，斯ivakolundu，R.，Pignataro，C.，Kfir，A.，Ga
+fni，B.，Spiegel，M。和J. Lemon，“In-Bialu
+Oam标志”，草案 -  IETF-IPPM-IOAM-
+FLAGS-04（正在进行的工作），2月2021年。
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 20]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  [ID.IETF-IPPM-IOAM-IPv6-选项] Bhandari，S
+.，Brockners，F.，Pignataro，C.，Greder，H.，Li
+eddy，J.，Youell，S.，Mizrahi，T.，Kfir，A.，Gaf
+ni，B.，Lapukhov，P.，Spiegel，M.，Krishnan，S.
+，S.，Asati，R.和M. Smith，“原位OAM IPv6选项”，草案-
+IETF-IPPM-IOam-
+IPv6-options-05（正在进行的工作），2月2021年。
+
+  [ID.IETF-NVO3-GENEVE]总，J.，GANA，I.和T.
+SRIDHAR，“Geneve：通用网络虚拟化封装”，草案 -  IETF-
+NVO3-GENEVE-16（正在进行的工作），3月20日。
+
+  [id.ietf-nvo3-vxlan-gpe]（编辑器），fm，（编辑器）
+，lk和ue（编辑器），“vxlan（vxlan-gpe）的通用协议扩展”，草稿
+-  ietf-nvo3-vxlan-
+GPE-11（正在进行的工作），3月2021年。
+
+  [ID.IETF-SFC-IOAM-NSH] Brockners，F.和S.
+Bhandari，“网络服务标题（NSH）封装的原位OAM（IOAM）数据”，草
+稿 -  IETF-SFC-IOAM-
+NSH-05（正在进行的工作），12月20日。
+
+  [ID.IETF-SFC证明 - 过境验证]促进诺斯人，F.，Bhandar
+i，S.，Mizrahi，T.，Dara，S.和S.和S.
+Youell，“横贯证明”，草案 -  IETF-SFC-验证 - 过境 -
+08（正在进行的工作），11月20日。
+
+  [id.ioametal-ippm-6man-ioam-ipv6-部署] b
+handari，s.，kfir，f.，mizrahi，T.，kfir，A.，Ga
+fni，B.，Spiegel，M.，Krishnan，S。，和M.
+Smith，“使用IPv6选项的原位OAM部署注意事项”，草稿 -
+Ioametal-IPPM-6Man-Ioam-
+IPv6-Deployment-03（正在进行的工作），3月20日。
+
+  [id.mizrahi-ippm-ioam-profile] mizrahi
+，t，t.，女郎，斯ivakolundu，r.，pignataro，C.，Kfi
+r，A.，Gafni，B.，Spiegel，M。，周，T.和J.
+Lemon，“原位Oam配置文件”，草案 -  Mizrahi-IPPM-
+IOAM-Profile-04（正在进行的工作），2月2021年。
+
+  [id.spiegel-ippm-ioam-grawexport]
+Spiegel，M.，Brockners，F.，Bhandari，S.和R. S
+ivakolundu，“与IPFIX的原位OAM原始数据导出”，Spiegel-
+IPPM-Ioam-Rawexport-04（正在进行的工作），11月20日。
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 21]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  [ID.WEIS-IPPM-IOAM-ETH] WEIS，B.，女郎，Bha
+ndari，S.，Govindan，VP，Pignataro，C.，Gredle
+r，H.，Lieddy，J.，Youell，S.，Mizrahi，T.，Kfir
+，A.，Gafni，B.，Lapukhov，P.和M.Spiegel，“Ethe
+rType协议识别原位OAM数据”，草案-Weis-IPPM-IOam-
+Eth-04（正在进行的工作），5月20日。
+
+  [id.州-IPPM-Ioam-
+yang]周，T.，Guichard，J.，Brockners，F.和S.
+Raghavan，“yang oam的杨数据模型”，草案 -  Zhou-
+IPPM-IOam - 杨08（正在进行的工作），7月20日。
+
+[RFC5905]米尔斯，D.，Martin，J.，Ed。，伯班克，J.和W.
+KASCH，“网络时间协议版本4：协议和算法规范”，RFC 5905，DOI
+10.17487 /
+RFC5905，2010年6月，<https://www.rfc-
+editor.org/info/rfc5905>。
+
+  [RFC7276]
+Mizrahi，T.，Sprecher，N.，Bellagamba，E.和Y.
+Weingarten，“运营，管理和维护（OAM）工具”，RFC
+7276，DOI 10.17487 /
+RFC7276，2014年6月，<https://www.rfc-
+editor.org/info/rfc7276>。
+
+  [rfc7384]
+Mizrahi，T.，“数据包交换网络中的时间协议的安全要求”，RFC
+7384，DOI 10.17487 /
+RFC7384，2014年10月，<https://www.rfc-
+editor.org/info/rfc7384>。
+
+  [RFC7665] Halpern，J.，Ed。和C.
+Pignataro，ED。，“服务函数链式（SFC）架构”，RFC
+7665，DOI 10.17487 /
+RFC7665，2015年10月，<https://www.rfc-
+editor.org/info/rfc7665>。
+
+  [RFC7799]
+Morton，A.，“主动和被动度量和方法（在与杂交类型之间）”，RFC
+7799，DOI 10.17487 /
+RFC7799，2016年5月，<https://www.rfc-
+editor.org/info/ rfc7799>。
+
+  [rfc8039]行换，A.，TSE，R.，Schelp，C.和T.
+Mizrahi，“多路径时间同步”，RFC 8039，DOI 10.17487
+/ RFC8039，2016年12月，<HTTPS：//www.RFC-
+EDITOR.org / info / rfc8039>。
+
+  [RFC8300] Quinn，P.，Ed。，Elzur，U.，Ed。和C.
+Pignataro，ED。“网络服务标题（NSH）”，RFC 8300，Doi
+10.17487 /
+RFC8300，2018年1月，<HTTPS：//www.rfc-
+editor.org/info/rfc8300>。
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 22]
+
+Internet-Draft           In-situ OAM Deployment                June 2021
+
+  [RFC8915] Franke，D.，Sibold，D.，Teichel，
+K.，Dansarie，M.和R.
+Sundblad，“网络时间协议的网络时间安全”，RFC 8915，DOI
+10.17487 /
+RFC8915，9月20日，<https://www.rfc-
+editor.org/info/rfc8915>。
+
+  作者的地址
+
+  Frank Brockners Cisco
+Systems，Inc。Hansaallee
+249,3楼Duesseldorf，Nordrhein-Westfalen
+40549德国
+
+  Email : FB rock呢@Cisco.com
+
+  Shwetha
+Bhandari（编辑）Insionspot第3楼，Indiqube
+Orion，第24个主RD，花园布置，HSR布局班加罗尔，卡纳塔克邦560
+102印度
+
+  Email : 稍微额图哈.包含大日@thought spot.com
+
+  Daniel Bernier Bell Canada Canada
+
+  Email : Daniel.伯尔尼而@Bell.擦
+
+  Talmy Misrahi（编辑）华为8-2 Matam Hafa
+3190501以色列
+
+  Email : 他俩.密宗RA Hi.平衡点@Gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+Brockners, et al.       Expires December 26, 2021              [Page 23]
+
+

@@ -1,0 +1,723 @@
+
+
+
+
+  互联网工程工作组（IETF）B。Vargarequest评论：9016 J.
+Farkascategory：Instricational
+Ericssonissn：2070-1721 R. Cummings
+National Instruments Y. Jiang Huawei D.
+Fedyk Labn咨询2021年3月
+
+  确定性网络（detnet）的流量和服务信息模型
+
+  抽象的
+
+  本文档描述了确定性网络（detnet）的流量和服务信息模型。这些模型是为IP
+和MPLS Detnet数据平面定义的。
+
+  该备忘录的状态
+
+  该文档不是Internet标准轨道规范；它出于信息目的出版。
+
+  该文档是互联网工程工作组（IETF）的产品。它代表了IETF社区的共识。它已
+收到公众审查，并已获得互联网工程转向集团（IESG）的批准出版。并非IESG批准
+的所有文件都是任何级别的互联网标准的候选人；请参阅RFC 7841的第2节。
+
+  有关本文档当前状态，任何勘误表以及如何提供反馈的信息，请访问https://
+www.rfc-editor.org/info/rfc9016。
+
+  版权声明
+
+  版权（C）2021 IETF Trust和被确定为文档作者的人。版权所有。
+
+  版权（C）2021 IETF Trust和被确定为文档作者的人。版权所有。
+
+  目录
+
+1.简介1.1。目标1.2。非目标2.术语2.1。本文档2.2中使用的术语。缩写
+2.3。命名约定3. Detnet域及其建模3.1。 Detnet服务概述3.2
+。建模3.3中使用的参考点。信息元素4.与应用流相关的参数4.1。应用流特性4.
+2。应用流量要求5. DETNET与流相关参数5.1。 Detnet流的管理ID
+5.2。 Detnet流的有效负载类型5.3。
+Detnet流5.4的格式。鉴定和规格5.4.1。 Detnet
+MPLS流识别和规范5.4.2。 Detnet IP流量识别和规范5.5。
+Detnet流量5.6的流量规范。 Detnet流5.7的端点。
+Detnet流的等级5.8。 Detnet流的状态5.9。
+Detnet流5.9.1的要求。 Detnet流5.9.2的最小带宽。
+Detnet流量的最大延迟5.9.3。
+DETNET流量5.9.4的最大延迟变化。
+Detnet流量的最大损失5.9.5。
+Detnet流量的最大连续损失5.9.6。
+Detnet流5.10的最大误差耐受性。 Detnet流量的Bidir要求6.
+Detnet服务相关参数6.1。 Detnet服务的管理ID 6.2。
+Detnet服务的递送类型6.3。 Detnet服务的交付配置文件6.3.1。
+Detnet服务的最小带宽6.3.2。 DETNET服务的最大延迟6.3.3。
+Detnet服务的最大延迟变化6.3.4。
+Detnet服务的最大损失6.3.5。
+Detnet服务的最大连续损失6.3.6。
+DETNET服务的最大误差耐受性6.4。 Detnet服务的连接类型6.5。
+Detnet服务的Bidir要求6.6。 Detnet服务等级6.7。 Detn
+et服务的状态7.特定于流的操作7.1。加入操作7.2。离开操作7.3。修改操作
+8.摘要9. IANA注意事项10.安全注意事项11.参考文献11.1。规范参考
+11.2。信息参考作者的地址
+
+1.简介
+
+1.简介
+
+  本文档描述了Detnet流量和服务信息模型。作为参考，[RFC3444]描述
+了信息模型背后的基本原理。本文档描述了操作员和用户了解Detnet服务和实施者的
+流量和服务信息模型，以指导DETNET服务所需的功能。
+
+  Detnet体系结构将分解为两个子层分解为Detnet相关的数据平面功能：服
+务子层和一个转发子层。服务子层用于提供DetNet服务保护和重新排序。转发子层提
+供资源分配（以确保低损失，确保的延迟和有限的置换交付）并利用交通工程机制。
+
+  Detnet体系结构将分解为两个子层分解为Detnet相关的数据平面功能：服
+务子层和一个转发子层。服务子层用于提供DetNet服务保护和重新排序。转发子层提
+供资源分配（以确保低损失，确保的延迟和有限的置换交付）并利用交通工程机制。
+
+                                             +-----+
+                                             | TSN |
+                        +-------+          +-+-----+-+
+                        | DN IP |          | DN MPLS |
+                     +--+--+----+----+   +-+---+-----+-+
+                     | TSN | DN MPLS |   | TSN | DN IP |
+                     +-----+---------+   +-----+-------+
+
+  Figure 1 : 根据数据平面框架的detnet服务示例
+
+  如图1所示，如[RFC8938]中所述，可以将Detnet流视为应用程序流量
+，例如在detnet流量聚集处或在互连Detnet节点的子网络中。
+
+  本文档提供的Detnet流量和服务信息模型包含以集成方式的Detnet-
+Flow和特定于特定的信息。
+
+  在给定的网络方案中，可以区分三个信息模型：
+
+  *描述数据流的特征的流信息模型。这些模型详细描述了流量的所有相关方面，这些方
+面是由源和目的地之间的网络正确支撑流程的所有相关方面。
+
+  *服务信息模型，这些模型描述了通过网络提供的数据流提供的服务特征。这些模型可
+以视为独立于网络运营商的信息模型。
+
+  *配置信息模型，详细描述网络节点上为数据流提供适当服务所需的设置。
+
+  用户和网络运营商之间使用服务和流信息模型。配置信息模型在网络的管理/控制平面
+实体和网络节点之间使用。它们如图2所示。
+
+              User                  Network Operator
+                      flow/service
+               /\      info model    +---+
+              /  \ <---------------> | X |    management/control
+              ----                   +-+-+       plane entity
+                                       ^
+                                       |   configuration
+                                       |     info model
+                                +------------+
+                                v      |     |
+                               +-+     |     v  network
+                               +-+     v    +-+  nodes
+                                      +-+   +-+
+                                      +-+
+
+  Figure 2 : 信息模型的使用（流，服务和配置）
+
+  Detnet流量和服务信息模型基于[RFC8655]和[IEEEEEE802
+1QCC]指定的数据模型的概念。除TSN数据模型外，[IEEE8021QCC]还
+指定了TSN功能的配置（例如，由[IEEEE8021QBV]指定的流量计划）。通
+用体系结构和流信息模型允许在某些部署方案中配置的功能保持一致，例如，当提供Det
+Net服务的网络包括L3和L2网络段时。
+
+1.1。目标
+
+  正如Detnet WG宪章[IETFDETNET]中所示，Detnet
+WG与IEEE 802.1 TSN合作，以定义2和3层的共同体系结构。跨越不同的
+网络。由于这些原因，流量和服务信息模型也是对齐的。因此，本文档中描述的detne
+t流量和服务信息模型基于[IEEE8021QCC]，这是[IEEEE8021Q]
+的修改。
+
+  本文档仅指定流量和服务信息模型。
+
+1.2。非目标
+
+  本文档未指定流数据模型或Detnet配置。因此，本文档的目标与[IEEE80
+21QCC]的目标不同，该目标还指定了TSN数据模型和某些TSN功能的配置。
+
+  [detnet-yang]中描述了detnet特异性的杨数据模型。
+
+2.术语
+
+2.1。本文档中使用的术语
+
+  本文档使用Detnet体系结构[RFC8655]和DETNET数据平面框架[
+RFC8938]中建立的术语。假定读者熟悉这些文档以及其中定义的任何术语。[RF
+C8655]的detnet <=>
+TSN词典用于从[IEEEEEE8021QCC]转换为本文档。
+
+  根据[RFC8655]使用以下术语：
+
+  APP-FLOW在DetNet服务上携带的有效载荷（数据）。
+
+  detnet流动一系列数据包，这些序列符合流动标识符以及提供Detnet服务
+的序列。它包括添加的任何Detnet标头，以支持Detnet服务和转发子层。
+
+  本文档中介绍了以下术语：
+
+  流量启动的App-Flow的源参考点。
+
+  流量终止的App-Flow的目标参考点。
+
+  DN入口参考点的启动DetNet流。网络技术特定的封装可以在此处添加到服务的
+应用程序中。
+
+  DN出口参考点的末端。网络技术特定的封装可以从此处从服务的应用程序中删除。
+
+2.2。缩写
+
+  本文档中使用了以下缩写：
+
+  确定性网络
+
+  DN
+
+  MPLS多协议标签开关
+
+  PSN数据包切换网络
+
+  TSN时间敏感网络
+
+2.3。命名约定
+
+  以下命名惯例用于本文档中的命名信息模型组件。建议模型的扩展使用相同的约定。
+
+  *使用描述性名称。
+
+  *名称以大写字母开头。
+
+  *组成的名称使用大写字母作为每个组件的首字母。所有其他字母都是小写，即使是缩
+写。对于包含小写字母和大写字母（例如IPv6）的混合物的缩写，有例外。示例编写的
+名称为sourcemacaddress和destinationIPV6Addre
+ss。
+
+3. Detnet域及其建模
+
+3.1。Detnet服务概述
+
+  Detnet服务可以定义为一项服务，该服务提供了携带单播或多播数据流的功能，
+该应用程序的应用程序对网络性能的要求有限，例如低数据包损耗率和/或延迟。
+
+[RFC8655]中的图5和8显示了与Detnet服务相关的参考点和主要组件。
+
+3.2。建模中使用的参考点
+
+3.2。建模中使用的参考点
+
+  App-Flow特定参考点是源（启动的位置）和目标（终止）。同样，Detne
+t流的参考点称为“ DN Intress”（Detnet流动启动）和“ DN E
+gress”（其中Detnet流量结束）。这些参考点可能在同一节点（例如，在De
+tnet IP
+End系统中）共存。DN入口和DN出口参考点是服务应用程序流量的中间参考点。
+
+  在本文档中，所有参考点都假定为基于数据包的参考点。DN的入口可能会增加，DN
+出口可能会删除与服务应用程序（例如MPLS标签（S），UDP和IP标头）的网络技
+术特定的封装。
+
+3.3。信息元素
+
+  Detnet流信息模型和服务信息模型依赖于三组信息元素：
+
+  App-flow-related parameters : 这些描述了应用程
+序流量特征（例如，标识，封装，流量规范，端点，状态等）以及App-
+Flow服务期望（例如，延迟，损失等）。
+
+  DetNet flow-related parameters :
+这些描述了Detnet流量特征（例如，标识，格式，流量规范，端点，等级等）。
+
+  与服务相关的参数：这些描述了预期的服务特征（例如，交付类型，连接延迟/损失，
+状态，等级等）。
+
+  在信息模型中，Detnet流包含一个或多个（汇总）App-Flows（n：1
+映射）。在Detnet聚集过程中，聚集的Detnet流简单地处理为App-Flo
+ws，而聚合是Detnet流，它提供了N：1映射。同样，与Detnet服务的De
+tnet流有关汇总的多一对一关系。
+
+4.与App-Flow相关的参数
+
+4.与App-Flow相关的参数
+
+4.1。应用程序 - 流动特性
+
+  App-Flow特性由以下参数描述：
+
+  FlowID : APP-
+Flow的唯一（管理）标识符，可用于定义n：1映射应用程序流量到detnet流
+
+  FlowType :
+通过流的封装格式设置，可以是以太网（TSN），MPLS或IP
+
+  DataFlowSpecification :
+流量描述符，定义哪个数据包属于流，使用特定的数据包标头字段，例如SRC-
+ADDR，DST-ADDR，LABEL，VLAN-ID等。
+
+  TrafficSpecification :
+流量描述符，定义流量参数，例如数据包大小，传输时间间隔和最大数据包
+
+  FlowEndpoints :
+通过指向源接口/节点和目标接口（s）/节点（s）来描述APP-
+FLOW的开始和终点参考点
+
+  FlowStatus : 指示有关连接网络建立流量的APP-
+FLOW的状态，例如，就绪，失败等。
+
+  FlowRank : 指示该流相对于连接网络中其他流的等级
+
+  | Note : 定义n：1映射applows to detnet |流动，
+应用程序必须具有相同的flowtype和不同的|DataFlowspecific
+ation参数。
+
+4.2。应用程序的要求
+
+  App-Flow要求通过以下参数描述：
+
+  FlowRequirements :
+定义有关带宽，延迟，延迟变化，损失和误差耐受性的属性
+
+  FlowBiDir : 定义有关带宽，延迟，延迟变化，损失和误差耐受性的属性
+
+5. Detnet流量相关参数
+
+5. Detnet流量相关参数
+
+  [IEEE8021QCC]指定的数据模型将使用TSN服务描述数据流作为具有固
+定数据包大小（即常数比特率（CBR）流）或具有可变数据包大小的定期流。使用Det
+net服务应用了相同的概念。
+
+  detnet流具有以下属性：
+
+  一个。DNFlowID（第5.1节）b。dnpayloadType（第5.2
+节）c。DNFlowFormat（第5.3节）d。dnflowspecerifi
+cation（第5.4节）e。DNTRAFFICSPECERICATION（第5
+.5节）f。dnflowendpoints（第5.6节）g。DNFlowRank
+（第5.7节）h。DNFlowStatus（第5.8节）
+
+  Detnet流具有以下要求属性：
+
+  一个。DNFlowRequirentess（第5.9节）b。DNFlowBi
+dir（第5.10节）
+
+  流属性在以下各节中描述。
+
+5.1。Detnet流的管理ID
+
+  Detnet域中的每个Detnet流都需要一个唯一的（管理）标识符。它由DN
+FlowID指定。它可以用来定义n：1映射到detnet服务的n：1映射。
+
+5.2。Detnet流的有效载荷类型
+
+  DNPAYLOADTYPE属性是根据封装的应用程序格式设置的。该属性可以是以
+太网，MPL或IP。
+
+5.3。detnet流的格式
+
+  DNFlowFormat属性是根据Detnet
+PSN技术设置的。该属性可以是MPLS或IP。
+
+5.4。识别和规格
+
+  在入口/出口和Detnet域内的Detnet流的识别选项指定如下；有关det
+net IP流量，请参见第5.4.1节和第5.4.2节。
+
+5.4.1。Detnet MPLS流识别和规范
+
+  DETNET域中Detnet MPLS流的识别基于服务信息模型中的MPLS上
+下文。该属性特定于Detnet域中的MPL转发范式[RFC8964]。可以通过以
+下属性来识别和指定detnet mpls流量：
+
+  一个。平板b。禁止stack
+
+5.4.2。Detnet IP流量识别和规范
+
+  可以通过以下属性[RFC8939]来识别和指定Detnet IP流量：
+
+  一个。SourceIpAddress
+b。destinationIpaddress c。IPv6FlowLabel
+d。DSCP e。协议f。SourcePort g。目标港H。ipsecspi
+
+  用于Detnet IP流识别的IP 6核心由项目A，B，D，E，F和G组成。
+项目C和H是除了6支马之外，还可以用于Detnet流识别的其他属性。[RFC89
+39]中指定了6核和使用通配符对这些属性的使用。
+
+5.5。Detnet流量的交通规范
+
+  DNTRAFFICSPECIECTION属性指定DN进入Detnet流的数据
+包。这实际上是DN进入网络的承诺/请求。该网络使用此流量规范来分配资源并调整网络
+节点中的队列参数。
+
+  贩运规定具有以下属性：
+
+  a. Interval : 指定流量规范的时间段
+
+  b. MaxPacketsPerInterval :
+入口将以一个间隔传输的最大数据包数量
+
+  c. MaxPayloadSize : 入口将传输的最大有效载荷尺寸
+
+  d. MinPayloadSize : 入口将传输的最小有效载荷尺寸
+
+  e. MinPacketsPerInterval :
+入口将以一个间隔传输的最小数据包数量
+
+  入口将以一个间隔传输的最小数据包数量
+
+  超过流量规范的流量（即具有比最大属性定义的更多流量）可能会收到与Detnet
+网络已设计的不同的网络行为。可以防止或减轻由于恶意或故障设备而导致的交通过多（例
+如，通过使用现有机制，例如警务和塑造）。
+
+  当使用MinPayloadSize和MinPacketsperinterva
+l参数时，所有数据包都小于MinPayloadSize时，将计算为在数据包大小很
+重要时，例如，在策略时，在数据包处理过程中的尺寸minpayloadsize；当
+每个间隔事项的数据包数，例如在资源预订期间，所有的流量小于Minpacketsp
+ernterval的流都将被视为具有MinPacketspernterval。但
+是，与MinPacketsPernterval相比，与Detnet网络的设计不同
+。例如，当将数据包订购函数（POF）应用于给定的detnet流时，可以使用Min
+PayloadSize和MinPacketsPerthval参数。
+
+  可以考虑进一步的可选属性来实现更有效的资源分配。对于具有软需求的流量，此类可
+选属性可能值得（即，流量仅是损失敏感或仅延迟敏感的，但既延迟和损失敏感）。有关如
+何扩展DNTRAFFICSPECIFICAIGY属性的可能选择是进一步讨论。
+
+5.6。Detnet流的端点
+
+  DNFlowendPoints属性通过指向Ingress接口/节点和Egre
+ss接口（S）/节点（S）来定义Detnet流的开始和终点。根据网络方案，它定义
+了接口或节点。可以定义接口，例如，如果应用程序流是TSN流，并且通过定义明确的用
+户到网络接口（UNI）接收到它。例如，对于具有MPLS封装的应用程序，当使用每个
+平台标签空间时，定义入口节点更为常见。
+
+5.7。detnet流等级
+
+  DNFlowRank属性提供了相对于DITNET域中其他流的等级。DETNE
+T域使用等级（范围：0-255）来决定当网络资源达到其极限时，哪些流可以而且不能
+存在。等级用于帮助确定可以撞到哪些流（即，从节点配置中删除，从而释放其资源），例
+如，例如，节点的端口被超额订阅（例如，由于网络重新配置）。DNFlowRank值
+0是最高优先级。
+
+5.8。Detnet流的状态
+
+  DNFlowStatus属性提供了Detnet域建立的Detnet流的状态。
+
+  DNFlowStatus包括以下属性：
+
+  一个。dningressstatus是该流量入口参考点状态的列举：
+
+  None :
+没有入口。准备就绪：入口准备就绪。失败：入口失败。服务：行政上的阻塞。
+
+  b。dnegressstatus是该流量的出口参考点状态的枚举：
+
+  None : 没有出口。准备就绪：所有出口都准备就绪。偏尾：一个或多个出口已
+经准备就绪，一个或多个出口失败了。如果准备就绪，则可以使用Detnet流。失败：
+所有出口都失败了。服务：所有出口均被管理阻塞。
+
+  C。FailureCode是一个非零代码，如果detnet流遇到故障，则指定
+错误（例如，请求数据包复制和消除，但不可能或dningressStatus失败，
+dnegressstatus失败，或者dnegressstatus是部分的）。
+
+  定义Detnet的故障编码不超出本文档的范围。[IEEE8021QCC]的表
+46-1描述了TSN故障代码。
+
+5.9。Detnet流的要求
+
+  DNFlowRequirements属性指定要求，以确保Detnet流的服务
+水平。
+
+  DNFlowRequirlements包括以下属性：
+
+  一个。MinbandWidth（第5.9.1节）b。最大值（第5.9.2节）
+c。MaxLatencyVariation（第5.9.3节）d。Maxloss（
+第5.9.4节）e。MaxConsecutivelosStolerance（第5
+.9.5节）f。maxmisordering（第5.9.6节）
+
+5.9.1。Detnet流的最小带宽
+
+  MinBandWidth是必须保证Detnet流的最小带宽。MinBandW
+idth以每秒八位字指定为八位字。
+
+5.9.2。Detnet流的最大延迟
+
+  最大值是单个Detnet流量数据包的最大潜伏期到出口（ES）的最大延迟。最大
+值被指定为纳秒数的整数数量。
+
+5.9.3。Detnet流的最大延迟变化
+
+  最小值和最大端到端，单向延迟之间的差异是最大变位。MaxLatencyVar
+iation被指定为整数纳秒数。
+
+5.9.4。最大损失Detnet流量
+
+5.9.4。最大损失Detnet流量
+
+5.9.5。最大连续的Detnet流量损失
+
+  一些应用程序具有特殊的损失要求，例如MaxConsecutivelosSto
+lerance。最大连续损失公差参数描述了可以容忍损失的连续数据包的最大数量。例
+如，可以根据序列编号来测量最大连续损耗公差。
+
+5.9.6。Detnet流的最大误差耐受性
+
+  MaxMisordering描述了可忍受的可容忍的数据包数量。最大允许的误解
+的值零表示需要固定交付；无法容忍误差。
+
+  可以根据序列编号来测量允许的误差。当数据包在具有较高序列编号的数据包后到达出
+口时，序列号值之间的差异不能大于“ MaxMisordering + 1”。
+
+5.10。Detnet流量的竞标要求
+
+  DNFlowBidir属性定义了以下要求：流和相应的反向方向流必须通过Det
+net域中的路由或开关网络共享相同的路径（链接和节点），例如路径特征。
+
+6. Detnet服务相关参数
+
+  Detnet服务具有以下属性：
+
+  一个。DNServiceId（第6.1节）b。dnservicedelive
+rytype（第6.2节）c。dnservicedeliveryprofile（
+第6.3节）d。DNServiceConectivity（第6.4节）e。DNS
+erviceBidir（第6.5节）f。DNServicerank（第6.6节）
+g。DNServicestatus（第6.7节）
+
+  服务属性在以下各节中描述。
+
+6.1。Detnet服务的管理ID
+
+  DNServiceID属性是Detnet域中每个Detnet服务的唯一（管理
+）标识符。它可以用来将Detnet流的多对一映射定义为Detnet服务。
+
+6.2。送货类型的Detnet服务
+
+  DNServIceDeliveryType属性是根据已服务的Detnet流的
+有效载荷（即，封装的App-
+Flow格式）设置的。该属性可以是以太网，MPL或IP。
+
+6.3。Detnet服务的交付配置文件
+
+  DNServicedEliveryProfile属性指定了递送配置文件，以确
+保正确提供Detnet流。
+
+  dnservicedeliveryprofile包括以下属性：
+
+  一个。minbandwidth（第6.3.1节）b。最大值（第6.3.2节）
+c。MaxLatencyVariation（第6.3.3节）d。Maxloss（
+第6.3.4节）e。MaxConsecutivelosStolerance（第6
+.3.5节）f。maxmisordering（第6.3.6节）
+
+6.3.1。Detnet服务的最小带宽
+
+  MinBandWidth是必须保证DetNet服务的最小带宽。MinBand
+Width以每秒八位字指定为八位字，不包括其他Detnet标头（如果有）。
+
+6.3.2。Detnet服务的最大延迟
+
+  最大值是单个Detnet流量数据包的最大潜伏期到出口（ES）的最大延迟。最大
+值被指定为纳秒数的整数数量。
+
+6.3.3。Detnet服务的最大延迟变化
+
+  最小值和最大端到端，单向延迟之间的差异是最大变位。MaxLatencyVar
+iation被指定为整数纳秒数。
+
+6.3.4。最大损失Detnet服务
+
+  Maxloss定义了Detnet域的入口和出口（ES）之间的DETNET服务
+的最大数据包损耗率（PLR）参数。
+
+6.3.5。最大连续丢失Detnet服务
+
+  某些应用程序具有特殊的损失要求，例如MaxConsecutivelossto
+lerance。最大连续损失公差参数描述了可以容忍损失的连续数据包的最大数量。例
+如，可以根据序列编号来测量最大连续损耗公差。
+
+6.3.6。Detnet服务的最大误差耐受性
+
+  MaxMisordering描述了可忍受的可容忍的数据包数量。可以根据序列编
+号来测量允许的误差。最大允许的误解的值零表示需要固定交付；无法容忍误差。
+
+6.4。Detnet服务的连接类型
+
+  区分了两种连接类型：点对点（P2P）和点对点（P2MP）。连接类型P2MP可
+以通过转发函数（例如P2MP LSP）创建。（请注意，从服务的角度来看，MP2M
+P连接可以视为P2MP连接的叠加。）
+
+6.5。Detnet服务的Bidir要求
+
+  DNServiceBidir属性定义了以下要求：流和相应的反向方向流必须通过
+Detnet域中的路由或开关网络共享相同的路径（链接和节点），例如，在两个方向上
+提供共享命运和命运的一致路径路径特征。
+
+6.6。detnet服务等级
+
+  DNServicerank属性提供了服务实例相对于Detnet域中其他服务的
+等级。在网络资源限制方案的情况下，网络使用了DNServicerank（范围：0
+-255）。DNServicerAnk值0是最高优先级。
+
+6.7。Detnet服务的状态
+
+  DNServiceStatus信息组包括指定Detnet域特定于服务状态的元
+素。该信息组通知用户该服务是否准备好使用。
+
+  dnservicestatus包括以下属性：
+
+  一个。DNServiceingRessStatus是该服务入学地位的列举：
+
+  None :
+没有入口。准备就绪：入口准备就绪。失败：入口失败。服务：行政上的阻塞。
+
+  b。DNServiceEgressStatus是该服务出口状态的列举：
+
+  None : 没有出口。准备就绪：所有出口都准备就绪。偏尾：一个或多个出口已
+经准备就绪，一个或多个出口失败了。如果准备就绪，则可以使用Detnet流。失败：
+所有出口都失败了。服务：行政上的阻塞。
+
+  C。DNServiceFailUreCode是一个非零代码，它指定错误如果D
+etnet服务遇到故障（例如，请求数据包复制和淘汰，但不可能，或者不可能或DNS
+erviceingRessStatus失败，DNServiceEgressSta
+tus dnserviceEgressStatus失败，或者DNServiceE
+gresseGressStatus partialialfailed
+Failialfailed）。
+
+  定义DNServiceFailureCodes用于DetNet服务的范围不超
+出此文档的范围。[IEEE8021QCC]的表46-1描述了TSN故障代码。
+
+7.特定于流动的操作
+
+  Detnet流信息模型依赖于三个高级信息组：
+
+  DnIngress : Dningress信息组包括指定单个Detnet流源
+的元素。该信息组从Detnet服务的用户应用于网络。
+
+  DnEgress : dnegress信息组包括指定单个detnet流的目的
+地的元素。该信息组从Detnet服务的用户应用于网络。
+
+  DnFlowStatus : DNFlowStatus信息组包括指定网络流量
+状态的元素。该信息组从网络应用于Detnet服务的用户。该信息组通知用户是否准备
+好使用Detnet流。
+
+  每个Detnet流都在DN入口或DN出口处的Detnet服务有三个可能的操作
+（类似于源或目的地的应用程序）：
+
+  Join : DN入口/DN出口打算加入该流程。离开：DN入口/DN出口打算
+离开流量。修改：DN入口/DN出口打算改变流动。
+
+7.1。加入操作
+
+7.1。加入操作
+
+7.2。离开操作
+
+  对于休假操作，DNFlowsPecification和DNFlowEndPo
+int包含在dningress或dnegress信息组中。
+
+7.3。修改操作
+
+  对于修改操作，dningress或dnegress信息组中包括DNFlows
+pecification，DNFlowRank，DNFlowendPoint和D
+NTraffics Pecerification。对于加入操作，可以包括DNSe
+rvicRequirentess组。
+
+  可以考虑修改操作以解决流动略有更改时的情况，例如，仅更改了MaxPayloa
+dSize（第5.5节）。进行修改的优点是，它允许在离开当前流程运行的同时启动流
+量规格的更改，直到接受更改为止。如果连接和休假之间没有链接，那么在弄清楚是否可以
+支持新的流规格时，控制器实体必须假设使用了归当前流的资源。通过使用修改，控制器实
+体知道支持当前流的资源可用于支撑更改的流。由于可能的控制器平面限制，修改被认为是
+可选操作。
+
+8.摘要
+
+  本文档描述了Detnet IP网络和Detnet MPLS网络的Detnet
+流量信息模型和服务信息模型。这些模型用作创建detnet-特定杨模块的输入。
+
+9. IANA的考虑
+
+  该文档没有IANA的行动。
+
+10.安全考虑
+
+10.安全考虑
+
+11.参考
+
+11.1。规范参考
+
+  [IEEE8021QCC]2013年10月，<https://ieeexpl
+ore.ieee.org/document/8514112/>。
+
+  [RFC8655]
+Finn，N.，Thubert，P.，Varga，B。和J.
+Farkas，“确定性网络体系结构”，RFC 8655，DOI 10.17487
+/RFC8655，2019年10月，<https：//wwwwwww.rfc-
+editoritor.org/info/rfc8655>。
+
+  [RFC8655]
+Finn，N.，Thubert，P.，Varga，B。和J.
+Farkas，“确定性网络体系结构”，RFC 8655，DOI 10.17487
+/RFC8655，2019年10月，<https：//wwwwwww.rfc-
+editoritor.org/info/rfc8655>。
+
+  [RFC8939] Varga，B.，Ed。，Farkas，J.，Berge
+r，L.，Fedyk，D。和S.
+Bryant，“确定性网络（Detnet）数据平面：IP”，RFC
+8939，DOI 10.17487/RFC8939，2020年11月，<http
+s://www.rfc-editor.org/info/rfc8939>。
+
+11.2。内容丰富的参考
+
+11.2。内容丰富的参考
+
+  [Detnet-Yang] Geng，X.，Chen，M.，Ryoo，Y.，
+Fedyk，D.，Rahman，R。和Z.
+Li，“确定性网络（Detnet）Yang模型”，正在进行中，互联网，互联网-
+Draft，Draft-ietf-detnet-yang-11，2021年2月1
+9日，<https://tools.ietf.org/html/draft-
+ietf-detnet-yang-11>。
+
+  [IEEE8021Q]/8403927>。
+
+  [IEEE8021Q]/8403927>。
+
+  [ietfdetnet]
+
+  [ietfdetnet]
+
+  [RFC3444] Pras，A。和J.
+Schoenwaelder，“有关信息模型和数据模型之间的差异”，RFC
+3444，DOI 10.17487/RFC3444，2003年1月，<https
+://wwww.rfc-editor.or.orgetitor.or.orgg/
+info/RFC3444>。
+
+  作者的地址
+
+  BalázsVarga Ericsson
+Budapest匈牙利Tudosok Krt。11. 1117匈牙利
+
+  Email : 巴拉只是.啊.var GA@Ericsson.com
+
+  JánosFarkasEricsson Budapest匈牙利Tudos
+Krt。11. 1117匈牙利
+
+  Email : Janos.Farkas@Ericsson.com
+
+  罗德尼·卡明斯国家仪器大厦。C 11500 N. Mopac Expwy
+Austin，TX 78759-3504美国美国
+
+  Email : Rodney.Cummings@你.com
+
+  yuan龙Jiang hu A为B按天, long刚districts很真
+518129 China
+
+  Email : 姜元龙@华为.com
+
+  我像pok posnection一样。
+
+  Email : 的份额第一款@拉巴尼.net
+

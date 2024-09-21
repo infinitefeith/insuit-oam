@@ -1,8 +1,9 @@
+#-*- coding:utf-8 -*-
 import sys
 import os
 import re
 import textwrap
-from translator.Translator import Translator
+from tools.translator.Translator import Translator
 
 def isFilePath(path):
     """
@@ -54,7 +55,7 @@ def isFigure(section):
     :param section:
     :return:
     """
-    pattern = ['+-+-+', '------', '======']
+    pattern = ['+-+-+', '------', '======', '.....']
     # 遍历图标的特征并在段落中查询
     for p in pattern:
         if p in section:
@@ -86,7 +87,7 @@ def rfcTranslate(translator, srcfilename, dstfilename):
     """
     if srcfilename is '' or dstfilename is '':
         return
-    dscfile = open(dstfilename, "w+")
+    dscfile = open(dstfilename, "w+", encoding='utf-8')
     with open(srcfilename, "r+") as srcfile:
         content = srcfile.read()
         # 按段分割文件
@@ -108,6 +109,7 @@ def rfcTranslate(translator, srcfilename, dstfilename):
                         transline = "{prefix} : {content}".format(prefix=prefix, content=transline)
                     transline = sectionFormat(transline)
                     print(transline)
+
                 sectionflag = False
 
             #写文档
@@ -121,4 +123,4 @@ def rfcTranslate(translator, srcfilename, dstfilename):
 if __name__ == "__main__":
     # 创建翻译器
     google = Translator()
-    rfcTranslate(google, 'draft-anand-ippm-po-ioam-02.txt', 'draft-anand-ippm-po-ioam-02_t.txt')
+    rfcTranslate(google, 'draft-varga-detnet-service-sub-layer-oam-03.txt', 'draft-varga-detnet-service-sub-layer-oam-03_CN.txt')

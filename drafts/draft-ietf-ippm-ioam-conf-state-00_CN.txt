@@ -1,0 +1,861 @@
+
+
+
+
+  IPPM工作组X. Mininternet-Graft G.
+MirskyIntended状态：标准轨道ZTE
+CORP.EXPIRES：26月2022 L.
+Bo中国电信25日7月2021年7月25日
+
+  Echo Request / Reply for Enaped IETF-
+IPPM-IOAM-CONF-State-00
+
+  抽象的
+
+  本文档描述了IPv6，MPLS，SFC和BIER环境中使用的echo请求/回
+复机制的扩展，可以在IOAM域中使用，允许IOAM封装节点获取每个IOAM传输节
+点的启用的IOAM功能和/或ioam Depapsulate节点。
+
+  这个备忘录的地位
+
+  此互联网草案与BCP 78和BCP 79的规定完全一致。
+
+  互联网草稿是互联网工程工作组（IETF）的工作文件。请注意，其他组还可以将工
+作文件分发给互联网草稿。当前的Internet-草稿列表是https://dat
+atracker.ietf.org/drafts/current/。
+
+  互联网草案均缴纳最多六个月的文件草案，并可以随时更新，更换或已被其他文件替换
+或过时。使用互联网草稿作为参考资料是不合适的，或者以“正在进行的工作”。
+
+  此互联网草案将于1月26日到期2022年。
+
+  版权声明
+
+  版权所有（c）2021 IETF信托和被确定为文件作者的人。版权所有。
+
+
+
+
+
+
+
+
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 1]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  本文档受到BCP 78和IETF Trust的法律规定，与IETF文件（ht
+tps://trustee.ietf.org/许可证 - 信息）有关本文件的出版
+日期。请仔细审查这些文件，因为它们描述了对本文件的权利和限制。从本文档中提取的代
+码组件必须包括简化的BSD许可证文本，如信托法律规定第4.在第41条中所述，并且
+在没有简化的BSD许可证中所述没有保修提供。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.1.  Requirements Language . . . . . . . . . . . . . . . . . .   4
+     2.2.  Abbreviations . . . . . . . . . . . . . . . . . . . . . .   4
+   3.  IOAM Capabilities Formats . . . . . . . . . . . . . . . . . .   5
+     3.1.  IOAM Capabilities Query TLV in the Echo Request . . . . .   5
+     3.2.  IOAM Capabilities Response TLV in the Echo Reply  . . . .   6
+       3.2.1.  IOAM Pre-allocated Tracing Capabilities Sub-TLV . . .   7
+       3.2.2.  IOAM Incremental Tracing Capabilities Sub-TLV . . . .   8
+       3.2.3.  IOAM Proof of Transit Capabilities Sub-TLV  . . . . .   9
+       3.2.4.  IOAM Edge-to-Edge Capabilities Sub-TLV  . . . . . . .  10
+       3.2.5.  IOAM DEX Capabilities Sub-TLV . . . . . . . . . . . .  11
+       3.2.6.  IOAM End-of-Domain Sub-TLV  . . . . . . . . . . . . .  12
+   4.  Operational Guide . . . . . . . . . . . . . . . . . . . . . .  13
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  14
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
+     6.1.  IOAM SoR Capability Registry  . . . . . . . . . . . . . .  15
+     6.2.  IOAM TSF+TSL Capability Registry  . . . . . . . . . . . .  15
+   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  16
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  16
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  16
+     8.2.  Informative References  . . . . . . . . . . . . . . . . .  17
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  18
+
+1.介绍
+
+  用于原位OAM（IOAM）[I-D.ITTF-IPPM-IOAM-DATA]
+的数据字段定义了数据字段，在数据包遍历分组中记录数据包中的OAM信息的数据字段，
+其被称为IOAM域。IOam可用于基于，例如ICMP或其他类型的探针包来补充OA
+M机制，并且可以利用IOAM机制，其中机制例如ICMP不适用或不提供所需的结果。
+
+  如[i-d.ietf-ippm-ioam-data]中规定的，在IOam域中
+，可以由数据包遍历的网络节点更新IOAM数据。将IOAM数据容器添加到的设备
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 2]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  用于捕获IOAM数据的数据包称为“IOAM封装节点”。相反，删除IOAM数据
+容器的设备被称为“IOAM解封装节点”。域内的节点，了解IOAM数据并读取和/或
+写入或处理IOAM数据称为“IOam Transit节点”。IOAM封装节点和解
+封装节点都被称为域边缘设备，其可以是主机或网络设备。
+
+  为了将正确的IOAM数据容器添加到数据包，IOAM封装节点需要知道IOAM传
+输节点的启用的IOAM功能以及整个IOAM解封口节点，例如，有多少IOAM传输节
+点将添加跟踪数据以及将添加哪些数据字段。可以在某些IOAM部署中使用集中式控制器
+。IOAM封装节点可以通过中集中控制器，通过，例如NetConf / Yang，
+PCEP或BGP获取这些IOAM功能信息。在没有集中控制器的IOAM部署方案中，
+NetConf / yang或IGP可用于IOAM封装节点以获取这些IOAM功能
+信息，但是NetConf / yang或IGP是否具有以下内容。
+
+  *当在此方案中使用NetConf / yang时，每个IOAM封装节点（包括
+主机当它取得IOAM封装节点的角色时）需要实现NETCONF客户端，每个IOAM
+传输节点和IOAM解封节点（包括主机时它需要IOam解封节点的角色）需要实现NE
+TCONF服务器，复杂性可以是一个问题。此外，每个IOAM封装节点需要与每个IO
+AM传输节点和IOAM解封节点建立NetConf连接，可伸缩性可以是一个问题。
+
+  *当在此方案中使用IGP时，IGP域和IOAM域并不总是具有相同的覆盖范围。
+例如，当IOAM封装节点或IOAM解封装节点是主机时，可用性可能是一个问题。此外
+，如果通过根据IOAM封装节点的身份控制，则在IOAM传输节点和/或IOAM解除
+封装节点中反映IOAM DepapeNuce节点可能过于挑战。
+
+  本文档描述了在IPv6，MPLS，SFC和BIER环境中使用的echo请求/
+回复机制的扩展，可以在没有集中控制器的IOAM域中使用，允许IOAM封装节点获取
+每个每个的启用IOAM功能IOAM传输节点和/或IOAM解封装节点。
+
+
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 3]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  以下文档包含对IPv6，MPLS，SFC和BIER环境中使用的echo请求/
+回复机制的引用：
+
+  * [RFC4443]（“Internet Control Protocol
+第6版（IPv6）规范”）（“扩展ICMP以支持多部分消息”）和[RFC8335
+]（“探测：a探测界面的实用程序“）
+
+  * [RFC8029]（“检测多协议标签交换（MPLS）数据平面故障”）
+
+  * [i-d.ietf-sfc-multi-layer-
+oam]（“网络中服务功能链中的活动OAM”）
+
+  * [i-d.ietf-bier-ping]（“Bier
+ping和trace”）
+
+  本文档中描述的此功能将应用于显式路径（严格或松动），因为此功能的前提是ech
+o请求达到每个IOAM传输节点作为实时流量遍历。
+
+2.惯例
+
+2.1。要求语言
+
+  关键词“必须”，“必须”，“必填”，“应该”，“不得”，“应该”，“应该”，
+“推荐”，“不推荐”，“可以”，和“可选“在本文档中将被解释为如BCP 14
+[RFC2119]
+[RFC8174]何时所述，并且仅当它们出现在所有资本中时，如此所示。
+
+2.2。缩写
+
+  BIER : 位索引显式复制
+
+  BGP : 边境网关协议
+
+  E2E : 边缘到边缘
+
+  ICMP : Internet控制消息协议
+
+  IGP : 内部网关协议
+
+  IOAM : 原位运营，管理和维护
+
+  LSP : 标签切换路径
+
+  MPLS : 多协议标签交换
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 4]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  MBZ : 必须是零
+
+  MTU : 最大传输单元
+
+  NTP : 网络时间协议
+
+  OAM : 运营，管理和维护
+
+  PCEP : 路径计算元素（PCE）通信协议
+
+  POSIX : 便携式操作系统界面
+
+  POT : 过境证明
+
+  PTP : 精确时间协议
+
+  SFC : 服务功能链
+
+  TTL : 是时候生活了
+
+3. IOAM功能格式
+
+3.1。IOAM功能在Echo Request中查询TLV
+
+在ECHO请求中，IOAM功能查询使用具有以下格式的TLV（类型长度值元组）：
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Type = IOAM Capabilities Query|            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     .                                                               .
+     .                    List of Namespace-IDs                      .
+     .                                                               .
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 1 : IOAM功能在Echo Request中查询TLV
+
+  当该TLV存在于由IOAM封装节点发送的回波请求中时，意味着IOAM封装节点
+请求接收节点以其启用的IOAM功能回复。如果接收节点没有报告IOAM能力，则接收
+节点应该忽略此TLV，这意味着接收节点应该在没有IOAM功能的情况下发送回声回复
+，或者鉴于回声请求，没有回声回复。包括其他TLV而不是IOAM功能查询TLV。清
+单
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 5]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  命名空间ID可以包含在echo请求的TLV中。在这种情况下，IOAM封装节点
+仅请求与其中一个命名空间ID匹配的IOAM功能。命名空间ID具有与[i-d.ie
+tf-ippm-ioam-data-data]中指定的相同的定义。
+
+  类型设置为将其标识为IOAM功能查询TLV的值。
+
+  长度是八位字节中TLV值字段的长度，包括名称空间ID列表。
+
+  该TLV的值字段是零填充以对准4八位字节边界。
+
+3.2。IOAM能力响应TLV在回声回复中
+
+  在回声回复中，IOAM功能响应使用TLV具有以下格式：
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Type = IOAM Capabilities Resp |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     .                                                               .
+     .                      List of Sub-TLVs                         .
+     .                                                               .
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 2 : IOAM能力响应TLV在回声回复中
+
+  当此TLV存在于IOAM传输节点和/或IOAM Depapsulate节点发
+送的回声回复中时，表示在此节点上启用了IOAM功能，并且此TLV包含发件人的已启
+用的IOAM功能。包含IOAM功能的子TLV列表应包括在echo回复的TLV中。
+请注意，IOAM封装节点或IOAM解封装节点也可以是IOAM传输节点。
+
+  类型设置为将其标识为IOAM功能响应TLV的值。
+
+  长度是八位字节中TLV值字段的长度，包括子TLV列表。
+
+
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 6]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  该TLV或任何子TLV的值字段是零填充以对准4八位字母边界。基于IOAM的数
+据字段，在[i-d.ietf-ippm-ioam-
+data]和[i-d.ietf-ippm-ioam-direct-export]
+中指定，在本文档中定义了六种子TLV。只有使用不同的命名空间ID，相同类型的子T
+LV可能在IOAM功能响应响应TLV中。
+
+3.2.1。IOAM预先分配跟踪功能子TLV
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |Sub-type = Pre-allocated trace |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               IOAM-Trace-Type                 |    Reserved   |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Namespace-ID          |          Egress_MTU           |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  Egress_if_id (short or wide format)         ......           |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 3 : IOAM预先分配跟踪功能子TLV
+
+  当该子TLV存在于IOAM功能响应TLV中时，它意味着发送节点是IOam传输
+节点，并且在此IOAM转换节点中启用了IOAM预先分配的跟踪功能。
+
+  子类型设置为将其标识为IOAM预先分配的跟踪功能子TLV的值。
+
+  长度是八位字节中的子TLV值字段的长度。如果EIGRE_IF_ID处于短格式
+，这是16位长，则它必须设置为10.如果EIGRE_IF_ID处于宽格式，则它为
+32位长，必须设置为12。
+
+  IOam-Trace-Type字段具有与[I-D.ietf-IPPM-
+IOAM-Data-Data]第5.4节中指定的定义相同的定义。
+
+  保留字段保留用于将来使用，必须设置为零。
+
+  命名空间-ID字段具有与[I-D.ITF-IPPM-IOAM-Data-da
+te]第5.3节中指定的定义相同的定义，它应该是IOAM功能查询TLV中列出的N
+amespace-ID之一。
+
+
+
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 7]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  EIGRER_MTU字段具有16位，并指定出口方向的MTU，其中发送节点将转
+发所接收的回声请求，它应该是出口接口的MTU或发送节点和下游IOam传输节点之间
+的MTU。
+
+  EORTER_IF_ID字段具有16位（以短格式）或32位（以宽格式为单位）
+，并指定出口接口的标识符，其中发送节点将转发所接收的echo请求。
+
+3.2.2。IOAM增量跟踪功能子TLV
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Sub-type = Incremental trace  |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               IOAM-Trace-Type                 |     Reserved  |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Namespace-ID          |          Egress_MTU           |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  Egress_if_id (short or wide format)         ......           |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 4 : IOAM增量跟踪功能子TLV
+
+  当该子TLV存在于IOAM功能响应TLV中时，它意味着发送节点是IOAM传输
+节点，并且在此IOAM传输节点中启用了IOAM增量跟踪功能。
+
+  子类型设置为将其标识为IOAM增量跟踪功能子TLV的值。
+
+  长度是八位字节中的子TLV值字段的长度。如果EIGRE_IF_ID处于短格式
+，这是16位长，则它必须设置为10.如果EIGRE_IF_ID处于宽格式，则它为
+32位长，必须设置为12。
+
+  IOam-Trace-Type字段具有与[I-D.ietf-IPPM-
+IOAM-Data-Data]第5.4节中指定的定义相同的定义。
+
+  保留字段保留用于将来使用，必须设置为零。
+
+  命名空间-ID字段具有与[I-D.ITF-IPPM-IOAM-Data-da
+te]第5.3节中指定的定义相同的定义，它应该是IOAM功能查询TLV中列出的N
+amespace-ID之一。
+
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 8]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  EIGRER_MTU字段具有16位，并指定出口方向的MTU，其中发送节点将转
+发所接收的回声请求，它应该是出口接口的MTU或发送节点和下游IOam传输节点之间
+的MTU。
+
+  EORTER_IF_ID字段具有16位（以短格式）或32位（以宽格式为单位）
+，并指定出口接口的标识符，其中发送节点将转发所接收的echo请求。
+
+3.2.3。IOam过境能力证明子TLV
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  Sub-type = POT Capabilities  |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Namespace-ID           | IOAM-POT-Type |P|SoR|Reserved |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 5 : IOam过境能力证明子TLV
+
+  当该子TLV存在于IOAM功能响应TLV中时，表示发送节点是IOam传输节点
+，并且在此IOAM传输节点上启用了IOAM传输功能的证明。
+
+  子类型设置为将其标识为Transit
+Capabilities子TLV的IOAM证明的值。
+
+  长度是八位字节中子TLV的值字段的长度，必须设置为4。
+
+  命名空间-ID字段具有与[I-D.ITF-IPPM-IOAM-Data-da
+te]第5.3节中指定的定义相同的定义，它应该是IOAM功能查询TLV中列出的N
+amespace-ID之一。
+
+  IOam-pot型字段和p位具有与[i-d.ietf-ippm-ioam-
+data-data]第5.5节中指定的相同的定义。如果IOAM封装节点从不同于其
+自身的IOam传输节点接收IOam-pot型和/或p比特值，则IOam封装节点可
+以选择放弃传输功能的证明或选择一种IOAM-
+Pot类型和P位，它基于应用于IOAM封装节点的策略。
+
+  SOR字段有两个位，这意味着在[i-d.ietf-ippm-ioam-
+data-data-date]第5.5节中指定的“随机”和“累积”数据的大小。本
+文档定义了SOR，如下所示：
+
+
+
+Min, et al.              Expires 26 January 2022                [Page 9]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  0B00表示64位“随机”和64位“累积”数据。
+
+  0b01~0b11 : 保留未来标准化
+
+  保留字段保留用于将来使用，必须设置为零。
+
+3.2.4。IOAM边缘到边缘功能子TLV
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  Sub-type = E2E Capabilities  |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Namespace-ID           |         IOAM-E2E-Type         |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |TSF|TSL|       Reserved        |              MBZ              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 6 : IOAM边缘到边缘功能子TLV
+
+  当该子TLV存在于IOAM能力响应TLV中时，它意味着发送节点是IOAM解封
+装节点，并且在该IOAM解码节点上启用了IOAM边缘功能。也就是说，如果IOAM
+封装节点接收到该子TLV，则IOAM封装节点可以确定发送该子TLV的节点是IOA
+M解封节点。
+
+  子类型设置为将其标识为IOAM边缘到边缘功能子TLV的值。
+
+  长度是八位字节中的子TLV值字段的长度，必须设置为8。
+
+  命名空间-ID字段具有与[I-D.ITF-IPPM-IOAM-Data-da
+te]第5.3节中指定的定义相同的定义，它应该是IOAM功能查询TLV中列出的N
+amespace-ID之一。
+
+  IOAM-E2E-Type字段具有与[I-D.ITF-IPPM-IOAM-
+DATA]第5.6节中指定的定义相同的定义。
+
+  TSF字段指定发送节点使用的时间戳格式。本文档定义了TSF，如下所示：
+
+  0b00 : PTP时间戳格式
+
+  0b01 : NTP时间戳格式
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 10]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  0b10 : POSIX时间戳格式
+
+  0b11 : 保留未来标准化
+
+  TSL字段指定发送节点使用的时间戳长度。本文档定义了TSL，如下所示。
+
+当TSF字段设置为0B00时，表示PTP时间戳格式，TSL字段的值被解释如下：
+
+  0b00 :
+IEEE1588-2008中定义的64位PTPv1时间戳[IEEE1588V2]
+
+  0b01 :
+IEEE1588-2008中定义的80位PTPv2时间戳[IEEE1588V2]
+
+  0b10~0b11 : 保留未来标准化
+
+当TSF字段设置为0B01时，表示NTP时间戳格式，TSL字段的值被解释为如下：
+
+  0b00 : NTPv4中定义的32位NTP时间戳[RFC5905]
+
+  0b01 : NTPv4中定义的64位NTP时间戳[RFC5905]
+
+  0b10 : NTPv4中定义的128位NTP时间戳[RFC5905]
+
+  0b11 : 保留未来标准化
+
+  当TSF字段设置为0B10或0B11时，将忽略TSL字段。
+
+  保留字段保留用于将来使用，必须设置为零。
+
+3.2.5。IOAM DEX能力子TLV
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  Sub-type = DEX Capabilities  |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |               IOAM-Trace-Type                 |    Reserved   |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Namespace-ID          |           Reserved            |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 11]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  Figure 7 : IOAM DEX能力子TLV
+
+  当该子TLV存在于IOAM功能响应TLV中时，它意味着发送节点是IOAM传输
+节点，并且在此IOAM Transit节点上启用了IOAM DEX功能。
+
+  子类型设置为将其标识为IOAM DEX功能子TLV的值。
+
+  长度是八位字节中的子TLV值字段的长度，必须设置为8。
+
+  IOam-Trace-Type字段具有与[I-D.ITF-IPPM-
+IOAM-Intion-Export]的3.2节中指定的定义相同的定义。
+
+  命名空间-ID字段具有与[i-d.ietf-ippm-ioam-
+direct-export]的第3.2节中指定的定义相同的定义，它应该是IOAM
+功能查询TLV中列出的Namespace-ID之一。
+
+  保留字段保留用于将来使用，必须设置为零。
+
+3.2.6。IOam域末端亚TLV
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   Sub-type = End of Domain    |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Namespace-ID           |             MBZ               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 8 : IOam域域末端TLV
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 12]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  当该子TLV存在于IOAM能力响应TLV中时，意味着发送节点是IOAM解封节
+点。也就是说，如果IOAM封装节点接收到该子TLV，则IOAM封装节点可以确定发
+送该子TLV的节点是IOAM解封节点。当IOAM边缘到边缘能力子TLV存在于IO
+AM解码节点发送的IOAM功能响应TLV中时，IOAM域域子TLV不需要存在于相
+同的IOAM能力响应中TLV，否则域末端子TLV必须存在于IOAM Depaps
+ulate节点发送的IOAM功能响应TLV中。IOAM边缘到边缘能力子TLV和I
+OAM域域子TLV都可用于指示发送节点是IOAM解封节点。如果在此IOAM解除节
+点上启用了IOAM边缘函数，建议仅包含IOAM边缘到边缘功能子TLV。
+
+  子类型设置为将其标识为域子TLV的IOAM结束的值。
+
+  长度是八位字节中子TLV的值字段的长度，必须设置为4。
+
+  命名空间-ID字段具有与[I-D.ITF-IPPM-IOAM-Data-da
+te]第5.3节中指定的定义相同的定义，它应该是IOAM功能查询TLV中列出的N
+amespace-ID之一。
+
+4.运营指南
+
+  一旦触发IOAM封装节点以获取每个IOAM传输节点和/或IOam解封口节点的
+启用的IOAM功能，IOAM封装节点将发送包括IOAM功能查询TLV的回声请求。
+首先使用TTL等于1来到达最近的节点，其可以是IOAM传输节点。然后使用TTL等
+于2来到达第二最近节点，其也可以是IOAM传输节点。此外，每当IOAM封装节点发
+送新的回声请求，直到IOAM封装节点接收到由IOAM解封装节点发送的回声回复，这
+应该包含IOAM能力响应TLV在包括IOAM边缘的IOAM功能响应响应TLV的回
+声答复之前，增加了1个TTL -Edge功能子TLV或IOAM域域子TLV。或者
+，如果IOAM封装节点预先知道完全所有IOAM传输节点和/或IOAM解封装节点，
+一旦触发IOAM封装节点以获取启用的IOAM功能，它可以向每个IOAM传输节点和
+/或发送回声请求IOam直接解封装节点，没有TTL到期。
+
+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 13]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  可以由设备管理员，网络管理系统，网络控制器甚至实时用户流量触发IOAM封装节
+点。特定触发机制超出了本文档的范围。
+
+  接收包含IOAM功能查询TLV的回声请求的每个IOAM传输节点和/或Ioam
+解封装节点将向IOAM封装节点发送回声回复，并且在回声回复中，应该有一个包含一个
+或多个的IOAM功能响应TLV子TLV。IOAM功能查询包含在echo请求中的T
+LV将由不知道IOAM的接收节点忽略。
+
+5.安全考虑因素
+
+  关于IOAM域状态的查询和响应应仅从可信源处理。必须通过支持本规范的实现丢弃
+未经授权的查询。类似地，必须丢弃与IOAM功能TLV的未经请求的回声响应。附表请
+求/回复的身份验证包括IOAM功能TLV是完整性保护的方法之一。基于所接收的回声
+请求/回复的源地址，实现还可以提供过滤手段。也可以使用底层数据平面中的机制来实现
+对IOAM功能信息收集的完整性保护。例如，如果衬垫是IPv6网络，则IP认证标题
+[RFC4302]或IP封装安全有效载荷标题[RFC4303]可用于提供完整性保
+护。
+
+  有关IAM功能中收集的IOAM域状态的信息TLV是机密的。实施可以使用安全传
+输来提供隐私保护。例如，如果下面是IPv6网络，则可以使用IP封装安全有效载荷标
+题[RFC4303]来实现机密性。
+
+6. IANA考虑因素
+
+  本文档请求以下IANA行动。
+
+  请求IANA创建名为“IN-DIATU
+OAM（IOAM）功能参数”的注册表组。
+
+  本集团将包括以下注册管理机构：
+
+  * IOAM SOR功能
+
+  * IOAM TSF TSL能力
+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 14]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  本组中的新注册表可以通过RFC所需的过程创建，如[RFC8126]。
+
+  随后的子部分详细说明了本文所载的注册服务。
+
+  考虑本文档中定义的TLV
+/子TLV将以不同类型的回声请求/回复消息携带，例如ICMPv6或LSP
+ping，旨在在后续文档中请求类型和子类型的注册表。
+
+6.1。IOAM SOR能力注册表
+
+  此注册表定义了用于IOAM
+SOR功能字段的4个代码点，用于识别[I-D.ITF-IPPM-IOAM-DAT
+A]第5.5节中解释的“随机”和“累积”数据的大小。以下代码点在本选项中定义：
+
+      SoR        Description
+      ----       -----------
+      0b00       64-bit "Random" and 64-bit "Cumulative" data
+
+  0B01  -
+0B11可通过RFC所需的RFC分配，如[RFC8126]。
+
+6.2。IOAM TSF TSL能力注册表
+
+  此注册表定义了用于IOAM
+TSF功能字段的3个代码点，用于识别[i-d.ietf-ippm-ioam-
+data-date]第6节中所述的时间戳格式。
+
+  *当IOAM TSF能力字段的代码点等于0B00表示PTP时间戳格式时，此注
+册表定义了用于识别时间戳长度的IOAM TSL能力字段的2个代码点。
+
+  *当IOAM TSF能力字段的代码点等于0b01表示ntp
+timestamp格式时，该注册表定义了用于识别时间戳长度的IOAM
+TSL能力字段的3个代码点。
+
+  以下代码点在本选项中定义：
+
+
+
+
+
+
+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 15]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+
+      TSF        TSL         Description
+      ----       ----        -----------
+      0b00                   PTP Timestamp Format
+                 0b00        64-bit PTPv1 timestamp
+                 0b01        80-bit PTPv2 timestamp
+      0b01                   NTP Timestamp Format
+                 0b00        32-bit NTP timestamp
+                 0b01        64-bit NTP timestamp
+                 0b10        128-bit NTP timestamp
+      0b10                   POSIX Timestamp Format
+
+  根据[RFC8126]，通过RFC所需流程可用于分配TSF
+TSL的未分配代码。
+
+7.致谢
+
+  作者愿意承认天兰周，Dhruv Dhody，Frank
+Brockners和Cheng Li仔细审查和有用的评论。
+
+  作者欣赏本文件上的Frank Krockners的F2F讨论。
+
+  作者愿意为他们的良好建议和指导承认汤米·帕梅和伊恩·斯科特。
+
+8.参考资料
+
+8.1。规范参考文献
+
+  [ID.IETF-IPPM-IOAM-DATA]
+BROCKINERS，F.，BHANDARI，S.和T.
+Mizrahi，“位于原位OAM的数据字段”，正在进行中，互联网草案，草稿 -
+IETF-IPPM-Ioam-data-14,24六月六月二十一，<https:
+//www.ietf.org/archive/id/draft-ietf
+-ipm-ioam-data-14.txt>。
+
+  [ID.IETF-IPPM-IOAM-直接出口]歌，H.，GAFNI，B.，
+周，T.，Li，Z.，Brockners，F.，Bhandari，S.，Siva
+kolundu，R.和T。Mizrahi，“进出奥姆直接出口”，工作正在进行中，
+互联网草案，草案 -  IETF-IPPM-IOAM-Direct-Export
+-05,12七月七月十二日，<https://www.ietf.org/Arch
+ive/ id / braft-ietf-ippm-ioam- direct-
+export-05.txt>。
+
+  [IEEE1588V2] IEEE，“IEEE STD 1588-2008
+- 用于网络测量的精密时钟同步协议的IEEE标准
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 16]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  和控制系统“，IEEE STD 1588-2008,2008，<http:/
+/standards.ieee.org/findstds/标准/
+1588-2008.html>。
+
+  [RFC2119]
+Bradner，S.，“RFC中使用的关键词”，指示要求水平“，BCP
+14，RFC 2119，DOI 10.17487 /
+RFC2119，1997，<https://www.rfc-
+editor.org/info/RFC2119>。
+
+[RFC5905]米尔斯，D.，Martin，J.，Ed。，伯班克，J.和W.
+KASCH，“网络时间协议版本4：协议和算法规范”，RFC 5905，DOI
+10.17487 /
+RFC5905，2010年6月，<https://www.rfc-
+editor.org/info/rfc5905>。
+
+  [RFC8126]棉，M.，Leiba，B.和T.Narten，“用于在RF
+CS中编写IANA考虑因素”部分的准则“，BCP 26，RFC 8126，DOI
+10.17487 / RFC8126，2017年6月<https：//
+www.rfc-editor.org / info / rfc8126>。
+
+  [rfc8174] leiba，b。，“大写的”ampiguity在RFC
+2119中的小写“，BCP 14，RFC 8174，DOI 10.17487 /
+RFC8174，2017年5月，<https://www.rfc-
+editor.org/info/RFC8174>。
+
+8.2。信息参考资料
+
+  [id.ietf-bier-ping] Kumar，N.，Pignataro
+，C.，Akiya，N，Zheng，L.，Chen，M。和G.
+Mirsky，“Bier Ping和追踪”，正在进行中，互联网汇票，草案 -
+IETF-Bier-Ping-07,11 5月20日，<https://www.
+ietf.org/archive/id/draft  -  07.txt>。
+
+  [id.ietf-sfc-multi-layer-oam] mirsky，G
+.，萌，W.，Khasnabish，B.和C.王，“服务职能链接”，正在进行中，
+互联网草案，草稿 -  IETF-SFC-MULTIL-OAM-13,16 6月
+2021年6月16日，<https://www.ietf.org/archive
+/id/draft  -  13.txt>。
+
+  [RFC4302]肯特，S.，“IP认证标题”，RFC 4302，DOI
+10.17487 /
+RFC4302，2005年12月，<https://www.rfc-
+editor.org/info/rfc4302>。
+
+  [RFC4303]
+KENT，S.，“IP封装安全有效载荷（ESP）”，RFC 4303，DOI
+10.17487 /
+RFC4303，2005年12月，<https://www.rfc-
+editor.org/info/rfc4303>。
+
+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 17]
+
+Internet-Draft       Ping Enabled IOAM Capabilities            July 2021
+
+  [rfc4443]互联网协议版本6（IPv6）规范的“互联网控制消息协议（I
+CMPv6）”，STD 89，RFC 4443，DOI 10.17487
+/RFC4443，2006年3月，<https://www.rfc-
+editor.org/info/rfc4443>。
+
+  [RFC4884] Bonica，R.，GaN，D.，Tappan，D。和C
+.Pignataro，“扩展ICMP支持多部分消息”，RFC 4884，DOI
+10.17487 /
+RFC4884，2007年4月<HTTPS：//www.rfc-
+editor.org/info/rfc4884>。
+
+  [RFC8029] Kompella，K.，吞咽，G.，Pignataro，
+C.，Ed。，Kumar，N.，Aldrin，S.和M.
+Chen，“检测多协议标签交换（MPLS）数据平面故障”，RFC
+8029，DOI 10.17487 /
+RFC8029，2017年3月，<https://www.rfc-
+editor.org/info/rfc8029>。
+
+  [RFC8335] Bonica，R.，Thomas，R.，Linkova，
+J.，Lenart，C.和M.Boucadair，“探测：探测界面的效用”，RF
+C 8335，DOI 10.17487 /
+RFC8335，2018年2月，<https://www.rfc-
+editor.org/info/rfc8335>。
+
+  作者的地址
+
+  ξ AO min ZT Eco RP. NaN京China
+
+  Phone : 86 25
+88013062电子邮件：xiao.min2@zte.com.cn
+
+  Greg Mirsky中兴通讯公司美利坚合众国
+
+  Email : Gregory.Mir sky@在特提醒.com
+
+  l EI BO China telecom Beijing China
+
+  Phone : 86 10
+50902903电子邮件：leibo@chinatelecom.cn
+
+
+
+
+Min, et al.              Expires 26 January 2022               [Page 18]
+
+

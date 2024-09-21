@@ -1,0 +1,658 @@
+
+
+
+
+  Detnet工作组G. Mirskyinternet-Draft
+Ericssonintended状态：标准轨道M.
+Chenexpires：2023年6月22日，华为B. Varga
+Ericsson 2022年12月19日Detnet工作组G.
+Mirskyinternet-Draft
+Ericssonintended状态：标准轨道M.
+Chenexpires：2023年6月22日，华为B. Varga
+Ericsson 2022年12月19日...Detnet工作组G.
+Mirskyinternet-Draft
+Ericssonintended状态：标准曲目M.
+Chenexpires：2023年6月22日，华为B. Varga
+Ericsson 2022年12月19日...无法加载全部结果重试正在重试…
+
+  操作，管理和维护场是使用MPLS数据平面绘制-IETF-DETNET-
+MPLS-OAM-10的确定性网络（DETNET）的必要性（OAM）
+
+  抽象的
+
+  本文档将使用MPLS数据平面的Detnet网络定义了确定性网络（DETNET
+）服务通道（ACH）的格式和使用原理。Detnet Service ACH可用于
+携带用于检测Detnet故障并衡量性能指标的主动操作，管理和维护协议的测试包。
+
+  该备忘录的状态
+
+  该Internet草稿完全符合BCP 78和BCP 79的规定。
+
+  Internet草案是Internet工程工作组（IETF）的工作文件。请注
+意，其他小组还可以将工作文件作为Internet草案分发。当前的Internet
+草稿列表在https://datatracker.ietf.org/drafts
+/current/。
+
+  Internet草案是最长六个月有效的文件草案，并且可以随时更新，更换或淘汰
+其他文档。除了“正在进行的工作”之外，使用互联网选拔作为参考材料或引用它们是不合
+适的。
+
+  该互联网草稿将于2023年6月22日到期。
+
+  版权声明
+
+  版权（C）2022 IETF Trust和被确定为文档作者的人。版权所有。
+
+  本文档应遵守BCP 78和IETF Trust与IETF文档（https:/
+/trustee.ietf.org/lices inclice-info）有关的
+法律规定，并在本文档发布之日起生效。请仔细查看这些文件，因为他们描述了您的权利
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 1]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  和关于本文档的限制。从本文档中提取的代码组件必须包括修订后的BSD许可文本，
+如《信托法律规定》第4节中所述，并如修订的BSD许可中所述无保修。
+
+  目录
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conventions used in this document . . . . . . . . . . . . . .   2
+     2.1.  Terminology and Acronyms  . . . . . . . . . . . . . . . .   3
+     2.2.  Keywords  . . . . . . . . . . . . . . . . . . . . . . . .   4
+   3.  Active OAM for DetNet Networks with MPLS Data Plane . . . . .   4
+     3.1.  DetNet Active OAM Encapsulation . . . . . . . . . . . . .   5
+     3.2.  DetNet Packet Replication, Elimination, and Ordering
+           Functions Interaction with Active OAM . . . . . . . . . .   8
+   4.  OAM Interworking Models . . . . . . . . . . . . . . . . . . .   8
+     4.1.  OAM of DetNet MPLS Interworking with OAM of TSN . . . . .   8
+     4.2.  OAM of DetNet MPLS Interworking with OAM of DetNet IP . .   9
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
+     5.1.  DetNet MPLS OAM Flags Registry  . . . . . . . . . . . . .   9
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
+   7.  Acknowledgment  . . . . . . . . . . . . . . . . . . . . . . .  10
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  10
+     8.2.  Informational References  . . . . . . . . . . . . . . . .  11
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  13
+
+1.简介
+
+  [RFC8655]介绍并解释了确定性网络（DETNET）体系结构，以及如何使
+用数据包复制，消除和订购功能（PREOF）来确保在detnet域中的低数据包下降
+率。
+
+  操作，管理和维护（OAM）协议用于检测和本地化网络缺陷，并监视网络性能。通常
+在网络中主动执行某些OAM功能（例如，故障检测），而其他OAM功能（例如，缺陷定
+位）通常是按需执行的。这些任务可以通过[RFC7799]（OAM方法）中定义的活
+性和混合动力车的组合来实现。
+
+  此外，本文档将通过MPLS数据平面[RFC8964]定义格式并使用DETNE
+T服务相关通道的原理。
+
+2.本文档中使用的约定
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 2]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+2.1。术语和首字母缩写词
+
+  本文档中使用的术语“ detnet OAM”与更长版本的“
+OAM协议，方法和工具”的确定性网络互换。
+
+  CW控制词
+
+  Detnet确定性网络
+
+  D-ACH Detnet相关的通道标头
+
+  D-CW Detnet控制字
+
+  GAL通用相关通道标签
+
+  G-ACH通用相关渠道
+
+  OAM : 运营，管理和维护
+
+  促进数据包复制，消除和订购功能
+
+  pw pseudowire
+
+  E2E端到端
+
+  BFD双向转发检测
+
+  TSN IEEE 802.1时间敏感网络
+
+  LSR标签切换路由器
+
+  f标签A detnet“转发”标签。F标签标识了用于向MPLS PSN转发D
+etnet流的LSP，例如，标签开关路由器（LSR）之间使用的逐越野标签。
+
+  S-Label A Detnet“服务”标签。在实现Detnet Servi
+ce子层函数的Detnet节点之间使用S标记。S标签还用于识别Detnet服务子
+层处的Detnet流。
+
+  底层网络或底层层：提供Detnet节点之间连接性的网络。底层层的一个示例是M
+PLS网络，该网络在Detnet节点之间提供LSP连接。
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 3]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  detnet节点 - 一个节点，该节点是Detnet域中的演员。Detnet
+节点的示例包括Detnet域边缘节点，以及在Detnet域内执行的Detnet节
+点。
+
+2.2。关键字
+
+  关键词“必须”，“必须”，“必需”，“应”，“不得”，“应该”，“不应该”，
+“建议”，“不建议”，“可能”和“可选”“在本文档中，应如BCP 14
+[RFC2119]
+[RFC8174]中所述解释，并且仅在所有首都出现在所有首都时，如下所示。
+
+3.使用MPLS数据平面的Detnet网络的活动OAM
+
+  OAM协议和机制在特定网络层的数据平面内起作用，因此，数据平面封装支持符合[
+I-D.IETF-DETNET-OAM-FRAMEWORK中列出的OAM要求]的
+OAM机制至关重要。一个需要特殊考虑的示例是要求
+
+  Detnet OAM数据包必须在带中，即，与单向和双向detnet路径的De
+tnet数据平面流量完全相同。
+
+  在[RFC8964]中指定了具有MPLS底层网络的Detnet数据平面的操作
+。在MPLS底层网络中，应按照[RFC3985]中指定的伪线类似地封装Detne
+t流。作为参考，图1中复制了通用PW MPLS
+CW（如[RFC4385]中定义并与Detnet一起使用）。
+
+
+
+        0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |0 0 0 0|                Sequence Number                        |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 1 : detnet控制字格式
+
+  在Detnet结构域中，由执行复制和消除函数的节点组合组成。消除子函数始终将
+S标签与数据包测序信息（即D-CW中编码的序列编号）结合使用。复制子功能仅使用S
+标签信息。图2中显示了Detnet域中数据数据包操作序列的一个示例。
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 4]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+
+         1111   11111111  111111   112212   112212     132213
+      CE1----EN1--------R1-------R2-------R3--------EN2----CE2
+               \2          22222/                 3 /
+                \2222222  /----+                 3 /
+                 +------R4------------------------+
+                          333333333333333333333333
+
+  Figure 2 : 基于PW的Detnet数据平面
+
+3.1。Detnet主动OAM封装
+
+  像PW OAM一样，Detnet
+OAM使用[RFC4385]中定义的PW相关通道标头。同时，可以将DITNET
+PW视为多段PW，其中Detnet Service子层函数在段端点处。但是，De
+tnet服务子层函数每个数据包级别（不是每个细分级别）运行。这些PEROF的这些
+每包级特征需要其他字段才能进行正确的OAM数据包处理。图3中显示了Detnet
+MPLS [RFC8964]活动OAM数据包的封装。
+
+
+         +---------------------------------+
+         |                                 |
+         |        DetNet OAM Packet        |
+         |                                 |
+         +---------------------------------+ <--\
+         | DetNet Associated Channel Header|    |
+         +---------------------------------+    +--> DetNet active OAM
+         |           S-Label               |    |    MPLS encapsulation
+         +---------------------------------+    |
+         |         [ F-Label(s) ]          |    |
+         +---------------------------------+ <--/
+         |           Data-Link             |
+         +---------------------------------+
+         |           Physical              |
+         +---------------------------------+
+
+  Figure 3 : Detnet主动OAM数据包在MPLS数据平面中封装
+
+  图4显示，如果MPLS-of-udp/ip
+[RFC9025]，则显示活动Detnet OAM协议的测试数据包的封装。
+
+
+
+
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 5]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+
+         +---------------------------------+
+         |                                 |
+         |        DetNet OAM Packet        |
+         |                                 |
+         +---------------------------------+ <--\
+         | DetNet Associated Channel Header|    |
+         +---------------------------------+    +--> DetNet active OAM
+         |             S-Label             |    |    MPLS encapsulation
+         +---------------------------------+    |
+         |          [ F-label(s) ]         |    |
+         +---------------------------------+ <--+
+         |           UDP Header            |    |
+         +---------------------------------+    +--> DetNet data plane
+         |           IP Header             |    |    IP encapsulation
+         +---------------------------------+ <--/
+         |           Data-Link             |
+         +---------------------------------+
+         |           Physical              |
+         +---------------------------------+
+
+  Figure 4 : Detnet Active
+OAM数据包封装在MPLS-IDP/IP中
+
+  图5显示了Detnet相关通道标头（D-ACH）的格式。
+
+
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |0 0 0 1|Version|Sequence Number|         Channel Type          |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                 Node ID               |Level|  Flags  |Session|
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+  Figure 5 : Detnet相关的通道标头格式
+
+  D-ACH编码以下字段：
+
+  位0..3必须为0b0001。第一个nibble的此值将IP数据包[RFC4
+928]与Detnet数据数据包[RFC8964]区分开。
+
+  版本 - 是一个4位字段，值是D-
+ACH的版本编号。如果无法以向后兼容的方式引入D-
+ACH的更新，则需要版本字段。该规范定义了0x1版本，以进一步将D-
+ACH与[RFC4385]中定义的PW ACH区分开。
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 6]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  序列号 - 是一个未签名的8位字段。序列数空间是圆形的，对初始值无限制。发起
+人detnet节点必须在传输数据包之前设置序列编号字段的值。对于每个活动的OAM
+数据包，发起人节点必须将序列数字段的值增加1。
+
+  通道类型 -
+是一个16位字段，是Detnet相关的通道类型的值。它可能是IANA MPLS广
+义相关通道（G-ACH）类型（包括伪威相关的通道类型）注册表[IANA-G-
+ACH类型]中定义的值之一。将来可以定义新值。
+
+  节点ID-是一个未签名的20位字段。节点ID字段的值标识了源自数据包的det
+net节点。分布节点ID的方法不在此规范的范围之内。
+
+  级别 - 是一个3位字段。水平字段用于应对Preof概念的“所有活动路径转发
+”特征。可以使用级别字段值创建OAM域之间的分层关系。
+
+  标志 - 是一个5位字段。标志字段包含五个1位标志。第5.1节为要定义的新标
+志创建了IANA注册表。该规范中定义的标志如图6所示。
+
+
+             0 1 2 3 4
+            +-+-+-+-+-+
+            |U|U|U|U|U|
+            +-+-+-+-+-+
+
+  Figure 6 : detnet关联的通道标头标志字段格式
+
+  U : 未使用并供将来使用。在传输时必须为0，并且在收据上忽略。
+
+  会话ID是一个4位字段。会话字段用于区分源自相同节点的OAM会话（给定的维护
+终点可能具有多个同时活跃的OAM会话）。
+
+  根据[RFC8964]，Detnet流由必须位于堆栈底部的S标签标识。活跃的
+OAM数据包必须在S标签之后立即包括D-ACH。
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 7]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+3.2。Detnet数据包复制，消除和订购功能与活动OAM的相互作用
+
+  在Detnet服务子层上，特殊功能（特别是PREOF）可以应用于特定的Det
+net流量，以降低数据包丢失，提高按时数据包的可能性，并确保订购数据包的交付。p
+reof依赖于Detnet服务子层中的测序信息。对于Detnet活动OAM数据包
+，PreoF必须使用位4到位31的位字符串，包括D-ACH的前32位单词，即版本
+，序列号和频道类型字段的串联，作为串联。此测序信息的来源。
+
+4. OAM互助模型
+
+  使用不同网络技术的两个OAM域的互通可以通过凝视或隧道模型来实现。在对等模型
+中，OAM域位于相应的网络域内。当使用对等模型时，可以将故障管理OAM协议检测到
+的状态更改从一个OAM域映射到另一个OAM域或通知，例如，可以将警报发送到中央控
+制器。在OAM互动的隧道模型中，通常仅使用一个活动的OAM协议。它的测试数据包与
+数据流一起通过另一个域进行隧道，从而确保了测试和数据包之间的命运共享。
+
+4.1。Detnet MPLS与TSN的OAM互动的OAM
+
+  活动的Detnet OAM可用于为DetNet流提供E2E故障管理和性能监控
+。在使用MPLS数据平面和TSN底层网络的Detnet的情况下，这意味着Detn
+et Active OAM与TSN
+OAM的互通，该OAM在[RFC9037]中指定。
+
+  当在CFM OAM中使用对等模型时，与TSN和Detnet MPLS域的接壤
+的节点必须支持[RFC7023]。[RFC7023]指定了以太网附件电路和相关的
+以太网PW之间的缺陷状态映射，这些以太网PW是E2E模拟以太网服务的一部分，并且
+也适用于跨钉MMPLS和TSN域的E2E OAM。连接故障管理协议[IEEE.C
+FM]或[ITU.Y1731]中可以快速检测到Detnet服务的TSN段中的故障
+。在[RFC5880]中指定的DETNET MPLS域BFD（双向转发检测）和[
+RFC5885]中。为了提供E2E检测，可以将TSN和Detnet MPLS段视
+为串联，以使诊断代码（请参阅[RFC5880]的第6.8.17节）可用于告知上游
+Detnet MPLS MPLS tsnet段失败的empstream
+detnet MPLS节点。。detnet中的[RFC6374]可以支持性能监视
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 8]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  MPLS和[ITU.Y1731]分别在TSN域中。每个域的性能目标应参考分别
+为每个域定义的加法或定义的指标。
+
+  根据第4节[RFC9037]中描述的一般原则，使用DETNET
+MPLS和TSN域之间的OAM互动隧道模型时，适用以下考虑：
+
+*活跃的OAM测试数据包必须映射到与受监视的Detnet流相同的TSN流ID。
+
+  *活跃的OAM测试数据包必须根据其S标记和服务标记类（流量类字段值）在TSN
+域中进行处理。
+
+  请注意，OAM互动的隧道模型要求E2E OAM域的远程对等支持在入口端点上选
+择的活动OAM协议。例如，如果在detnet服务的任何TSN端点，都必须使用De
+tnet
+MPLS域中的BFD进行主动路径连续性监视（在[RFC5885]中定义）。
+
+4.2。Detnet MPLS与Detnet IP的OAM互动的OAM
+
+  如第4.1节所述，也可以使用对等模型或隧道模型在Detnet
+MPL和Detnet IP域中的活动OAM段之间的互操作。使用相同的协议，例如B
+FD在两个段上，简化了对等模型中错误的映射。为了在Detnet
+IP域上提供性能监控，可以使用Stamp
+[RFC8762]及其扩展[RFC8972]。
+
+5. IANA考虑
+
+5.1。detnet MPLS OAM标志注册表
+
+  本文档描述了一个新的IANA管理的注册表，以识别Detnet MPLS
+OAM标志。注册程序是“ IETF评论” [RFC8126]。注册表名称为“
+Detnet Mpls OAM标志”。IANA应将“ Detnet Mpls
+OAM标志”视为注册表的名称。五位标志字段中有五个标志，如表1所示。
+
+
+
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                  [Page 9]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+
+                   +=====+=============+===============+
+                   | Bit | Description | Reference     |
+                   +=====+=============+===============+
+                   | 0-4 |  Unassigned | This document |
+                   +-----+-------------+---------------+
+
+  Table 1 : detnet mpls oaM旗
+
+6.安全考虑
+
+  Detnet规范[RFC8655]，[RFC9055]，[RFC8964]中
+讨论的安全考虑因素适用于本文档。与MPLS
+OAM工具有关的安全问题和问题，例如LSP PING [RFC8029]，BFD
+OVY PW [RFC5885]也适用于此规范。
+
+7.确认
+
+  作者对帕斯卡·瑟伯特（Pascal Thubert）的洞察力和富有成效的讨论
+表示感谢，这有助于改善该文件。作者非常感谢Janos Farkas的详细评论以及
+令人鼓舞的讨论，使该文件变得更加清晰，更强大。作者认可了安德鲁·马里斯（Andr
+ew Malis），大卫·布莱克（David
+Black），蒂安兰（Tianran Zhou）和基兰·麦克希亚尼（Kiran
+Makhijani）的有用评论和建议。特别感谢Ethan
+Grossman在改进文件方面的出色帮助。
+
+8.参考
+
+8.1。规范参考
+
+  [i-d.ietf-detnet-oam-framework] Mirsky
+，G.，Theoleyre，F.，Papadopoulos，G。Z.对于确定性网
+络（Detnet）”，“正在进行中的工作，Internet-
+Draft，Draft-ietf-detnet-oam-framework-07
+，2022年10月6日，<https://datatracker.ietf.or
+g/doc/doc/doc/doc/html/draft-html/draft-
+ietf/draft-ietf--detnet- OAM-
+FRAMEWORK-07>。
+
+  [RFC2119]
+Bradner，S。，“在RFC中使用以表示需求级别的关键词”，BCP
+14，RFC 2119，DOI 10.17487/RFC2119，1997年3月
+，<https://wwww.rfc-editor.org/rfc-
+editor.org/info/RFC2119>。
+
+
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                 [Page 10]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  [RFC7023] Mohan，D。，编辑，编辑，Sajassi，A。
+（OAM）Interworking”，RFC 7023，DOI 10.17487
+/RFC7023，2013年10月，<https://www.rfc-
+editor.org/rfc7023>。
+
+  RFC8174>。
+
+  [RFC8655]
+Finn，N.，Thubert，P.，Varga，B。和J.
+Farkas，“确定性网络体系结构”，RFC 8655，DOI 10.17487
+/RFC8655，2019年10月，<https：//wwwwwww.rfc-
+editoritor.org/info/rfc8655>。
+
+  [RFC8964] Varga，B.，Ed。，Farkas，J.，Berge
+r，L.，Malis，A.，Bryant，S。和J.
+Korhonen，“确定性网络（Detnet）数据平面：MPLS”，RFC
+8964，doi 10.17487/rfc8964，2021年1月，<https
+://www.rfc-
+editor.org/info/info/rfc8964>。
+
+  [RFC9025] Varga，B.，Ed。，Farkas，J.，Berge
+r，L.，Malis，A。和S. Bryant，“确定性网络（Detnet）数据
+平面：UDP/IP上的MPLS，RFC 9025，RFC 9025，doi 10
+.17487/rfc9025，2021年4月，<https://www.rfc-
+editor.org/info/info/rfc9025>。
+
+8.2。信息参考
+
+  [IANA-G-ACH类型] IANA，“ MPLS广义相关通道（G-ACH
+）类型（包括伪威尔相关的通道类型）”，<https://www.iana.org
+/assignments/g-ach-ach-parameters/g-ach-
+参数.xhtml
+
+  [IEEE.CFM] IEEE，“ IEEE
+802.1q的连接故障管理条款”，IEEE 802.1q，2013年。
+
+  [ITU.Y1731]
+ITU-T，“基于以太网的网络的OAM功能和机制”，ITU-
+T建议G.8013/Y.1731，2013年11月。
+
+  [RFC3985] Bryant，S.，编辑。和P.
+Pate，编辑，“伪线仿真边缘到边缘（PWE3）架构”，RFC 3985，DOI
+10.17487/RFC3985，2005年3月，<https：//www.rf
+c-editor.orgetor.rfc-editor.org/rfc-
+editor.org/info/info/rfc39855555>。
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                 [Page 11]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  [RFC4385]
+Bryant，S.，Swallow，G.，Martini，L。和D.
+McPherson，“
+Pseudowire仿真边缘到边缘（PWE3）控制词用于MPLS PSN，RFC
+4385，doi 10.17487/ doi 10.17487/RFC4385，
+2006年2月，<https://www.rfc-
+editor.org/info/info/rfc4385>。
+
+  [RFC4928] Swallow，G.，Bryant，S。和L.
+Andersson，“避免MPLS网络中的相等成本多径处理”，BCP
+128，RFC 4928，DOI
+10.17487/RFC4928，2007年6月，<https：//
+www。rfc-editor.org/info/RFC4928>。
+
+  [RFC5880] Katz，D。和D.
+Ward，“双向转发检测（BFD）”，RFC 5880，DOI 10.17487
+/RFC5880，2010年6月，<https://wwwwwwww..rfc-
+editor.or.or.or.or.or.or.or.or.or.or.or.
+or.or.or.or.or.or.orfo/rfc5888880>。
+
+  [RFC5885] Nadeau，T。，编辑。和C.
+Pignataro编辑。/info/rfc5885>。
+
+  [RFC6374] Frost，D。和S. Bryant，“ MPLS
+Networks的数据包丢失和延迟测量”，RFC 6374，DOI 10.174
+87/RFC6374，2011年9月，<https：///wwwwwwwww..
+rfc-editor.org/editor.org/info/rfc/info/
+rfc6374>。
+
+  [RFC7799]
+Morton，A。，“主动和被动指标和方法（中间有混合类型）”，RFC
+7799，doi 10.17487/rfc7799，2016年5月，<https
+://wwwww.rfc-editor.org/info/
+<https://www.rfc-
+editor.org/info/info/rfc7799>。
+
+  [RFC8029] Kompella，K.，Swallow，G.，Pigna
+taro，C.，Ed。，Kumar，N.，Aldrin，S。和M.
+Chen，“检测多条约标签转换（MPLS）数据平面失败”RFC 8029，DOI
+10.17487/RFC8029，2017年3月，<https://www.rf
+c-editor.org/info/info/rfc8029>。
+
+  [RFC8126] Cotton，M.，Leiba，B。和T.
+Narten，“编写RFCS中的IANA注意事项的指南”，BCP 26，RFC
+8126，DOI
+10.17487/RFC8126，2017年6月，2017年6月.rfc-
+editor.org/info/rfc8126>。
+
+  [RFC8762]
+Mirsky，G.，Jun，G.，Nydell，H。和R.
+Foote，“简单的双向主动测量协议”，RFC 8762，DOI
+10.17487/RFC8762，2020年3月，2020年3月.rfc-
+editor.org/info/rfc8762>。
+
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                 [Page 12]
+
+Internet-Draft          OAM for DetNet over MPLS           December 2022
+
+  [RFC8972] Mirsky，G.，Min，X.，Nydell，H.，F
+oote，R.，Masputra，A。和E.
+Ruffini，“简单的双向主动测量协议可选扩展”，RFC 8972，doi 1
+0.17487/rfc8972，2021年1月，<https://www.rfc
+-editor.org/info/rfc8972>。
+
+  [RFC9037]
+Varga，B.，Ed。，Farkas，J.，Malis，A。和S.
+Bryant，“确定性网络（Detnet）数据平面：IEEE
+802.1时MMPLS，时间敏感性网络（TSN）”，RFC 9037，doi 1
+0.17487/rfc9037，2021年6月，<https://www.rfc
+-editor.org/info/info/rfc9037>。
+
+  [RFC9055]
+Grossman，E.，Ed。，Mizrahi，T。和A.
+Hacker，“确定性网络（detnet）安全考虑”，RFC 9055，doi 
+10.17487/rfc9055，2021年6月，<https：https：//
+////////////////////////////www.rfc：///w
+ww.rfc-editor.org/info/RFC9055>。
+
+  作者的地址
+
+  Greg Mirsky Ericsson Email : Greg
+i米RS可以@Gmail.com
+
+  Mach(Guoyi) Chen Huawei Email :
+马超.陈@华为.com
+
+  Balazs Varga Ericsson Budapest匈牙利Tudos
+Krt。11.
+1117匈牙利电子邮件：balazs.a.varga@ericson.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mirsky, et al.            Expires 22 June 2023                 [Page 13]
+
+
